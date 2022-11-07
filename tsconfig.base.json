@@ -1,0 +1,21 @@
+{
+  "extends": "@sapphire/ts-config/extra-strict",
+  "compilerOptions": {
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ESNext",
+    "module": "commonjs",
+    "sourceMap": true,
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "importHelpers": true,
+    "noEmitHelpers": true,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noImplicitOverride": true
+  }
+}
