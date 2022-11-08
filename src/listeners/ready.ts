@@ -1,6 +1,7 @@
 import type { TextChannel } from 'discord.js';
 import { container, Events, Listener, Piece, Store } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
+import { CHANNEL_IDS, SERVER_ID } from '../configs/discord-constants';
 
 @ApplyOptions<Listener.Options>({ once: true, event: Events.ClientReady })
 export class ReadyListener extends Listener<typeof Events.ClientReady> {
@@ -16,16 +17,15 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
     container.logger.info(
       '-> Bot successfully started! Listening to commands...',
     );
-    this.getRgdGuild();
+
+    this.getRgdGuild().catch((e) => container.logger.error(e));
   }
 
   private async getRgdGuild() {
-    this.container.rgd = await this.container.client.guilds.fetch(
-      process.env.RGD_ID,
-    );
+    this.container.rgd = await this.container.client.guilds.fetch(SERVER_ID);
 
     this.container.mainChannel = (await this.container.rgd.channels.fetch(
-      process.env.MAIN_CHANNEL,
+      CHANNEL_IDS.MAIN,
     )) as TextChannel;
 
     this.container.logger.info('RGD fetched');
