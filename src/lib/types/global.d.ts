@@ -1,4 +1,3 @@
-import { ResponseManager } from '../response-manager';
 import { SqliteDriver } from '@mikro-orm/sqlite';
 import { MikroORM } from '@mikro-orm/core';
 
@@ -9,6 +8,5 @@ declare module '@sapphire/pieces' {
     orm: MikroORM<SqliteDriver>;
     rgd: Guild;
     mainChannel: TextChannel;
-    responseManager: ResponseManager;
   }
 }

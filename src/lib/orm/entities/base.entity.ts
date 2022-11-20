@@ -1,5 +1,5 @@
 import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
-import { customNanoid } from 'lib/utilts';
+import { customNanoid } from '../../utils';
 
 @Entity({ abstract: true })
 export abstract class BaseEntity {

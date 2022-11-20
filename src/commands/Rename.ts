@@ -7,6 +7,7 @@ import {
 } from '@sapphire/framework';
 import { BaseCommand } from '../lib/sapphire/base-command';
 import { replyWithError } from '../lib/helpers/sapphire';
+import { ChannelType } from 'discord.js';
 
 const OPTIONS = {
   USER: 'user',
@@ -17,7 +18,7 @@ const OPTIONS = {
 @ApplyOptions<CommandOptions>({
   description: 'Переименовать юзера или голосовой канал',
   runIn: [CommandOptionsRunTypeEnum.GuildText],
-  aliases: ['rnm'],
+  aliases: ['rn'],
 })
 export class RenameCommand extends BaseCommand {
   override registerApplicationCommands(registry: ChatInputCommand.Registry) {
@@ -73,7 +74,7 @@ export class RenameCommand extends BaseCommand {
       const voiceChannel = await this.container.rgd.channels.fetch(channel.id);
       const prevChannelName = channel.name;
 
-      if (voiceChannel.type !== 'GUILD_VOICE') {
+      if (voiceChannel.type !== ChannelType.GuildVoice) {
         return replyWithError(
           interaction,
           'Переименовать возможно только голосовой канал',

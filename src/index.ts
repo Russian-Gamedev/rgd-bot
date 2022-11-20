@@ -9,7 +9,6 @@ import {
 import { MikroORM, SqliteDriver } from '@mikro-orm/sqlite';
 
 import '@sapphire/plugin-logger';
-import { ResponseManager } from './lib/response-manager';
 
 dotenv.config();
 
@@ -47,14 +46,9 @@ async function bootstrap() {
 
     await client.login(token);
 
-    container.responseManager = new ResponseManager();
-
-    /* 
     const orm = await MikroORM.init<SqliteDriver>();
-    
-    container.orm = orm;
 
-    */
+    container.orm = orm;
   } catch (e) {
     console.error(e);
     process.exit(0);
