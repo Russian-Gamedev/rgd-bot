@@ -24,10 +24,15 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
   private async getRgdGuild() {
     this.container.rgd = await this.container.client.guilds.fetch(SERVER_ID);
 
+    const isDev = process.env.NODE_ENV === 'development';
+
     this.container.mainChannel = (await this.container.rgd.channels.fetch(
-      CHANNEL_IDS.MAIN,
+      CHANNEL_IDS[isDev ? 'DEBUG' : 'MAIN'],
     )) as TextChannel;
 
+    this.container.logger.info(
+      `Using ${this.container.mainChannel.name} channel`,
+    );
     this.container.logger.info('RGD fetched');
   }
 

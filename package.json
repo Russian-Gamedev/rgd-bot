@@ -57,13 +57,14 @@
     ]
   },
   "dependencies": {
+    "@directus/sdk": "^10.3.0",
     "@mikro-orm/core": "^5.5.2",
     "@mikro-orm/migrations": "^5.5.2",
     "@mikro-orm/sqlite": "^5.5.2",
-    "@sapphire/framework": "latest",
+    "@sapphire/framework": "^3.1.4",
     "@sapphire/plugin-logger": "^3.0.1",
     "@sapphire/utilities": "latest",
-    "discord.js": "^14.6.0",
+    "discord.js": "13",
     "dotenv": "^16.0.3",
     "nanoid": "^3.3.4",
     "reflect-metadata": "^0.1.13",

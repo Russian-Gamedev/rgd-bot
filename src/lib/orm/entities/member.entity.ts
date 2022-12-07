@@ -9,21 +9,21 @@ export class Member extends BaseEntity {
   @Property({ onCreate: () => new Date(), type: 'text' })
   firstJoin: Date;
 
-  @Property({ default: 0, unsigned: true })
+  @Property({ default: 0, unsigned: true, type: 'number' })
   reputation: number;
 
-  @Property({ default: 0, unsigned: true })
+  @Property({ default: 0, unsigned: true, type: 'number' })
   experience: number;
 
-  @Property({ default: 0, unsigned: true })
+  @Property({ default: 0, unsigned: true, type: 'number' })
   balance: number;
 
-  @Property({ default: 0, unsigned: true })
+  @Property({ default: 0, unsigned: true, type: 'number' })
   leaveCounter: number;
 
-  @Property({ nullable: true })
+  @Property({ nullable: true, type: 'string' })
   about?: string;
 
-  @Property({ nullable: true })
+  @Property({ nullable: true, type: 'text' })
   birthDate?: Date;
 }

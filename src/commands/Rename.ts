@@ -46,9 +46,10 @@ export class RenameCommand extends BaseCommand {
     interaction: Command.ChatInputInteraction,
   ) {
     const user = interaction.options.getUser(OPTIONS.USER, false);
-    const channel = interaction.options.getChannel(OPTIONS.CHANNEL, false);
+    const channel = interaction.options.get(OPTIONS.CHANNEL, false).channel;
 
-    const newName = interaction.options.getString(OPTIONS.NEW_NAME, true);
+    const newName = interaction.options.get(OPTIONS.NEW_NAME, true).message
+      .content;
 
     if (user) {
       const member = await this.container.rgd.members.fetch(user.id);

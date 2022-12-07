@@ -1,7 +1,7 @@
 import type { TemplateType } from '../../configs/templates';
 import { TEMPLATES } from '../../configs/templates';
 
-export function getChatTemplate(
+export function getRandomChatTemplate(
   type: TemplateType,
   params: { [name: string]: string },
 ) {
@@ -11,6 +11,13 @@ export function getChatTemplate(
   const values = Object.values(params);
 
   const template = source[Math.floor(Math.random() * source.length)];
+  console.log(template);
+  let message: string = new Function(
+    ...names,
+    `return \`${template.message}\`;`,
+  )(...values);
 
-  return new Function(...names, `return \`${template}\`;`)(...values);
+  if (template.attachment) message += '\n' + template.attachment;
+
+  return message;
 }

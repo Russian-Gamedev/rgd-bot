@@ -9,6 +9,7 @@ import {
 import { MikroORM, SqliteDriver } from '@mikro-orm/sqlite';
 
 import '@sapphire/plugin-logger';
+import { API } from './lib/services/directus';
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ async function bootstrap() {
       'MESSAGE_CONTENT',
       'GUILD_PRESENCES',
       'GUILD_VOICE_STATES',
+      'GUILD_BANS',
     ],
   });
 
@@ -45,6 +47,8 @@ async function bootstrap() {
     const token = process.env.BOT_TOKEN;
 
     await client.login(token);
+
+    container.api = new API();
 
     const orm = await MikroORM.init<SqliteDriver>();
 
