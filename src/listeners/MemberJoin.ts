@@ -7,7 +7,6 @@ import { TemplateType } from '../configs/templates';
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberAdd })
 export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
   async run(member: GuildMember) {
-    member = await member.fetch();
     const props = {
       user: `[<@${member.user.id}>] **${member.displayName}**`,
     };
@@ -16,20 +15,22 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
 
     const user = await this.container.api.getUser(member.user.id);
 
+    const discordUser = await member.user.fetch();
+
     if (user) {
       message = getRandomChatTemplate(TemplateType.MEMBER_JOIN, props);
       message += `|| ${user.leaveCount} раз ||`;
       this.container.api.updateUser({
         id: member.id,
-        avatar: member.displayAvatarURL({ format: 'webp' }),
-        banner: member.user.bannerURL({ format: 'webp' }),
+        avatar: discordUser.displayAvatarURL({ format: 'webp' }),
+        banner: discordUser.bannerURL({ format: 'webp' }),
       });
     } else {
       message = getRandomChatTemplate(TemplateType.MEMBER_FIRST_JOIN, props);
       this.container.api.createUser({
         id: member.id,
-        avatar: member.displayAvatarURL({ format: 'webp' }),
-        banner: member.user.bannerURL({ format: 'webp' }),
+        avatar: discordUser.displayAvatarURL({ format: 'webp' }),
+        banner: discordUser.bannerURL({ format: 'webp' }),
       });
     }
 
