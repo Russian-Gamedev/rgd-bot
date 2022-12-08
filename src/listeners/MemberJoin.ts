@@ -7,6 +7,7 @@ import { TemplateType } from '../configs/templates';
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberAdd })
 export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
   async run(member: GuildMember) {
+    member = await member.fetch();
     const props = {
       user: `[<@${member.user.id}>] **${member.displayName}**`,
     };
@@ -14,6 +15,7 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
     let message;
 
     const user = await this.container.api.getUser(member.user.id);
+
     if (user) {
       message = getRandomChatTemplate(TemplateType.MEMBER_JOIN, props);
       message += `|| ${user.leaveCount} раз ||`;
