@@ -4,7 +4,8 @@
     "outDir": "../dist",
     "rootDir": ".",
     "baseUrl": ".",
-    "noEmit": true
+    "noEmit": true,
+    "typeRoots": ["./lib/types/*.d.ts"]
   },
   "include": ["."]
 }

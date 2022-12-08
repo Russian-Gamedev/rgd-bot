@@ -1,27 +1,26 @@
 import { Directus } from '@directus/sdk';
-import { container } from '@sapphire/framework';
+import { container } from '@sapphire/pieces';
 import { TEMPLATES } from '../../configs/templates';
-import type { Collections } from './directus.type';
+import { Collections, CollectionsType, User } from './directus.type';
 
 export class API {
-  private client = new Directus<Collections>('https://cms.rgd.chat/', {
-    auth: {
-      staticToken: process.env.DIRECTUS_TOKEN,
-    },
-  });
+  private client = new Directus<CollectionsType>('https://cms.rgd.chat/');
 
   constructor() {
     this.ready().catch((e) => container.logger.error(e.errors));
   }
 
   async ready() {
+    await this.client.auth.static(process.env.DIRECTUS_TOKEN);
     container.logger.info('API ready');
 
     this.updateTemplates();
   }
 
   async updateTemplates() {
-    const { data } = await this.client.items('Bot_Events').readByQuery();
+    const { data } = await this.client
+      .items(Collections.BotEvents)
+      .readByQuery();
 
     Object.assign(TEMPLATES, {});
 
@@ -40,6 +39,24 @@ export class API {
   }
 
   async getUser(id: string) {
-    return this.client.items('Users').readOne(id);
+    return this.client.items(Collections.User).readOne(id);
+  }
+
+  createUser(props: Partial<User>) {
+    const defaultProps = {
+      about: null,
+      birthData: null,
+      coins: 0,
+      firstJoin: new Date().toISOString(),
+      leaveCount: 0,
+      reputation: 0,
+      voiceTime: 0,
+      ...props,
+    } as User;
+    return this.client.items(Collections.User).createOne(defaultProps);
+  }
+
+  updateUser(props: Partial<User>) {
+    return this.client.items(Collections.User).updateOne(props.id, props);
   }
 }

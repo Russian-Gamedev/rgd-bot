@@ -31,7 +31,7 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
     )) as TextChannel;
 
     this.container.logger.info(
-      `Using ${this.container.mainChannel.name} channel`,
+      `Using '${this.container.mainChannel.name}' channel`,
     );
     this.container.logger.info('RGD fetched');
   }

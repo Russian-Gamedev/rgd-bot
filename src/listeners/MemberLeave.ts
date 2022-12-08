@@ -7,6 +7,12 @@ import { TemplateType } from '../configs/templates';
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberRemove })
 export class MemberLeave extends Listener<typeof Events.GuildMemberRemove> {
   async run(member: GuildMember) {
+    const user = await this.container.api.getUser(member.user.id);
+    if (user) {
+      user.leaveCount++;
+      this.container.api.updateUser(user);
+    }
+
     const banList = await member.guild.bans.fetch();
 
     if (banList.find((user) => user.user.id == member.user.id)) return;

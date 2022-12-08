@@ -10,6 +10,7 @@ specifiers:
   '@mikro-orm/sqlite': ^5.5.2
   '@sapphire/decorators': ^5.0.0
   '@sapphire/framework': ^3.1.4
+  '@sapphire/pieces': ^3.6.0
   '@sapphire/plugin-logger': ^3.0.1
   '@sapphire/ts-config': latest
   '@sapphire/utilities': latest
@@ -45,6 +46,7 @@ dependencies:
   '@mikro-orm/migrations': 5.5.3_@mikro-orm+core@5.5.3
   '@mikro-orm/sqlite': 5.5.3_2raacla5frr7z24irl7bw5xc44
   '@sapphire/framework': 3.1.4
+  '@sapphire/pieces': 3.6.0
   '@sapphire/plugin-logger': 3.0.1
   '@sapphire/utilities': 3.11.0
   discord.js: 13.12.0

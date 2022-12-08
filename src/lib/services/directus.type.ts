@@ -1,7 +1,13 @@
 import type { TemplateType } from '../../configs/templates';
 
-export type Collections = {
-  Bot_Events: BotEvent;
+export enum Collections {
+  User = 'user',
+  BotEvents = 'Bot_Events',
+}
+
+export type CollectionsType = {
+  [Collections.BotEvents]: BotEvent;
+  [Collections.User]: User;
 };
 
 export type BotEvent = {

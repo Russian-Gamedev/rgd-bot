@@ -62,6 +62,7 @@
     "@mikro-orm/migrations": "^5.5.2",
     "@mikro-orm/sqlite": "^5.5.2",
     "@sapphire/framework": "^3.1.4",
+    "@sapphire/pieces": "^3.6.0",
     "@sapphire/plugin-logger": "^3.0.1",
     "@sapphire/utilities": "latest",
     "discord.js": "13",
