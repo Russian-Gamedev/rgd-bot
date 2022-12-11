@@ -1,7 +1,13 @@
-import { Directus } from '@directus/sdk';
+import { Directus, OneItem } from '@directus/sdk';
 import { container } from '@sapphire/pieces';
 import { TEMPLATES } from '../../configs/templates';
-import { Collections, CollectionsType, User } from './directus.type';
+import {
+  Collections,
+  CollectionsType,
+  Session,
+  SessionData,
+  User,
+} from './directus.type';
 
 export class API {
   private client = new Directus<CollectionsType>('https://cms.rgd.chat/');
@@ -58,5 +64,19 @@ export class API {
 
   updateUser(props: Partial<User>) {
     return this.client.items(Collections.User).updateOne(props.id, props);
+  }
+
+  async getSession(): Promise<SessionData> {
+    const { data } = await this.client
+      .items(Collections.BotSessions)
+      .readOne(1);
+    return JSON.parse(data);
+  }
+
+  async saveSession(data: SessionData) {
+    await this.client.items(Collections.BotSessions).updateOne('?', {
+      id: 1,
+      data: JSON.stringify(data),
+    });
   }
 }

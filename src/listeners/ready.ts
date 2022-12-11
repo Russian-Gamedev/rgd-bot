@@ -2,6 +2,7 @@ import type { TextChannel } from 'discord.js';
 import { container, Events, Listener, Piece, Store } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import { CHANNEL_IDS, SERVER_ID } from '../configs/discord-constants';
+import cron from 'node-cron';
 
 @ApplyOptions<Listener.Options>({ once: true, event: Events.ClientReady })
 export class ReadyListener extends Listener<typeof Events.ClientReady> {
@@ -19,6 +20,40 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
     );
 
     this.getRgdGuild().catch((e) => container.logger.error(e));
+
+    cron.schedule('0 18 * * *', async () => {
+      const data = await this.container.api.getSession();
+      this.voiceNotification(data.voiceTimeOfDay, false);
+    });
+    cron.schedule('0 18 * * 6', async () => {
+      const data = await this.container.api.getSession();
+      this.voiceNotification(data.voiceTimeOfDay, true);
+    });
+  }
+
+  private voiceNotification(data: Record<string, number>, isWeekly: boolean) {
+    let text = '';
+    const stats = Object.entries(data);
+    stats.sort((a, b) => b[1] - a[1]);
+    stats.slice(15);
+
+    stats.forEach(([member, time], index) => {
+      text += `${index + 1}. <@${member}>: \`${time}\` \n`;
+    });
+
+    this.container.mainChannel.send({
+      embeds: [
+        {
+          fields: [
+            //{ name: 'стата по чату', value: cc, _inline: true },
+            { name: 'стата по войсу', value: text, inline: true },
+            //{ name: 'новорегов в базе', value: '$novoregs', _inline: false },
+            //{ name: 'писало в чате', value: '$activs', _inline: true },
+          ],
+          title: isWeekly ? 'Еженедельная статистика' : 'Ежедневная статистика',
+        },
+      ],
+    });
   }
 
   private async getRgdGuild() {

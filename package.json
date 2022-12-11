@@ -65,9 +65,11 @@
     "@sapphire/pieces": "^3.6.0",
     "@sapphire/plugin-logger": "^3.0.1",
     "@sapphire/utilities": "latest",
+    "@types/node-cron": "^3.0.6",
     "discord.js": "13",
     "dotenv": "^16.0.3",
     "nanoid": "^3.3.4",
+    "node-cron": "^3.0.2",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "tslib": "^2.4.1"
