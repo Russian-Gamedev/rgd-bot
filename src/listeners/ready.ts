@@ -24,10 +24,14 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
     cron.schedule('0 18 * * *', async () => {
       const data = await this.container.api.getSession();
       this.voiceNotification(data.voiceTimeOfDay, false);
+      data.voiceTimeOfDay = {};
+      await this.container.api.saveSession(data);
     });
     cron.schedule('0 18 * * 6', async () => {
       const data = await this.container.api.getSession();
-      this.voiceNotification(data.voiceTimeOfDay, true);
+      this.voiceNotification(data.voiceTimeOfWeek, true);
+      data.voiceTimeOfWeek = {};
+      await this.container.api.saveSession(data);
     });
   }
 
