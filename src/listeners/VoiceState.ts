@@ -1,6 +1,8 @@
+import { StatsDay } from './../lib/services/entities/Stats';
 import { Events, Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { GuildMember, VoiceState } from 'discord.js';
+import { User } from '../lib/services/entities/User';
 
 @ApplyOptions<Listener.Options>({ event: Events.VoiceStateUpdate })
 export class MemberBan extends Listener<typeof Events.VoiceStateUpdate> {
@@ -19,24 +21,24 @@ export class MemberBan extends Listener<typeof Events.VoiceStateUpdate> {
       const enteredTime = this.voiceMap.get(member);
       const elapsedTime = Math.floor((Date.now() - enteredTime) / 1000);
 
-      const user = await this.container.api.getUser(member.id);
+      const user = await User.findOne(member.id);
       /// Directus return voiceTime as string, dont known why
       user.voiceTime = +user.voiceTime + elapsedTime;
-      await this.container.api.updateUser(user);
-      const session = await this.container.api.getSession();
-
-      if (!(member.id in session.voiceTimeOfDay)) {
-        session.voiceTimeOfDay[member.id] = 0;
+      await user.save();
+      let dayStats = await StatsDay.findOne('', {
+        filter: {
+          user: member.id,
+        },
+      });
+      if (!dayStats) {
+        dayStats = await StatsDay.create({
+          user: member.id,
+        });
       }
 
-      if (!(member.id in session.voiceTimeOfWeek)) {
-        session.voiceTimeOfWeek[member.id] = 0;
-      }
+      dayStats.voice += elapsedTime;
 
-      session.voiceTimeOfDay[member.id] += elapsedTime;
-      session.voiceTimeOfWeek[member.id] += elapsedTime;
-
-      await this.container.api.saveSession(session);
+      await dayStats.save();
 
       this.voiceMap.delete(member);
 

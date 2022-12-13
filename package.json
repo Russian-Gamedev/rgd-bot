@@ -66,6 +66,7 @@
     "@sapphire/plugin-logger": "^3.0.1",
     "@sapphire/utilities": "latest",
     "@types/node-cron": "^3.0.6",
+    "axios": "^1.2.1",
     "discord.js": "13",
     "dotenv": "^16.0.3",
     "nanoid": "^3.3.4",

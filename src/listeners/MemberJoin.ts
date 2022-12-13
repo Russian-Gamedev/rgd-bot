@@ -3,6 +3,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import type { GuildMember } from 'discord.js';
 import { getRandomChatTemplate } from '../lib/helpers/get-chat-template';
 import { TemplateType } from '../configs/templates';
+import { User } from '../lib/services/entities/User';
 
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberAdd })
 export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
@@ -13,21 +14,19 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
 
     let message;
 
-    const user = await this.container.api.getUser(member.user.id);
+    const user = await User.findOne(member.user.id);
 
     const discordUser = await member.user.fetch();
 
     if (user) {
       message = getRandomChatTemplate(TemplateType.MEMBER_JOIN, props);
       message += `|| ${user.leaveCount} раз ||`;
-      this.container.api.updateUser({
-        id: member.id,
-        avatar: discordUser.displayAvatarURL({ format: 'webp' }),
-        banner: discordUser.bannerURL({ format: 'webp' }),
-      });
+      user.avatar = discordUser.displayAvatarURL({ format: 'webp' });
+      user.banner = discordUser.bannerURL({ format: 'webp' });
+      await user.save();
     } else {
       message = getRandomChatTemplate(TemplateType.MEMBER_FIRST_JOIN, props);
-      this.container.api.createUser({
+      await User.create({
         id: member.id,
         avatar: discordUser.displayAvatarURL({ format: 'webp' }),
         banner: discordUser.bannerURL({ format: 'webp' }),

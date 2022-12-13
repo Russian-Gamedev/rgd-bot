@@ -11,7 +11,6 @@ export function getRandomChatTemplate(
   const values = Object.values(params);
 
   const template = source[Math.floor(Math.random() * source.length)];
-  console.log(template);
   let message: string = new Function(
     ...names,
     `return \`${template.message}\`;`,

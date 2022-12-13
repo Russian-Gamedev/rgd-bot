@@ -3,14 +3,15 @@ import { ApplyOptions } from '@sapphire/decorators';
 import type { GuildMember } from 'discord.js';
 import { getRandomChatTemplate } from '../lib/helpers/get-chat-template';
 import { TemplateType } from '../configs/templates';
+import { User } from '../lib/services/entities/User';
 
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberRemove })
 export class MemberLeave extends Listener<typeof Events.GuildMemberRemove> {
   async run(member: GuildMember) {
-    const user = await this.container.api.getUser(member.user.id);
+    const user = await User.findOne(member.user.id);
     if (user) {
       user.leaveCount++;
-      this.container.api.updateUser(user);
+      await user.save();
     }
 
     const banList = await member.guild.bans.fetch();

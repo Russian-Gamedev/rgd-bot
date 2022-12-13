@@ -1,33 +1,25 @@
-import { Directus, OneItem } from '@directus/sdk';
+import { DiscordEvents } from './entities/Events';
+import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { container } from '@sapphire/pieces';
 import { TEMPLATES } from '../../configs/templates';
-import {
-  Collections,
-  CollectionsType,
-  Session,
-  SessionData,
-  User,
-} from './directus.type';
 
 export class API {
-  private client = new Directus<CollectionsType>('https://cms.rgd.chat/');
+  private static readonly baseUrl = 'https://cms.rgd.chat/';
+  private static token: string;
 
   constructor() {
+    API.token = process.env.DIRECTUS_TOKEN;
     this.ready().catch((e) => container.logger.error(e.errors));
   }
 
   async ready() {
-    await this.client.auth.static(process.env.DIRECTUS_TOKEN);
     container.logger.info('API ready');
 
     this.updateTemplates();
   }
 
   async updateTemplates() {
-    const { data } = await this.client
-      .items(Collections.BotEvents)
-      .readByQuery();
-
+    const data = await DiscordEvents.find(true);
     Object.assign(TEMPLATES, {});
 
     data.forEach((event) => {
@@ -44,39 +36,69 @@ export class API {
     container.logger.info(`Updated ${data.length} bot events`);
   }
 
-  async getUser(id: string) {
-    return this.client.items(Collections.User).readOne(id);
+  static async request(config: RequestConfig) {
+    const axiosConfig: AxiosRequestConfig = {
+      method: config.method,
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+        'Accept-Encoding': 'gzip,deflate,compress',
+      },
+      url: this.baseUrl + config.url,
+    };
+
+    if (config.query && config.method === 'GET') {
+      axiosConfig.url += '?' + this.queryBuilder(config.query);
+    }
+    if (
+      config.body &&
+      (config.method === 'POST' || config.method === 'PATCH')
+    ) {
+      axiosConfig.data = config.body;
+    }
+
+    try {
+      let { data } = await axios(axiosConfig);
+      if ('data' in data) {
+        data = data.data;
+      }
+      return data;
+    } catch (e) {
+      if (e instanceof AxiosError) {
+        container.logger.error(
+          e.response.data.errors[0].message,
+          `${config.method}: ${config.url}`,
+        );
+      }
+      return null;
+    }
   }
 
-  createUser(props: Partial<User>) {
-    const defaultProps = {
-      about: null,
-      birthData: null,
-      coins: 0,
-      firstJoin: new Date().toISOString(),
-      leaveCount: 0,
-      reputation: 0,
-      voiceTime: 0,
-      ...props,
-    } as User;
-    return this.client.items(Collections.User).createOne(defaultProps);
-  }
-
-  updateUser(props: Partial<User>) {
-    return this.client.items(Collections.User).updateOne(props.id, props);
-  }
-
-  async getSession(): Promise<SessionData> {
-    const { data } = await this.client
-      .items(Collections.BotSessions)
-      .readOne(1);
-    return JSON.parse(data);
-  }
-
-  async saveSession(data: SessionData) {
-    await this.client.items(Collections.BotSessions).updateOne('?', {
-      id: 1,
-      data: JSON.stringify(data),
-    });
+  private static queryBuilder(query: Record<string, any>) {
+    return Object.entries(query)
+      .filter(([_, value]) => value != undefined)
+      .map(
+        ([key, value]) =>
+          `${key}=${encodeURIComponent(
+            typeof value === 'object' ? JSON.stringify(value) : value,
+          )}`,
+      )
+      .join('&');
   }
 }
+
+type RequestConfig = {
+  url: string;
+  method: 'GET' | 'POST' | 'PATCH' | 'SEARCH' | 'DELETE';
+  body?: Record<string, any>;
+  query?: Query;
+};
+
+export type Query = {
+  fields?: string;
+  filter?: Record<string, any>;
+  search?: string;
+  sort?: string;
+  limit?: number;
+  offset?: number;
+  page?: number;
+};

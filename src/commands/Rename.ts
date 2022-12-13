@@ -7,7 +7,6 @@ import {
 } from '@sapphire/framework';
 import { BaseCommand } from '../lib/sapphire/base-command';
 import { replyWithError } from '../lib/helpers/sapphire';
-import { ChannelType } from 'discord.js';
 
 const OPTIONS = {
   USER: 'user',
@@ -46,10 +45,10 @@ export class RenameCommand extends BaseCommand {
     interaction: Command.ChatInputInteraction,
   ) {
     const user = interaction.options.getUser(OPTIONS.USER, false);
-    const channel = interaction.options.get(OPTIONS.CHANNEL, false).channel;
+    const channel = interaction.options.get(OPTIONS.CHANNEL, false)?.channel;
 
-    const newName = interaction.options.get(OPTIONS.NEW_NAME, true).message
-      .content;
+    const newName = interaction.options.get(OPTIONS.NEW_NAME, true)?.message
+      ?.content;
 
     if (user) {
       const member = await this.container.rgd.members.fetch(user.id);
@@ -75,7 +74,7 @@ export class RenameCommand extends BaseCommand {
       const voiceChannel = await this.container.rgd.channels.fetch(channel.id);
       const prevChannelName = channel.name;
 
-      if (voiceChannel.type !== ChannelType.GuildVoice) {
+      if (voiceChannel.type !== 'GUILD_VOICE') {
         return replyWithError(
           interaction,
           'Переименовать возможно только голосовой канал',
