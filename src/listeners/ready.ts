@@ -101,11 +101,11 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
           fields: [
             { name: 'стата по чату', value: chatText, inline: true },
             { name: 'стата по войсу', value: voiceText, inline: true },
-            { name: 'новорегов в базе', value: '-1', inline: false },
+            // { name: 'новорегов в базе', value: '-1', inline: false },
             {
               name: 'писало в чате',
               value: data.length.toLocaleString('ru-RU'),
-              inline: true,
+              inline: false,
             },
           ],
           title: isWeekly ? 'Еженедельная статистика' : 'Ежедневная статистика',
