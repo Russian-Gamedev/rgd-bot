@@ -62,8 +62,8 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
   private voiceNotification(data: StatsDay[] | StatsWeek[], isWeekly: boolean) {
     let chatText = '';
     let voiceText = '';
-    const chatStats = data.sort((a, b) => b.chat - a.chat).slice(15);
-    const voiceStats = data.sort((a, b) => b.voice - a.voice).slice(15);
+    const chatStats = data.sort((a, b) => b.chat - a.chat).slice(0, 15);
+    const voiceStats = data.sort((a, b) => b.voice - a.voice).slice(0, 15);
 
     chatStats.forEach((stat, index) => {
       chatText += `${index + 1}. <@${stat.user}>: \`${stat.chat}\` \n`;
