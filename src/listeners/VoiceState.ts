@@ -23,7 +23,7 @@ export class MemberBan extends Listener<typeof Events.VoiceStateUpdate> {
 
       const user = await User.findOne(member.id);
       /// Directus return voiceTime as string, dont known why
-      user.voiceTime = +user.voiceTime + elapsedTime;
+      user.voiceTime = +user?.voiceTime + elapsedTime;
       await user.save();
       let dayStats = await StatsDay.findOne('', {
         filter: {
