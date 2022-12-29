@@ -1,4 +1,4 @@
-import { StatsWeek } from './../lib/services/entities/Stats';
+import { StatsWeek } from '../lib/services/entities/Stats';
 import { StatsDay } from '../lib/services/entities/Stats';
 import type { TextChannel } from 'discord.js';
 import { container, Events, Listener, Piece, Store } from '@sapphire/framework';
@@ -47,14 +47,10 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
       );
       container.logger.info('day stats cleared');
     });
-    cron.schedule('0 18 * * 6', async () => {
+    cron.schedule('0 15 * * 6', async () => {
       const data = await StatsWeek.find(true);
       this.voiceNotification(data, true);
-      await Promise.all(
-        data.map(async (stats) => {
-          stats.delete();
-        }),
-      );
+      await Promise.all(data.map(async (stats) => stats.delete()));
       container.logger.info('weekly stats cleared');
     });
   }
@@ -83,17 +79,6 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
     if (!voiceText) {
       voiceText = 'войс был пустым :(';
     }
-
-    console.log(
-      { name: 'стата по чату', value: chatText, inline: true },
-      { name: 'стата по войсу', value: voiceText, inline: true },
-      //{ name: 'новорегов в базе', value: '$novoregs', _inline: false },
-      {
-        name: 'писало в чате',
-        value: data.length.toLocaleString('ru-RU'),
-        inline: true,
-      },
-    );
 
     this.container.mainChannel.send({
       embeds: [
