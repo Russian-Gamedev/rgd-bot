@@ -23,14 +23,18 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
       message += `|| ${user.leaveCount} раз ||`;
       user.avatar = discordUser.displayAvatarURL({ format: 'webp' });
       user.banner = discordUser.bannerURL({ format: 'webp' });
+      user.username = discordUser.username;
       await user.save();
     } else {
       message = getRandomChatTemplate(TemplateType.MEMBER_FIRST_JOIN, props);
-      await User.create({
+      const newUser = await User.create({
         id: member.id,
         avatar: discordUser.displayAvatarURL({ format: 'webp' }),
         banner: discordUser.bannerURL({ format: 'webp' }),
+        username: discordUser.username,
+        firstJoin: new Date().toISOString(),
       });
+      await newUser.save();
     }
 
     await this.container.mainChannel.send(message);

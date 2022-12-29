@@ -1,4 +1,4 @@
-import { DirectusEntity } from './../Entity';
+import { DirectusEntity } from '../Entity';
 
 export class StatsDay extends DirectusEntity {
   static override collection = 'Bot_Stats_Day';

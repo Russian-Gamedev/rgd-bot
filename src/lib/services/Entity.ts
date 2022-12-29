@@ -13,20 +13,21 @@ export class DirectusEntity {
     this: new () => T,
     id: string,
     query?: Query,
-  ): Promise<T> {
+  ): Promise<T | null> {
     const self = this as any;
-
-    let data = await API.request({
-      method: 'GET',
-      url: `items/${self.collection}/${id}`,
-      query: typeof query == 'object' ? query : undefined,
-    });
-    if (data instanceof Array) {
-      data = data.at(0);
-    }
-    if (data) {
-      return self.create({ ...data, $exist: true });
-    }
+    try {
+      let data = await API.request({
+        method: 'GET',
+        url: `items/${self.collection}/${id}`,
+        query: typeof query == 'object' ? query : undefined,
+      });
+      if (data instanceof Array) {
+        data = data.at(0);
+      }
+      if (data) {
+        return self.create({ ...data, $exist: true });
+      }
+    } catch (e) {}
     return null;
   }
 
@@ -57,6 +58,7 @@ export class DirectusEntity {
     for (const [key, value] of Object.entries(props)) {
       instance[key as keyof T] = value;
     }
+
     return instance;
   }
 
