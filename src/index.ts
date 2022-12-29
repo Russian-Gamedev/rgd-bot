@@ -41,6 +41,7 @@ async function bootstrap() {
       'GUILD_VOICE_STATES',
       'GUILD_BANS',
     ],
+    partials: ['CHANNEL', 'MESSAGE', 'REACTION'],
   });
 
   try {

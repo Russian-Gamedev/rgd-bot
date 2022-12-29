@@ -1,5 +1,5 @@
 import { DiscordEvents } from './entities/Events';
-import axios, { AxiosError, AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { container } from '@sapphire/pieces';
 import { TEMPLATES } from '../../configs/templates';
 
@@ -63,12 +63,6 @@ export class API {
       }
       return data;
     } catch (e) {
-      if (e instanceof AxiosError) {
-        container.logger.error(
-          e.response.data.errors[0].message,
-          `${config.method}: ${config.url}`,
-        );
-      }
       return null;
     }
   }
