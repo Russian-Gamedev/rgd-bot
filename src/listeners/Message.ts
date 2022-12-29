@@ -7,6 +7,7 @@ import { StatsDay } from '../lib/services/entities/Stats';
 @ApplyOptions<Listener.Options>({ event: Events.MessageCreate })
 export class MemberLeave extends Listener<typeof Events.MessageCreate> {
   async run(message: Message) {
+    if (message.member.user.bot) return;
     const words = message.content.split(' ').filter((e) => e.length);
 
     if (words.length) {

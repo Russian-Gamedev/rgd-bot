@@ -1,4 +1,4 @@
-import { StatsDay } from './../lib/services/entities/Stats';
+import { StatsDay } from '../lib/services/entities/Stats';
 import { Events, Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { GuildMember, VoiceState } from 'discord.js';
@@ -10,6 +10,7 @@ export class MemberBan extends Listener<typeof Events.VoiceStateUpdate> {
 
   async run(oldState: VoiceState, newState: VoiceState) {
     if (oldState.channelId == newState.id) return;
+    if (newState.member.user.bot) return;
 
     const member = newState.member;
     if (newState.channel) {
@@ -22,6 +23,7 @@ export class MemberBan extends Listener<typeof Events.VoiceStateUpdate> {
       const elapsedTime = Math.floor((Date.now() - enteredTime) / 1000);
 
       const user = await User.findOne(member.id);
+      if (!user) return;
       /// Directus return voiceTime as string, dont known why
       user.voiceTime = +user?.voiceTime + elapsedTime;
       await user.save();
