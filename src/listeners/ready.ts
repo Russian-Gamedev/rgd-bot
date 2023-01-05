@@ -7,6 +7,7 @@ import {
   DiscordRole,
   RoleBindings,
 } from '../lib/services/entities/Discord';
+import { execSync } from 'child_process';
 
 @ApplyOptions<Listener.Options>({ once: true, event: Events.ClientReady })
 export class ReadyListener extends Listener<typeof Events.ClientReady> {
@@ -48,9 +49,18 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
     RoleBindings.list = await RoleBindings.find(true);
 
     this.container.logger.info('RGD fetched');
+
+    const commitCount = execSync('git rev-list --count HEAD').toString('utf8');
+    const lastCommit = execSync('git log --name-status HEAD^..HEAD').toString(
+      'utf8',
+    );
+
+    const randomEmoji = this.container.rgd.emojis.cache.random();
+    const content = `Bot started${randomEmoji} \nBuild number: \`${commitCount}\` \n\`\`\`diff\nLast commit\n+ ${lastCommit}\n\`\`\``;
+
     if (!isDev) {
       this.container.debugChannel.send({
-        content: 'Bot started ...',
+        content,
       });
     }
   }
