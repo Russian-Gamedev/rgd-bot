@@ -51,12 +51,12 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
     this.container.logger.info('RGD fetched');
 
     const commitCount = execSync('git rev-list --count HEAD').toString('utf8');
-    const lastCommit = execSync('git log --name-status HEAD^..HEAD').toString(
-      'utf8',
-    );
+    const lastCommit = execSync(
+      'git log -1 --pretty=format:"%an, %s"',
+    ).toString('utf8');
 
     const randomEmoji = this.container.rgd.emojis.cache.random();
-    const content = `Bot started${randomEmoji} \nBuild number: \`${commitCount}\` \n\`\`\`diff\nLast commit\n+ ${lastCommit}\n\`\`\``;
+    const content = `Bot started${randomEmoji} \nCommit number: \`${commitCount}\` \n\`\`\`diff\nLast commit\n+ ${lastCommit}\n\`\`\``;
 
     if (!isDev) {
       this.container.debugChannel.send({
