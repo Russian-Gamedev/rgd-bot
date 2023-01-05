@@ -19,7 +19,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "prepare": "husky install",
     "deploy": "pm2 deploy ecosystem.config.js production --force",
-    "reload-production": "pm2 deploy ecosystem.config.js production exec 'pm2 reload app'"
+    "reload-production": "pm2 deploy ecosystem.config.js production exec 'pm2 reload rgd-bot'"
   },
   "repository": {
     "type": "git",
