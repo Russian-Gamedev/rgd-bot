@@ -34,7 +34,7 @@ export class DirectusEntity {
   static async find<T extends DirectusEntity>(
     this: new () => T,
     all = false,
-    query?: Query,
+    query: Query = {},
   ): Promise<T[]> {
     const self = this as any;
     const data = await API.request({
