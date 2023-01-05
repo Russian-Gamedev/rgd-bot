@@ -20,6 +20,7 @@ export class API {
 
   async updateTemplates() {
     const data = await DiscordEvents.find(true);
+
     Object.assign(TEMPLATES, {});
 
     data.forEach((event) => {

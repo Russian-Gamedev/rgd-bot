@@ -25,9 +25,7 @@ async function bootstrap() {
       ],
     },
     logger: {
-      instance: new Logger(
-        process.env.NODE_ENV !== 'production' ? LogLevel.Debug : LogLevel.Warn,
-      ),
+      instance: new Logger(LogLevel.Debug),
     },
     disableMentionPrefix: true,
     loadMessageCommandListeners: true,
