@@ -27,9 +27,10 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
             user: stats.user,
           });
         }
+
         weekUser.chat += stats.chat;
         weekUser.voice += stats.voice;
-
+        await weekUser.save();
         await stats.delete();
       }),
     );
