@@ -34,6 +34,9 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
     this.container.mainChannel = (await this.container.rgd.channels.fetch(
       CHANNEL_IDS[isDev ? 'DEBUG' : 'MAIN'],
     )) as TextChannel;
+    this.container.debugChannel = (await this.container.rgd.channels.fetch(
+      CHANNEL_IDS['DEBUG'],
+    )) as TextChannel;
 
     this.container.logger.info(
       `Using '${this.container.mainChannel.name}' channel`,
@@ -45,6 +48,11 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
     RoleBindings.list = await RoleBindings.find(true);
 
     this.container.logger.info('RGD fetched');
+    if (!isDev) {
+      this.container.debugChannel.send({
+        content: 'Bot started ...',
+      });
+    }
   }
 
   private async updateChannels() {
@@ -66,6 +74,7 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
       }),
     );
     this.container.logger.info(`${channels.size} channels updated`);
+    return channels.size;
   }
 
   private async updateRoles() {
@@ -85,6 +94,7 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
     );
 
     container.logger.info(`${roles.size} roles updated`);
+    return roles.size;
   }
 
   private styleStore(store: Store<Piece>, last: boolean) {

@@ -18,6 +18,7 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
     const user = await User.findOne(member.user.id);
     const discordUser = await member.user.fetch();
     if (user) {
+      user.leaveCount++;
       message = getRandomChatTemplate(TemplateType.MEMBER_JOIN, props);
       message += `|| ${user.leaveCount} раз ||`;
       user.avatar = discordUser.displayAvatarURL({ format: 'webp' });

@@ -9,6 +9,7 @@ declare module '@sapphire/pieces' {
     orm: MikroORM<SqliteDriver>;
     rgd: Guild;
     mainChannel: TextChannel;
+    debugChannel: TextChannel;
     api: API;
   }
 }
