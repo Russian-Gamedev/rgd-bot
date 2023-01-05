@@ -23,3 +23,9 @@ export class RoleBindings extends DirectusEntity {
   emoji: string;
   message: string;
 }
+
+export class UserRoles extends DirectusEntity {
+  static override collection = 'user_Discord_Roles';
+  user_id: string;
+  Discord_Roles_id: string;
+}
