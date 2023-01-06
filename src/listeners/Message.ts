@@ -14,6 +14,9 @@ export class MemberLeave extends Listener<typeof Events.MessageCreate> {
       const user = await User.findOne(message.member.id);
       if (user) {
         user.experience += words.length;
+        user.avatar = message.member.displayAvatarURL({ format: 'jpg' });
+        user.banner = message.member.user.bannerURL({ format: 'jpg' });
+
         await user.save();
 
         let dayStats = await StatsDay.findOne('', {
