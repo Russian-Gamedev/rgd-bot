@@ -21,12 +21,12 @@ export class MemberBan extends Listener<typeof Events.UserUpdate> {
         newMember.username,
       );
     }
-    await newMember.fetch();
+    const member = await newMember.fetch();
     const user = await User.findOne(newMember.id);
     if (user) {
-      user.username = newMember.username;
-      user.avatar = newMember.displayAvatarURL({ format: 'jpg' });
-      user.banner = newMember.bannerURL({ format: 'jpg' });
+      user.username = member.username;
+      user.avatar = member.displayAvatarURL({ format: 'jpg' });
+      user.banner = member.bannerURL({ format: 'jpg' });
       await user.save();
     }
   }

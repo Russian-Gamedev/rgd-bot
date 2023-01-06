@@ -10,26 +10,26 @@ export class MemberLeave extends Listener<typeof Events.MessageCreate> {
     if (message.member.user.bot) return;
 
     const words = message.content.split(' ').filter((e) => e.length);
+    const member = await message.member.fetch();
 
     if (words.length) {
-      const user = await User.findOne(message.member.id);
+      const user = await User.findOne(member.id);
       if (user) {
-        await message.member.fetch();
         user.experience += words.length;
-        user.avatar = message.member.displayAvatarURL({ format: 'jpg' });
-        user.banner = message.member.user.bannerURL({ format: 'jpg' });
+        user.avatar = member.displayAvatarURL({ format: 'jpg' });
+        user.banner = member.user.bannerURL({ format: 'jpg' });
 
         await user.save();
 
         let dayStats = await StatsDay.findOne('', {
           filter: {
-            user: message.member.id,
+            user: member.id,
           },
         });
 
         if (!dayStats) {
           dayStats = await StatsDay.create({
-            user: message.member.id,
+            user: member.id,
           });
         }
 
