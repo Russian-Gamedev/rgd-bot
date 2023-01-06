@@ -10,14 +10,14 @@ export class MemberLeave extends Listener<typeof Events.MessageCreate> {
     if (message.member.user.bot) return;
 
     const words = message.content.split(' ').filter((e) => e.length);
-    const member = await message.member.fetch();
+    const member = await message.member.user.fetch();
 
     if (words.length) {
       const user = await User.findOne(member.id);
       if (user) {
         user.experience += words.length;
         user.avatar = member.displayAvatarURL({ format: 'jpg' });
-        user.banner = member.user.bannerURL({ format: 'jpg' });
+        user.banner = member.bannerURL({ format: 'jpg' });
 
         await user.save();
 
