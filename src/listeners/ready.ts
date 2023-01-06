@@ -56,7 +56,7 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
     ).toString('utf8');
 
     const randomEmoji = this.container.rgd.emojis.cache.random();
-    const content = `Bot started${randomEmoji} \nCommit number: \`${commitCount}\` \n\`\`\`diff\nLast commit\n+ ${lastCommit}\n\`\`\``;
+    const content = `Bot started ${randomEmoji} \nCommit number: \`${commitCount}\`\`\`\`diff\n+ ${lastCommit}\n\`\`\``;
 
     if (!isDev) {
       this.container.debugChannel.send({
