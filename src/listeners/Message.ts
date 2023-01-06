@@ -8,11 +8,13 @@ import { StatsDay } from '../lib/services/entities/Stats';
 export class MemberLeave extends Listener<typeof Events.MessageCreate> {
   async run(message: Message) {
     if (message.member.user.bot) return;
+
     const words = message.content.split(' ').filter((e) => e.length);
 
     if (words.length) {
       const user = await User.findOne(message.member.id);
       if (user) {
+        await message.member.fetch();
         user.experience += words.length;
         user.avatar = message.member.displayAvatarURL({ format: 'jpg' });
         user.banner = message.member.user.bannerURL({ format: 'jpg' });

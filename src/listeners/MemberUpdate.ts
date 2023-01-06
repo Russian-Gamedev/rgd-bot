@@ -21,7 +21,7 @@ export class MemberBan extends Listener<typeof Events.UserUpdate> {
         newMember.username,
       );
     }
-
+    await newMember.fetch();
     const user = await User.findOne(newMember.id);
     if (user) {
       user.username = newMember.username;
