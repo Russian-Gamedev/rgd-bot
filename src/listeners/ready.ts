@@ -5,6 +5,7 @@ import { CHANNEL_IDS, SERVER_ID } from '../configs/discord-constants';
 import {
   DiscordChannel,
   DiscordRole,
+  Invites,
   RoleBindings,
 } from '../lib/services/entities/Discord';
 import { execSync } from 'child_process';
@@ -43,11 +44,7 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
       `Using '${this.container.mainChannel.name}' channel`,
     );
 
-    this.container.rgd.invites
-      .fetch()
-      .then(console.log)
-      .catch(() => console.error('no permission'));
-
+    await this.updateInvites();
     await this.updateChannels();
     await this.updateRoles();
 
@@ -68,6 +65,25 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
         content,
       });
     }
+  }
+
+  private async updateInvites() {
+    const invites = await this.container.rgd.invites.fetch();
+    await Promise.all(
+      invites.map(async (invite) => {
+        if (invite.inviter.bot) return;
+        let dInvite = await Invites.findOne(invite.code);
+        if (!dInvite) {
+          dInvite = Invites.create({
+            id: invite.code,
+            inviter: invite.inviterId,
+          });
+        }
+        dInvite.uses = invite.uses;
+        await dInvite.save();
+      }),
+    );
+    this.container.logger.info(`${invites.size} invites updated`);
   }
 
   private async updateChannels() {

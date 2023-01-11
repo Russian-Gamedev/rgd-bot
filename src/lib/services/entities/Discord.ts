@@ -29,3 +29,11 @@ export class UserRoles extends DirectusEntity {
   user_id: string;
   Discord_Roles_id: string;
 }
+
+export class Invites extends DirectusEntity {
+  static override collection = 'Invites';
+  declare id: string;
+  uses = 0;
+  alias: string;
+  inviter: string;
+}

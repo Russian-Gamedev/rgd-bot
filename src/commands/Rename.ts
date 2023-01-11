@@ -25,6 +25,12 @@ export class RenameCommand extends BaseCommand {
       builder
         .setName(this.name)
         .setDescription(this.description)
+        .addStringOption((option) =>
+          option
+            .setName(OPTIONS.NEW_NAME)
+            .setDescription('Новое имя')
+            .setRequired(true),
+        )
         .addUserOption((option) =>
           option
             .setName(OPTIONS.USER)
@@ -34,12 +40,6 @@ export class RenameCommand extends BaseCommand {
           option
             .setName(OPTIONS.CHANNEL)
             .setDescription('Голосовой канал, который нужно переименовать'),
-        )
-        .addStringOption((option) =>
-          option
-            .setName(OPTIONS.NEW_NAME)
-            .setDescription('Новое имя')
-            .setRequired(true),
         ),
     );
   }
