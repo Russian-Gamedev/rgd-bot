@@ -43,6 +43,11 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
       `Using '${this.container.mainChannel.name}' channel`,
     );
 
+    this.container.rgd.invites
+      .fetch()
+      .then(console.log)
+      .catch(() => console.error('no permission'));
+
     await this.updateChannels();
     await this.updateRoles();
 

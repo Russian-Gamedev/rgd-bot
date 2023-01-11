@@ -1,15 +1,16 @@
 import * as dotenv from 'dotenv';
 
 import {
-  Logger,
-  LogLevel,
   SapphireClient,
   container,
+  Logger,
+  LogLevel,
 } from '@sapphire/framework';
 import { MikroORM, SqliteDriver } from '@mikro-orm/sqlite';
 
 import '@sapphire/plugin-logger';
 import { API } from './lib/services/directus';
+import { DiscordLogger } from './lib/sapphire/DiscordLogger';
 
 dotenv.config();
 
@@ -19,13 +20,16 @@ async function bootstrap() {
       status: 'online',
       activities: [
         {
-          type: 'STREAMING',
+          type: 'PLAYING',
           name: 'Поднимает геймдев с колен',
         },
       ],
     },
     logger: {
-      instance: new Logger(LogLevel.Debug),
+      instance:
+        process.env.NODE_ENV === 'production'
+          ? new DiscordLogger()
+          : new Logger(LogLevel.Debug),
     },
     disableMentionPrefix: true,
     loadMessageCommandListeners: true,
@@ -38,6 +42,7 @@ async function bootstrap() {
       'GUILD_PRESENCES',
       'GUILD_VOICE_STATES',
       'GUILD_BANS',
+      'GUILD_INVITES',
     ],
     partials: ['CHANNEL', 'MESSAGE', 'REACTION'],
   });

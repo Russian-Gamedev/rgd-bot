@@ -36,7 +36,10 @@ export class RenameCommand extends BaseCommand {
             .setDescription('Голосовой канал, который нужно переименовать'),
         )
         .addStringOption((option) =>
-          option.setName(OPTIONS.NEW_NAME).setDescription('Новое имя'),
+          option
+            .setName(OPTIONS.NEW_NAME)
+            .setDescription('Новое имя')
+            .setRequired(true),
         ),
     );
   }
