@@ -15,7 +15,7 @@ export class User extends DirectusEntity {
   leaveCount = 0;
   firstJoin: string;
   about?: string;
-  birthData?: string;
+  birthDate?: string;
   experience = 0;
   invite?: string;
 }

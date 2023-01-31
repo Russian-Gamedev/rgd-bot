@@ -56,7 +56,6 @@ export class API {
     ) {
       axiosConfig.data = config.body;
     }
-
     try {
       let { data } = await axios(axiosConfig);
       if ('data' in data) {
@@ -85,7 +84,7 @@ type RequestConfig = {
   url: string;
   method: 'GET' | 'POST' | 'PATCH' | 'SEARCH' | 'DELETE';
   body?: Record<string, any>;
-  query?: Query;
+  query?: Record<string, any>;
 };
 
 export type Query = {
