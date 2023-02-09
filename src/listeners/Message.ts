@@ -1,8 +1,9 @@
-import { Events, Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
-import type { Message } from 'discord.js';
-import { User } from '../lib/services/entities/User';
-import { StatsDay } from '../lib/services/entities/Stats';
+import { Listener } from '@sapphire/framework';
+import { Events, type Message } from 'discord.js';
+import { StatsDay } from '../lib/directus/directus-entities/Stats';
+import { User } from '../lib/directus/directus-entities/User';
+import { FilterRule } from '../lib/directus/directus-orm/filters';
 
 @ApplyOptions<Listener.Options>({ event: Events.MessageCreate })
 export class MemberLeave extends Listener<typeof Events.MessageCreate> {
@@ -16,15 +17,13 @@ export class MemberLeave extends Listener<typeof Events.MessageCreate> {
       const user = await User.findOne(member.id);
       if (user) {
         user.experience += words.length;
-        user.avatar = member.displayAvatarURL({ format: 'jpg' });
-        user.banner = member.bannerURL({ format: 'jpg' });
+        user.avatar = member.displayAvatarURL({ extension: 'webp' });
+        user.banner = member.bannerURL({ extension: 'webp' });
 
         await user.save();
 
         let dayStats = await StatsDay.findOne('', {
-          filter: {
-            user: member.id,
-          },
+          filter: new FilterRule().EqualTo('user', member.id),
         });
 
         if (!dayStats) {

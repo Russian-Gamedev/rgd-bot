@@ -1,16 +1,8 @@
 import * as dotenv from 'dotenv';
-
-import {
-  SapphireClient,
-  container,
-  Logger,
-  LogLevel,
-} from '@sapphire/framework';
-import { MikroORM, SqliteDriver } from '@mikro-orm/sqlite';
-
 import '@sapphire/plugin-logger';
-import { API } from './lib/services/directus';
-import { DiscordLogger } from './lib/sapphire/DiscordLogger';
+import { Logger, LogLevel, SapphireClient } from '@sapphire/framework';
+import { ActivityType, GatewayIntentBits, Partials } from 'discord.js';
+import { DirectusApi } from './lib/directus/directus-orm';
 
 dotenv.config();
 
@@ -20,43 +12,39 @@ async function bootstrap() {
       status: 'online',
       activities: [
         {
-          type: 'PLAYING',
+          type: ActivityType.Playing,
           name: 'Поднимает геймдев с колен',
+          url: 'https://rgd.chat',
         },
       ],
     },
     logger: {
-      instance:
-        process.env.NODE_ENV === 'production'
-          ? new DiscordLogger()
-          : new Logger(LogLevel.Debug),
+      instance: new Logger(LogLevel.Debug),
     },
     disableMentionPrefix: true,
     loadMessageCommandListeners: true,
     intents: [
-      'GUILDS',
-      'GUILD_MEMBERS',
-      'GUILD_MESSAGES',
-      'GUILD_MESSAGE_REACTIONS',
-      'MESSAGE_CONTENT',
-      'GUILD_PRESENCES',
-      'GUILD_VOICE_STATES',
-      'GUILD_BANS',
-      'GUILD_INVITES',
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMembers,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.GuildMessageReactions,
+      GatewayIntentBits.GuildPresences,
+      GatewayIntentBits.GuildVoiceStates,
+      GatewayIntentBits.GuildModeration,
+      GatewayIntentBits.GuildInvites,
+      GatewayIntentBits.MessageContent,
     ],
-    partials: ['CHANNEL', 'MESSAGE', 'REACTION'],
+    partials: [Partials.Channel, Partials.Message, Partials.Reaction],
   });
 
   try {
     const token = process.env.BOT_TOKEN;
+    const profile = await DirectusApi.instance.login(
+      process.env.DIRECTUS_TOKEN,
+    );
+    client.logger.info(`Directus logged as '${profile.first_name}'`);
 
     await client.login(token);
-
-    container.api = new API();
-
-    const orm = await MikroORM.init<SqliteDriver>();
-
-    container.orm = orm;
   } catch (e) {
     console.error(e);
     process.exit(0);

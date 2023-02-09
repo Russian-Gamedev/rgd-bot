@@ -1,3 +1,5 @@
+import { DirectusEntity } from '../directus-orm/entity';
+
 export enum TemplateType {
   MEMBER_FIRST_JOIN = 'member_first_join',
   MEMBER_JOIN = 'member_join',
@@ -6,15 +8,16 @@ export enum TemplateType {
   MEMBER_KICK = 'member_kick',
 }
 
-export const TEMPLATES: Record<TemplateType, TemplateEvent[]> = {
-  member_first_join: [],
-  member_join: [],
-  member_leave: [],
-  member_ban: [],
-  member_kick: [],
-};
-
 export type TemplateEvent = {
   message: string;
   attachment: string | null;
 };
+
+export class DiscordEvents extends DirectusEntity {
+  static override collection = 'Bot_Events';
+
+  declare id: number;
+  type: `${TemplateType}`;
+  message: string;
+  attachment: string | null;
+}

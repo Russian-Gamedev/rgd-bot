@@ -1,12 +1,13 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import {
-  CommandOptions,
+  type CommandOptions,
   CommandOptionsRunTypeEnum,
-  ChatInputCommand,
-  Command,
+  type ChatInputCommand,
+  type Command,
 } from '@sapphire/framework';
-import { BaseCommand } from '../lib/sapphire/base-command';
-import { replyWithError } from '../lib/helpers/sapphire';
+import { ChannelType, ChatInputCommandInteraction } from 'discord.js';
+import { replyWithError } from 'lib/helpers/sapphire';
+import { BaseCommand } from 'lib/sapphire/base-command';
 
 const OPTIONS = {
   USER: 'user',
@@ -44,9 +45,7 @@ export class RenameCommand extends BaseCommand {
     );
   }
 
-  public override async chatInputRun(
-    interaction: Command.ChatInputInteraction,
-  ) {
+  public override async chatInputRun(interaction: ChatInputCommandInteraction) {
     const user = interaction.options.getUser(OPTIONS.USER, false);
     const channel = interaction.options.get(OPTIONS.CHANNEL, false)?.channel;
 
@@ -77,7 +76,7 @@ export class RenameCommand extends BaseCommand {
       const voiceChannel = await this.container.rgd.channels.fetch(channel.id);
       const prevChannelName = channel.name;
 
-      if (voiceChannel.type !== 'GUILD_VOICE') {
+      if (voiceChannel.type !== ChannelType.GuildVoice) {
         return replyWithError(
           interaction,
           'Переименовать возможно только голосовой канал',

@@ -1,12 +1,12 @@
-import { StatsWeek } from '../lib/services/entities/Stats';
-import { StatsDay } from '../lib/services/entities/Stats';
-import { container, Events, Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
-import cron from 'node-cron';
-import { API } from '../lib/services/directus';
-import type { User } from '../lib/services/entities/User';
-import { EmbedField, MessageEmbed } from 'discord.js';
+import { Listener } from '@sapphire/framework';
+import { container } from '@sapphire/pieces';
 import { ROLE_IDS } from '../configs/discord-constants';
+import { EmbedBuilder, Events, type EmbedField } from 'discord.js';
+import { StatsDay, StatsWeek } from '../lib/directus/directus-entities/Stats';
+import { User } from '../lib/directus/directus-entities/User';
+import { FilterRule } from '../lib/directus/directus-orm/filters';
+import cron from 'node-cron';
 
 @ApplyOptions<Listener.Options>({ once: true, event: Events.ClientReady })
 export class ReadyListener extends Listener<typeof Events.ClientReady> {
@@ -28,17 +28,13 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
     const today = new Date()
       .toLocaleDateString('en-US', { day: '2-digit', month: '2-digit' })
       .replace('/', '-');
-    const data: User[] = await API.request({
-      method: 'GET',
-      url: 'items/user',
-      query: {
-        'filter[birthDate][_ends_with]': today,
-      },
+    const data = await User.find({
+      filter: new FilterRule().EndsWith('birthDate', today),
     });
 
-    const embed = new MessageEmbed();
+    const embed = new EmbedBuilder();
     embed.setDescription('СЕГОДНЯШНИЕ ИМЕНИННИКИ');
-    embed.setFooter('поздравьте их');
+    embed.setFooter({ text: 'поздравьте их' });
 
     const field: EmbedField = {
       value: '',
@@ -62,14 +58,12 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
   }
 
   private async dailyCron() {
-    const data = await StatsDay.find(true);
+    const data = await StatsDay.find({ limit: -1 });
     this.voiceNotification(data, false);
     await Promise.all(
       data.map(async (stats) => {
         let weekUser = await StatsWeek.findOne('', {
-          filter: {
-            user: stats.user,
-          },
+          filter: new FilterRule().EqualTo('user', stats.user),
         });
 
         if (!weekUser) {
@@ -88,7 +82,7 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
   }
 
   private async weeklyCron() {
-    const data = await StatsWeek.find(true);
+    const data = await StatsWeek.find({ limit: -1 });
     this.voiceNotification(data, true);
     await Promise.all(data.map(async (stats) => stats.delete()));
     container.logger.info('weekly stats cleared');

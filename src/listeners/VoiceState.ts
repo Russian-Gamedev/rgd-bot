@@ -1,8 +1,9 @@
-import { StatsDay } from '../lib/services/entities/Stats';
-import { Events, Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
-import type { GuildMember, VoiceState } from 'discord.js';
-import { User } from '../lib/services/entities/User';
+import { Listener } from '@sapphire/framework';
+import { Events, type GuildMember, type VoiceState } from 'discord.js';
+import { StatsDay } from '../lib/directus/directus-entities/Stats';
+import { User } from '../lib/directus/directus-entities/User';
+import { FilterRule } from '../lib/directus/directus-orm/filters';
 
 @ApplyOptions<Listener.Options>({ event: Events.VoiceStateUpdate })
 export class MemberBan extends Listener<typeof Events.VoiceStateUpdate> {
@@ -28,9 +29,7 @@ export class MemberBan extends Listener<typeof Events.VoiceStateUpdate> {
       user.voiceTime = +user?.voiceTime + elapsedTime;
       await user.save();
       let dayStats = await StatsDay.findOne('', {
-        filter: {
-          user: member.id,
-        },
+        filter: new FilterRule().EqualTo('user', member.id),
       });
       if (!dayStats) {
         dayStats = await StatsDay.create({

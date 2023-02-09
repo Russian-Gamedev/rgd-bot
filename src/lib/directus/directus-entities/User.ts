@@ -1,4 +1,4 @@
-import { DirectusEntity } from '../Entity';
+import { DirectusEntity } from '../directus-orm/entity';
 
 export class User extends DirectusEntity {
   static override get collection() {

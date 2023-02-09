@@ -1,15 +1,14 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import {
-  CommandOptions,
+  type CommandOptions,
   CommandOptionsRunTypeEnum,
-  ChatInputCommand,
-  Command,
-  container,
+  type ChatInputCommand,
 } from '@sapphire/framework';
-import { BaseCommand } from '../lib/sapphire/base-command';
-import { replyWithError } from '../lib/helpers/sapphire';
-import type { TextChannel } from 'discord.js';
-import { RoleBindings } from '../lib/services/entities/Discord';
+import { container } from '@sapphire/pieces';
+import type { ChatInputCommandInteraction, TextChannel } from 'discord.js';
+import { RoleBindings } from 'lib/directus/directus-entities/Discord';
+import { replyWithError } from 'lib/helpers/sapphire';
+import { BaseCommand } from 'lib/sapphire/base-command';
 
 const enum OPTIONS {
   Message = 'message',
@@ -60,9 +59,7 @@ export class RoleBindingsCommand extends BaseCommand {
     );
   }
 
-  public override async chatInputRun(
-    interaction: Command.ChatInputInteraction,
-  ) {
+  public override async chatInputRun(interaction: ChatInputCommandInteraction) {
     let channel = interaction.options.getChannel(
       OPTIONS.Channel,
       false,
@@ -95,7 +92,7 @@ export class RoleBindingsCommand extends BaseCommand {
 
       await message.react(emojiRaw);
 
-      RoleBindings.list = await RoleBindings.find(true);
+      RoleBindings.list = await RoleBindings.find({ limit: -1 });
 
       return interaction.reply({
         ephemeral: true,

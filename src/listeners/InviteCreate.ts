@@ -1,7 +1,7 @@
-import { Events, Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
-import type { Invite } from 'discord.js';
-import { Invites } from '../lib/services/entities/Discord';
+import { Listener } from '@sapphire/framework';
+import { Events, type Invite } from 'discord.js';
+import { Invites } from '../lib/directus/directus-entities/Discord';
 
 @ApplyOptions<Listener.Options>({ event: Events.InviteCreate })
 export class MemberBan extends Listener<typeof Events.InviteCreate> {

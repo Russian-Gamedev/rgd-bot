@@ -1,4 +1,4 @@
-import { DirectusEntity } from '../Entity';
+import { DirectusEntity } from '../directus-orm/entity';
 
 export class DiscordRole extends DirectusEntity {
   static override collection = 'Discord_Roles';

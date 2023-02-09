@@ -1,14 +1,14 @@
 import { Events, Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { User as DiscordUser } from 'discord.js';
-import { User } from '../lib/services/entities/User';
+import { User } from '../lib/directus/directus-entities/User';
 
 @ApplyOptions<Listener.Options>({ event: Events.UserUpdate })
 export class MemberBan extends Listener<typeof Events.UserUpdate> {
   async run(oldMember: DiscordUser, newMember: DiscordUser) {
     const isNewAvatar =
-      oldMember.displayAvatarURL({ format: 'jpg' }) !=
-      newMember.displayAvatarURL({ format: 'jpg' });
+      oldMember.displayAvatarURL({ extension: 'webp' }) !=
+      newMember.displayAvatarURL({ extension: 'webp' });
     const isNewNickname = oldMember.username != newMember.username;
 
     if (isNewAvatar) {
@@ -25,8 +25,8 @@ export class MemberBan extends Listener<typeof Events.UserUpdate> {
     const user = await User.findOne(newMember.id);
     if (user) {
       user.username = member.username;
-      user.avatar = member.displayAvatarURL({ format: 'jpg' });
-      user.banner = member.bannerURL({ format: 'jpg' });
+      user.avatar = member.displayAvatarURL({ extension: 'webp' });
+      user.banner = member.bannerURL({ extension: 'webp' });
       await user.save();
     }
   }

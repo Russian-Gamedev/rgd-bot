@@ -1,7 +1,8 @@
-import { container, Events, Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
-import type { MessageReaction, User } from 'discord.js';
-import { RoleBindings } from '../lib/services/entities/Discord';
+import { Listener } from '@sapphire/framework';
+import { container } from '@sapphire/pieces';
+import { Events, type MessageReaction, type User } from 'discord.js';
+import { RoleBindings } from '../lib/directus/directus-entities/Discord';
 
 @ApplyOptions<Listener.Options>({ event: Events.MessageReactionRemove })
 export class ReactionsAdd extends Listener<

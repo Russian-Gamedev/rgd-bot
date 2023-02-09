@@ -1,21 +1,21 @@
-import { Events, Listener } from '@sapphire/framework';
+import { DirectusService } from '../lib/directus/services';
 import { ApplyOptions } from '@sapphire/decorators';
-import type { GuildMember } from 'discord.js';
-import { getRandomChatTemplate } from '../lib/helpers/get-chat-template';
-import { TemplateType } from '../configs/templates';
-import { User } from '../lib/services/entities/User';
-import { UserRoles } from '../lib/services/entities/Discord';
+import { Listener } from '@sapphire/framework';
 import { ROLE_IDS } from '../configs/discord-constants';
+import { Events, type GuildMember } from 'discord.js';
+import { UserRoles } from '../lib/directus/directus-entities/Discord';
+import { TemplateType } from '../lib/directus/directus-entities/Events';
+import { User } from '../lib/directus/directus-entities/User';
+import { FilterRule } from '../lib/directus/directus-orm/filters';
 
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberRemove })
 export class MemberLeave extends Listener<typeof Events.GuildMemberRemove> {
   async run(member: GuildMember) {
     const user = await User.findOne(member.user.id);
     if (user) {
-      const userRoles = await UserRoles.find(true, {
-        filter: {
-          user_id: member.user.id,
-        },
+      const userRoles = await UserRoles.find({
+        limit: -1,
+        filter: new FilterRule().EqualTo('user_id', member.user.id),
       });
       /// Delete if not exist in member
       for (const role of userRoles) {
@@ -42,9 +42,12 @@ export class MemberLeave extends Listener<typeof Events.GuildMemberRemove> {
 
     if (banList.find((user) => user.user.id == member.user.id)) return;
 
-    const message = getRandomChatTemplate(TemplateType.MEMBER_LEAVE, {
-      user: `[<@${member.user.id}>] **${member.displayName}**`,
-    });
+    const message = DirectusService.getRandomChatTemplate(
+      TemplateType.MEMBER_LEAVE,
+      {
+        user: `[<@${member.user.id}>] **${member.displayName}**`,
+      },
+    );
 
     await this.container.mainChannel.send(message);
     this.container.logger.info(
