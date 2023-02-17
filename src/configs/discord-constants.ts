@@ -1,6 +1,7 @@
 export const CHANNEL_IDS = {
   MAIN: '504619448632737793',
   DEBUG: '504618938517159946',
+  Welcome: '504618684401188864',
 };
 
 export const ROLE_IDS = {

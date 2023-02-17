@@ -6,9 +6,9 @@ import {
 } from '@sapphire/framework';
 import { container } from '@sapphire/pieces';
 import type { ChatInputCommandInteraction, TextChannel } from 'discord.js';
-import { RoleBindings } from 'lib/directus/directus-entities/Discord';
-import { replyWithError } from 'lib/helpers/sapphire';
-import { BaseCommand } from 'lib/sapphire/base-command';
+import { RoleBindings } from '../lib/directus/directus-entities/Discord';
+import { replyWithError } from '../lib/helpers/sapphire';
+import { BaseCommand } from '../lib/sapphire/base-command';
 
 const enum OPTIONS {
   Message = 'message',

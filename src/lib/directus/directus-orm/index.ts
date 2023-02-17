@@ -55,6 +55,11 @@ export class DirectusApi {
       if ('data' in body) {
         body = body.data;
       }
+
+      if ('errors' in body) {
+        throw new Error('Directus API Error', { cause: body.errors });
+      }
+
       return body;
     } catch (e) {
       console.error(e);

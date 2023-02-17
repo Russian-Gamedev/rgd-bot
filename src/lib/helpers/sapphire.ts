@@ -18,3 +18,12 @@ export async function replyWithError(
     ephemeral: true,
   });
 }
+
+export function replyAnswer(
+  interaction: ChatInputCommand.Interaction,
+  text: string,
+) {
+  return interaction.reply({
+    embeds: [{ description: text }],
+  });
+}

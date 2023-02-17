@@ -6,8 +6,8 @@ import {
   type Command,
 } from '@sapphire/framework';
 import { ChannelType, ChatInputCommandInteraction } from 'discord.js';
-import { replyWithError } from 'lib/helpers/sapphire';
-import { BaseCommand } from 'lib/sapphire/base-command';
+import { replyWithError } from '../lib/helpers/sapphire';
+import { BaseCommand } from '../lib/sapphire/base-command';
 
 const OPTIONS = {
   USER: 'user',
