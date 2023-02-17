@@ -1,3 +1,4 @@
+import { DirectusApi } from './../lib/directus/directus-orm/index';
 import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
 import { container } from '@sapphire/pieces';
@@ -59,7 +60,9 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
 
   private async dailyCron() {
     const data = await StatsDay.find({ limit: -1 });
-    this.voiceNotification(data, false);
+    const newRegs = await this.getNewRegs(false);
+    this.voiceNotification(data, false, newRegs.length);
+    /// Clear daily stats;
     await Promise.all(
       data.map(async (stats) => {
         let weekUser = await StatsWeek.findOne('', {
@@ -83,12 +86,17 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
 
   private async weeklyCron() {
     const data = await StatsWeek.find({ limit: -1 });
-    this.voiceNotification(data, true);
+    const newRegs = await this.getNewRegs(true);
+    this.voiceNotification(data, true, newRegs.length);
     await Promise.all(data.map(async (stats) => stats.delete()));
     container.logger.info('weekly stats cleared');
   }
 
-  private voiceNotification(data: StatsDay[] | StatsWeek[], isWeekly: boolean) {
+  private voiceNotification(
+    data: StatsDay[] | StatsWeek[],
+    isWeekly: boolean,
+    newRegs: number,
+  ) {
     let chatText = '';
     let voiceText = '';
     const chatStats = data.sort((a, b) => b.chat - a.chat).slice(0, 15);
@@ -119,7 +127,11 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
           fields: [
             { name: 'стата по чату', value: chatText, inline: true },
             { name: 'стата по войсу', value: voiceText, inline: true },
-            // { name: 'новорегов в базе', value: '-1', inline: false },
+            {
+              name: 'новорегов в базе',
+              value: newRegs.toString(),
+              inline: false,
+            },
             {
               name: 'писало в чате',
               value: data.length.toLocaleString('ru-RU'),
@@ -130,5 +142,20 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
         },
       ],
     });
+  }
+
+  private async getNewRegs(weekly: boolean): Promise<User[]> {
+    const period = weekly ? 'week' : 'day';
+    const data = await DirectusApi.instance.request({
+      url: 'items/user',
+      method: 'GET',
+      query: {
+        filter: new FilterRule().GreaterThanOrEqualTo(
+          'firstJoin',
+          `$NOW(-1 ${period})`,
+        ),
+      },
+    });
+    return data || [];
   }
 }
