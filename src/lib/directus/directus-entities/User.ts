@@ -1,5 +1,5 @@
 import { DirectusEntity } from '../directus-orm/entity';
-import { Invites } from './Discord';
+import type { Invites } from './Discord';
 
 export class User extends DirectusEntity {
   static override get collection() {
@@ -18,5 +18,5 @@ export class User extends DirectusEntity {
   about?: string;
   birthDate?: string;
   experience = 0;
-  invite?: Invites;
+  invite?: string | Invites;
 }
