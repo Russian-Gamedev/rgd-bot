@@ -3,22 +3,20 @@ import {
   type CommandOptions,
   CommandOptionsRunTypeEnum,
   type ChatInputCommand,
-  type Command,
 } from '@sapphire/framework';
-import { ChannelType, ChatInputCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 import { replyWithError } from '../lib/helpers/sapphire';
 import { BaseCommand } from '../lib/sapphire/base-command';
 
 const OPTIONS = {
   USER: 'user',
-  CHANNEL: 'channel',
-  NEW_NAME: 'new-name',
+  NEW_NAME: 'new_name',
 };
 
 @ApplyOptions<CommandOptions>({
-  description: 'Переименовать юзера или голосовой канал',
+  description: 'Переименовать юзера',
   runIn: [CommandOptionsRunTypeEnum.GuildText],
-  aliases: ['rn'],
+  name: 'rn',
 })
 export class RenameCommand extends BaseCommand {
   override registerApplicationCommands(registry: ChatInputCommand.Registry) {
@@ -26,31 +24,24 @@ export class RenameCommand extends BaseCommand {
       builder
         .setName(this.name)
         .setDescription(this.description)
+        .addUserOption((option) =>
+          option
+            .setName(OPTIONS.USER)
+            .setDescription('Пользователь, которого нужно переименовать')
+            .setRequired(true),
+        )
         .addStringOption((option) =>
           option
             .setName(OPTIONS.NEW_NAME)
             .setDescription('Новое имя')
             .setRequired(true),
-        )
-        .addUserOption((option) =>
-          option
-            .setName(OPTIONS.USER)
-            .setDescription('Пользователь, которого нужно переименовать'),
-        )
-        .addChannelOption((option) =>
-          option
-            .setName(OPTIONS.CHANNEL)
-            .setDescription('Голосовой канал, который нужно переименовать'),
         ),
     );
   }
 
   public override async chatInputRun(interaction: ChatInputCommandInteraction) {
-    const user = interaction.options.getUser(OPTIONS.USER, false);
-    const channel = interaction.options.get(OPTIONS.CHANNEL, false)?.channel;
-
-    const newName = interaction.options.get(OPTIONS.NEW_NAME, true)?.message
-      ?.content;
+    const user = interaction.options.getUser(OPTIONS.USER, true);
+    const newName = interaction.options.getString(OPTIONS.NEW_NAME, true);
 
     if (user) {
       const member = await this.container.rgd.members.fetch(user.id);
@@ -72,33 +63,6 @@ export class RenameCommand extends BaseCommand {
       });
     }
 
-    if (channel) {
-      const voiceChannel = await this.container.rgd.channels.fetch(channel.id);
-      const prevChannelName = channel.name;
-
-      if (voiceChannel.type !== ChannelType.GuildVoice) {
-        return replyWithError(
-          interaction,
-          'Переименовать возможно только голосовой канал',
-        );
-      }
-
-      try {
-        await voiceChannel.setName(newName, `${channel}`);
-      } catch (e) {
-        this.container.logger.error(e);
-
-        return replyWithError(interaction, '', true);
-      }
-
-      return interaction.reply({
-        content: `Голосовой канал **${prevChannelName}** был переименован в **${newName}**`,
-      });
-    }
-
-    return replyWithError(
-      interaction,
-      'Ни канал ни пользователь не был указан',
-    );
+    return replyWithError(interaction, 'Пользователь не был указан');
   }
 }

@@ -1,3 +1,4 @@
+import { SERVER_ID } from './configs/discord-constants';
 import * as dotenv from 'dotenv';
 import '@sapphire/plugin-logger';
 import { Logger, LogLevel, SapphireClient } from '@sapphire/framework';
