@@ -13,7 +13,7 @@ module.exports = {
     production: {
       user: 'root',
       host: '194.61.0.195',
-      ref: 'origin/main',
+      ref: 'origin/damir-dev',
       repo: 'git@github.com:Russian-Gamedev/rgd-bot.git',
       path: '/root/rgd-bot',
       'post-deploy':
