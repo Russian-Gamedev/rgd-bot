@@ -27,6 +27,7 @@ export class DirectusApi {
       method: config.method,
       headers: {
         Authorization: `Bearer ${this.token}`,
+        'Content-Type': 'application/json',
         'Accept-Encoding': 'gzip,deflate,compress',
       },
     };
@@ -49,7 +50,9 @@ export class DirectusApi {
 
     try {
       const response = await fetch(url, requestInit);
-      let body = await response.json();
+      const text = await response.text();
+      if (!text) return null;
+      let body = JSON.parse(text);
 
       /// Directus non-singleton objects return in {data: T} formats
       if ('data' in body) {
@@ -57,7 +60,9 @@ export class DirectusApi {
       }
 
       if ('errors' in body) {
-        throw new Error('Directus API Error', { cause: body.errors });
+        throw new Error('Directus API Error: ' + config.url, {
+          cause: body.errors[0],
+        });
       }
 
       return body;

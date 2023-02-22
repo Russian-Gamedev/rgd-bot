@@ -15,7 +15,9 @@ export class DirectusEntity {
     fields: Partial<T>,
   ) {
     const instance = new this();
-    Object.assign(instance, fields);
+    for (const [key, value] of Object.entries(fields)) {
+      instance[key as keyof T] = value;
+    }
     return instance;
   }
 
