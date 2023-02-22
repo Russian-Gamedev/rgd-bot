@@ -19,6 +19,7 @@ export class DirectusService {
       await DirectusService.updateRoles(),
       await DirectusService.updateTemplates(),
       await DirectusService.updateRoles(),
+      await DirectusService.updateRolesBindings(),
     ]);
   }
 
