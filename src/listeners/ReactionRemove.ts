@@ -14,13 +14,14 @@ export class ReactionsAdd extends Listener<
     if (user.bot) return;
     const isRoleBinding = await this.roleBinding(reaction, user);
     if (!isRoleBinding) {
+      const message = await reaction.message.fetch();
       let dayStats = await StatsDay.findOne('', {
-        filter: new FilterRule().EqualTo('user', reaction.message.author.id),
+        filter: new FilterRule().EqualTo('user', message.author.id),
       });
 
       if (!dayStats) {
         dayStats = await StatsDay.create({
-          user: reaction.message.author.id,
+          user: message.author.id,
         });
       }
 

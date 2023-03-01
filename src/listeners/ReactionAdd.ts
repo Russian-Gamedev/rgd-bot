@@ -12,13 +12,15 @@ export class ReactionsAdd extends Listener<typeof Events.MessageReactionAdd> {
     if (user.bot) return;
     const isBinding = await this.roleBinding(reaction, user);
     if (!isBinding) {
+      const message = await reaction.message.fetch();
+      console.log(message.author);
       let dayStats = await StatsDay.findOne('', {
-        filter: new FilterRule().EqualTo('user', reaction.message.author.id),
+        filter: new FilterRule().EqualTo('user', message.author.id),
       });
 
       if (!dayStats) {
         dayStats = await StatsDay.create({
-          user: reaction.message.author.id,
+          user: message.author.id,
         });
       }
 
