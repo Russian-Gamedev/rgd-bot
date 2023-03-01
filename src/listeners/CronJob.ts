@@ -77,6 +77,8 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
 
         weekUser.chat += stats.chat;
         weekUser.voice += stats.voice;
+        weekUser.reactions += stats.reactions;
+
         await weekUser.save();
         await stats.delete();
       }),
@@ -99,12 +101,21 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
   ) {
     let chatText = '';
     let voiceText = '';
+    let goodNumbersText = '';
     const chatStats = data.sort((a, b) => b.chat - a.chat).slice(0, 15);
     const voiceStats = data.sort((a, b) => b.voice - a.voice).slice(0, 15);
+    const reactionsStats = data
+      .sort((a, b) => b.reactions - a.reactions)
+      .slice(0, 15);
 
     chatStats.forEach((stat, index) => {
       chatText += `${index + 1}. <@${stat.user}>: \`${stat.chat}\` \n`;
     });
+
+    reactionsStats.forEach((stat, index) => {
+      goodNumbersText += `${index + 1}. <@${stat.user}>: \`${stat.chat}\` \n`;
+    });
+
     voiceStats.forEach((stat, index) => {
       const hours = Math.floor(stat.voice / 3600);
       const minutes = Math.floor((stat.voice - hours * 3600) / 60);
@@ -120,6 +131,9 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
     if (!voiceText) {
       voiceText = 'войс был пустым :(';
     }
+    if (!goodNumbersText) {
+      goodNumbersText = 'никто не кинул смешнявку :(';
+    }
 
     this.container.mainChannel.send({
       embeds: [
@@ -127,6 +141,11 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
           fields: [
             { name: 'стата по чату', value: chatText, inline: true },
             { name: 'стата по войсу', value: voiceText, inline: true },
+            {
+              name: 'подсчёта неплохих цифр',
+              value: goodNumbersText,
+              inline: true,
+            },
             {
               name: 'новорегов в базе',
               value: newRegs.toString(),

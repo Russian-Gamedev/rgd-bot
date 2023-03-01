@@ -5,6 +5,7 @@ export class StatsDay extends DirectusEntity {
   user: string;
   chat = 0;
   voice = 0;
+  reactions = 0;
 }
 
 export class StatsWeek extends DirectusEntity {
@@ -12,4 +13,5 @@ export class StatsWeek extends DirectusEntity {
   user: string;
   chat = 0;
   voice = 0;
+  reactions = 0;
 }
