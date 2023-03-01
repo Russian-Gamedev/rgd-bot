@@ -113,7 +113,9 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
     });
 
     reactionsStats.forEach((stat, index) => {
-      goodNumbersText += `${index + 1}. <@${stat.user}>: \`${stat.chat}\` \n`;
+      goodNumbersText += `${index + 1}. <@${stat.user}>: \`${
+        stat.reactions
+      }\` \n`;
     });
 
     voiceStats.forEach((stat, index) => {
@@ -142,9 +144,9 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
             { name: 'стата по чату', value: chatText, inline: true },
             { name: 'стата по войсу', value: voiceText, inline: true },
             {
-              name: 'подсчёта неплохих цифр',
+              name: 'подсчёт неплохих цифр',
               value: goodNumbersText,
-              inline: true,
+              inline: false,
             },
             {
               name: 'новорегов в базе',
