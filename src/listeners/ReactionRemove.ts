@@ -5,6 +5,7 @@ import { Events, type MessageReaction, type User } from 'discord.js';
 import { StatsDay } from '../lib/directus/directus-entities/Stats';
 import { FilterRule } from '../lib/directus/directus-orm/filters';
 import { RoleBindings } from '../lib/directus/directus-entities/Discord';
+import { Time } from '../configs/time-constants';
 
 @ApplyOptions<Listener.Options>({ event: Events.MessageReactionRemove })
 export class ReactionsAdd extends Listener<
@@ -15,6 +16,8 @@ export class ReactionsAdd extends Listener<
     const isRoleBinding = await this.roleBinding(reaction, user);
     if (!isRoleBinding) {
       const message = await reaction.message.fetch();
+      if (message.author.id === user.id) return;
+      if (Date.now() - message.createdAt.getTime() > Time.Day) return;
       let dayStats = await StatsDay.findOne('', {
         filter: new FilterRule().EqualTo('user', message.author.id),
       });
