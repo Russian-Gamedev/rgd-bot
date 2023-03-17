@@ -17,7 +17,8 @@ export class ReactionsAdd extends Listener<
     if (!isRoleBinding) {
       const message = await reaction.message.fetch();
       if (message.author.id === user.id) return;
-      if (Date.now() - message.createdAt.getTime() > Time.Day) return;
+      const diffTime = (Date.now() - message.createdAt.getTime()) / 1000;
+      if (diffTime > Time.Day) return;
       let dayStats = await StatsDay.findOne('', {
         filter: new FilterRule().EqualTo('user', message.author.id),
       });
