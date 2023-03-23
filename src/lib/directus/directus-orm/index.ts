@@ -48,27 +48,22 @@ export class DirectusApi {
       requestInit.body = JSON.stringify(config.body);
     }
 
-    try {
-      const response = await fetch(url, requestInit);
-      const text = await response.text();
-      if (!text) return null;
-      let body = JSON.parse(text);
+    const response = await fetch(url, requestInit);
+    const text = await response.text();
+    if (!text) return null;
+    let body = JSON.parse(text);
 
-      /// Directus non-singleton objects return in {data: T} formats
-      if ('data' in body) {
-        body = body.data;
-      }
-
-      if ('errors' in body) {
-        throw new Error('Directus API Error: ' + config.url, {
-          cause: body.errors[0],
-        });
-      }
-
-      return body;
-    } catch (e) {
-      console.error(e);
+    /// Directus non-singleton objects return in {data: T} formats
+    if ('data' in body) {
+      body = body.data;
     }
-    return null;
+
+    if ('errors' in body) {
+      throw new Error('Directus API Error: ' + config.url, {
+        cause: body.errors[0],
+      });
+    }
+
+    return body;
   }
 }

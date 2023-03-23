@@ -28,17 +28,19 @@ export class DirectusService {
 
     const promises = invites.map(async (invite) => {
       if (invite.inviter.bot) return;
-      let directusInvite = await Invites.findOne(invite.code);
+      try {
+        let directusInvite = await Invites.findOne(invite.code);
 
-      if (!directusInvite) {
-        directusInvite = Invites.create({
-          id: invite.code,
-          inviter: invite.inviterId,
-        });
-      }
+        if (!directusInvite) {
+          directusInvite = Invites.create({
+            id: invite.code,
+            inviter: invite.inviterId,
+          });
+        }
 
-      directusInvite.uses = invite.uses;
-      await directusInvite.save();
+        directusInvite.uses = invite.uses;
+        await directusInvite.save();
+      } catch (e) {}
     });
 
     await Promise.all(promises);

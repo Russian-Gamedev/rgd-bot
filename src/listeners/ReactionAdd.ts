@@ -6,6 +6,7 @@ import { StatsDay } from '../lib/directus/directus-entities/Stats';
 import { FilterRule } from '../lib/directus/directus-orm/filters';
 import { RoleBindings } from '../lib/directus/directus-entities/Discord';
 import { Time } from '../configs/time-constants';
+import { EmojiWeight } from '../configs/emoji-weight';
 
 @ApplyOptions<Listener.Options>({ event: Events.MessageReactionAdd })
 export class ReactionsAdd extends Listener<typeof Events.MessageReactionAdd> {
@@ -27,7 +28,10 @@ export class ReactionsAdd extends Listener<typeof Events.MessageReactionAdd> {
         });
       }
 
-      dayStats.reactions++;
+      const emoji = reaction.emoji.id || reaction.emoji.name;
+      const reactionWeight = EmojiWeight[emoji] ?? 1;
+
+      dayStats.reactions += reactionWeight;
 
       await dayStats.save();
     }
