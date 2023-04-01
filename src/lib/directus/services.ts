@@ -43,7 +43,7 @@ export class DirectusService {
       } catch (e) {}
     });
 
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
 
     container.logger.info(`${invites.size} invites updated`);
 
@@ -65,7 +65,7 @@ export class DirectusService {
       await directusChannel.save();
     });
 
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
 
     container.logger.info(`${channels.size} channels updated`);
     return channels.size;
@@ -85,7 +85,7 @@ export class DirectusService {
       await existRole.save();
     });
 
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
 
     container.logger.info(`${roles.size} roles updated`);
     return roles.size;
