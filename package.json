@@ -8,7 +8,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "tsup",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\" ",
     "start": "node --enable-source-maps .",
     "start:debug": "node --inspect-brk --enable-source-maps .",
     "start:dev": "tsup --watch --onSuccess \"npm run start\"",

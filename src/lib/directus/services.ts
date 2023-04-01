@@ -13,7 +13,7 @@ import {
 
 export class DirectusService {
   static async updateFull() {
-    await Promise.all([
+    await Promise.allSettled([
       await DirectusService.updateInvites(),
       await DirectusService.updateChannels(),
       await DirectusService.updateRoles(),

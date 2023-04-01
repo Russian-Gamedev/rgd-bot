@@ -7,5 +7,5 @@ export function khaleesiGenerate(text: string) {
     return replaces[matched.toLowerCase()];
   });
 
-  return res;
+  return res.replaceAll('и', 'i');
 }
