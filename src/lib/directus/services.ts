@@ -14,12 +14,12 @@ import {
 export class DirectusService {
   static async updateFull() {
     await Promise.allSettled([
-      await DirectusService.updateInvites(),
-      await DirectusService.updateChannels(),
-      await DirectusService.updateRoles(),
-      await DirectusService.updateTemplates(),
-      await DirectusService.updateRoles(),
-      await DirectusService.updateRolesBindings(),
+      DirectusService.updateInvites(),
+      DirectusService.updateChannels(),
+      DirectusService.updateRoles(),
+      DirectusService.updateTemplates(),
+      DirectusService.updateRoles(),
+      DirectusService.updateRolesBindings(),
     ]);
   }
 
@@ -92,6 +92,7 @@ export class DirectusService {
   }
 
   private static templates: Record<TemplateType, TemplateEvent[]>;
+
   static async updateTemplates() {
     const data = await DiscordEvents.find({ limit: -1 });
 
