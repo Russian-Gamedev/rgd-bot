@@ -12,8 +12,8 @@ import {
 } from './directus-entities/Events';
 
 export class DirectusService {
-  static async updateFull() {
-    await Promise.allSettled([
+  static updateFull() {
+    return Promise.allSettled([
       DirectusService.updateInvites(),
       DirectusService.updateChannels(),
       DirectusService.updateRoles(),
@@ -54,15 +54,17 @@ export class DirectusService {
     const channels = await container.rgd.channels.fetch();
 
     const promises = channels.map(async (channel) => {
-      let directusChannel = await DiscordChannel.findOne(channel.id);
-      if (!directusChannel) {
-        directusChannel = await DiscordChannel.create({ id: channel.id });
-      }
-      directusChannel.name = channel.name;
-      directusChannel.isVoice = channel.isVoiceBased();
-      directusChannel.position = channel.position;
+      try {
+        let directusChannel = await DiscordChannel.findOne(channel.id);
+        if (!directusChannel) {
+          directusChannel = await DiscordChannel.create({ id: channel.id });
+        }
+        directusChannel.name = channel.name;
+        directusChannel.isVoice = channel.isVoiceBased();
+        directusChannel.position = channel.position;
 
-      await directusChannel.save();
+        await directusChannel.save();
+      } catch (e) {}
     });
 
     await Promise.allSettled(promises);
@@ -75,14 +77,16 @@ export class DirectusService {
     const roles = await container.rgd.roles.fetch();
 
     const promises = roles.map(async (role) => {
-      let existRole = await DiscordRole.findOne(role.id);
-      if (!existRole) {
-        existRole = await DiscordRole.create({ id: role.id });
-      }
-      existRole.color = role.hexColor;
-      existRole.name = role.name;
-      existRole.position = role.position;
-      await existRole.save();
+      try {
+        let existRole = await DiscordRole.findOne(role.id);
+        if (!existRole) {
+          existRole = await DiscordRole.create({ id: role.id });
+        }
+        existRole.color = role.hexColor;
+        existRole.name = role.name;
+        existRole.position = role.position;
+        await existRole.save();
+      } catch (e) {}
     });
 
     await Promise.allSettled(promises);
