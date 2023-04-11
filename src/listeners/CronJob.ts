@@ -1,12 +1,12 @@
-import { DirectusApi } from './../lib/directus/directus-orm/index';
+import { DirectusApi } from 'lib/directus/directus-orm/index';
 import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
 import { container } from '@sapphire/pieces';
-import { ROLE_IDS } from '../configs/discord-constants';
+import { ROLE_IDS } from 'configs/discord-constants';
 import { EmbedBuilder, Events, type EmbedField } from 'discord.js';
-import { StatsDay, StatsWeek } from '../lib/directus/directus-entities/Stats';
-import { User } from '../lib/directus/directus-entities/User';
-import { FilterRule } from '../lib/directus/directus-orm/filters';
+import { StatsDay, StatsWeek } from 'lib/directus/directus-entities/Stats';
+import { User } from 'lib/directus/directus-entities/User';
+import { FilterRule } from 'lib/directus/directus-orm/filters';
 import cron from 'node-cron';
 
 @ApplyOptions<Listener.Options>({ once: true, event: Events.ClientReady })
@@ -15,7 +15,7 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
     cron.schedule('0 15 * * *', this.dailyCron.bind(this));
     cron.schedule('0 15 * * 6', this.weeklyCron.bind(this));
     cron.schedule('0 8 * * *', this.birthDayCron.bind(this));
-    setTimeout(() => this.birthDayCron(), 1000);
+    this.birthDayCron();
   }
 
   private async birthDayCron() {
@@ -47,15 +47,19 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
       const [year] = user.birthDate.split('-');
       const yearsOld = new Date().getFullYear() - Number(year);
       field.value += `<@${user.id}> сегодня празднует свое ${yearsOld} летие\n`;
-      const member = await container.rgd.members.fetch(user.id);
-      await member.roles.add(ROLE_IDS.BIRTHDAY);
+      try {
+        const member = await container.rgd.members.fetch(user.id);
+        await member.roles.add(ROLE_IDS.BIRTHDAY);
+      } catch (e) {
+        container.logger.info(user.username + ' not on server');
+      }
     }
 
     if (field.value.length === 0) return;
 
     embed.setFields([field]);
 
-    container.mainChannel.send({ embeds: [embed] });
+    await container.mainChannel.send({ embeds: [embed] });
   }
 
   private async dailyCron() {
