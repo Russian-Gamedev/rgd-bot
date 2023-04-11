@@ -16,6 +16,6 @@
     "noEmitHelpers": true,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noImplicitOverride": true
+    "noImplicitOverride": true,
   }
 }

@@ -1,12 +1,12 @@
-import { DirectusApi } from 'lib/directus/directus-orm/index';
+import { DirectusApi } from '../lib/directus/directus-orm';
 import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
 import { container } from '@sapphire/pieces';
-import { ROLE_IDS } from 'configs/discord-constants';
+import { ROLE_IDS } from '../configs/discord-constants';
 import { EmbedBuilder, Events, type EmbedField } from 'discord.js';
-import { StatsDay, StatsWeek } from 'lib/directus/directus-entities/Stats';
-import { User } from 'lib/directus/directus-entities/User';
-import { FilterRule } from 'lib/directus/directus-orm/filters';
+import { StatsDay, StatsWeek } from '../lib/directus/directus-entities/Stats';
+import { User } from '../lib/directus/directus-entities/User';
+import { FilterRule } from '../lib/directus/directus-orm/filters';
 import cron from 'node-cron';
 
 @ApplyOptions<Listener.Options>({ once: true, event: Events.ClientReady })
@@ -15,7 +15,7 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
     cron.schedule('0 15 * * *', this.dailyCron.bind(this));
     cron.schedule('0 15 * * 6', this.weeklyCron.bind(this));
     cron.schedule('0 8 * * *', this.birthDayCron.bind(this));
-    this.birthDayCron();
+    setTimeout(() => this.birthDayCron(), 5000);
   }
 
   private async birthDayCron() {
