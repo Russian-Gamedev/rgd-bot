@@ -7,7 +7,7 @@ import {
 } from './directus-entities/Discord';
 import {
   DiscordEvents,
-  TemplateEvent,
+  type TemplateEvent,
   TemplateType,
 } from './directus-entities/Events';
 

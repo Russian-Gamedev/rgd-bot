@@ -23,10 +23,12 @@ export class DirectusApi {
 
   async request(config: RequestConfig) {
     let url = this.baseUrl + config.url;
+    const Authorization = `Bearer ${this.token}`;
+
     const requestInit: RequestInit = {
       method: config.method,
       headers: {
-        Authorization: `Bearer ${this.token}`,
+        Authorization,
         'Content-Type': 'application/json',
         'Accept-Encoding': 'gzip,deflate,compress',
       },

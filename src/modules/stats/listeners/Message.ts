@@ -1,9 +1,9 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
 import { Events, type Message } from 'discord.js';
-import { StatsDay } from '../lib/directus/directus-entities/Stats';
-import { User } from '../lib/directus/directus-entities/User';
-import { FilterRule } from '../lib/directus/directus-orm/filters';
+import { StatsDay } from '@/lib/directus/directus-entities/Stats';
+import { User } from '@/lib/directus/directus-entities/User';
+import { FilterRule } from '@/lib/directus/directus-orm/filters';
 
 @ApplyOptions<Listener.Options>({ event: Events.MessageCreate })
 export class MemberLeave extends Listener<typeof Events.MessageCreate> {

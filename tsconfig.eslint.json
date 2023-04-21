@@ -1,4 +1,4 @@
 {
-  "extends": "./tsconfig.base.json",
-  "include": ["src", "tsup.config.ts", "mikro-orm.config.js"]
+  "extends": "./tsconfig.json",
+  "include": ["src"]
 }

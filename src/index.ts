@@ -1,13 +1,14 @@
 import * as dotenv from 'dotenv';
 import '@sapphire/plugin-logger';
-import { Logger, LogLevel, SapphireClient } from '@sapphire/framework';
+import { Logger, LogLevel } from '@sapphire/framework';
 import { ActivityType, GatewayIntentBits, Partials } from 'discord.js';
-import { DirectusApi } from './lib/directus/directus-orm';
+import { DirectusApi } from '@/lib/directus/directus-orm';
+import { CustomClient } from '@/lib/sapphire/custom-client';
 
 dotenv.config();
 
 async function bootstrap() {
-  const client = new SapphireClient({
+  const client = new CustomClient({
     presence: {
       status: 'online',
       activities: [
@@ -22,7 +23,6 @@ async function bootstrap() {
       instance: new Logger(LogLevel.Debug),
     },
     disableMentionPrefix: true,
-    loadMessageCommandListeners: true,
     intents: [
       GatewayIntentBits.Guilds,
       GatewayIntentBits.GuildMembers,

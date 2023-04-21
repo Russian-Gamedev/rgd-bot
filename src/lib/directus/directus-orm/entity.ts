@@ -1,5 +1,6 @@
-import { DirectusApi } from './index';
 import type { DirectusQuery } from './types';
+import { container } from '@sapphire/pieces';
+import { DirectusApi } from '@/lib/directus/directus-orm/index';
 
 export class DirectusEntity {
   $exist = false;
@@ -42,21 +43,24 @@ export class DirectusEntity {
     this: new () => T,
     id: string,
     query?: Partial<DirectusQuery>,
-  ): Promise<T> {
+  ): Promise<T | null> {
     const self = this as unknown as typeof DirectusEntity;
-    let response = await DirectusApi.instance.request({
-      method: 'GET',
-      url: `items/${self.collection}/${id}`,
-      query,
-    });
-    if (response instanceof Array) {
-      response = response.at(0);
-    }
-    if (response) {
-      return self.create({ ...response, $exist: true }) as T;
-    }
+    try {
+      let response = await DirectusApi.instance.request({
+        method: 'GET',
+        url: `items/${self.collection}/${id}`,
+        query,
+      });
+      if (response instanceof Array) {
+        response = response.at(0);
+      }
 
-    return null;
+      if (!response) return null;
+
+      return self.create({ ...response, $exist: true }) as T;
+    } catch (e) {
+      return null;
+    }
   }
 
   async save() {

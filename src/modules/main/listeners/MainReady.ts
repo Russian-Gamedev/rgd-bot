@@ -1,9 +1,8 @@
-import { execSync } from 'child_process';
 import type { TextChannel } from 'discord.js';
 import { Events, Listener, container, Piece, Store } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
-import { CHANNEL_IDS, SERVER_ID } from '../configs/discord-constants';
-import { DirectusService } from '../lib/directus/services';
+import { CHANNEL_IDS, SERVER_ID } from '@/configs/discord-constants';
+import { DirectusService } from '@/lib/directus/services';
 
 @ApplyOptions<Listener.Options>({ once: true, event: Events.ClientReady })
 export class ReadyListener extends Listener<typeof Events.ClientReady> {
@@ -38,26 +37,12 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
     this.container.logger.info(
       `Using '${this.container.mainChannel.name}' channel`,
     );
-
-    await DirectusService.updateFull();
-
+    try {
+      await DirectusService.updateFull();
+    } catch (e) {
+      this.container.logger.error(e);
+    }
     this.container.logger.info('RGD fetched');
-
-    if (!isDev) this.sendBotReady();
-  }
-
-  private sendBotReady() {
-    const commitCount = execSync('git rev-list --count HEAD').toString('utf8');
-    const lastCommit = execSync(
-      'git log -1 --pretty=format:"%an, %s"',
-    ).toString('utf8');
-
-    const randomEmoji = this.container.rgd.emojis.cache.random();
-    const content = `Bot started ${randomEmoji} \nCommit number: \`${commitCount}\` \`\`\`diff\n+ ${lastCommit}\`\`\` `;
-
-    this.container.debugChannel.send({
-      content,
-    });
   }
 
   private styleStore(store: Store<Piece>, last: boolean) {

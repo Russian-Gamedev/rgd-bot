@@ -15,3 +15,5 @@ export class StatsWeek extends DirectusEntity {
   voice = 0;
   reactions = 0;
 }
+
+export type Stats = StatsDay | StatsWeek;

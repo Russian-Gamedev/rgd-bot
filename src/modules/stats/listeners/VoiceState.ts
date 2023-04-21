@@ -1,9 +1,9 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
 import { Events, type GuildMember, type VoiceState } from 'discord.js';
-import { StatsDay } from '../lib/directus/directus-entities/Stats';
-import { User } from '../lib/directus/directus-entities/User';
-import { FilterRule } from '../lib/directus/directus-orm/filters';
+import { StatsDay } from '@/lib/directus/directus-entities/Stats';
+import { User } from '@/lib/directus/directus-entities/User';
+import { FilterRule } from '@/lib/directus/directus-orm/filters';
 
 @ApplyOptions<Listener.Options>({ event: Events.VoiceStateUpdate })
 export class MemberBan extends Listener<typeof Events.VoiceStateUpdate> {
