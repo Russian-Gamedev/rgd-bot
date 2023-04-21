@@ -1,13 +1,23 @@
 {
   "extends": "@sapphire/ts-config/extra-strict",
   "compilerOptions": {
+    "target": "es2022",
+    "module": "commonjs",
+    "lib": [
+      "es2022"
+    ],
+    "outDir": "build",
+    "rootDir": "src",
+    "verbatimModuleSyntax": false,
+    "typeRoots": ["./lib/types/*.d.ts"],
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ESNext",
-    "module": "commonjs",
+    "noUnusedLocals": false,
     "sourceMap": true,
     "incremental": true,
     "skipLibCheck": true,
@@ -17,5 +27,13 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noImplicitOverride": true,
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "ts-node": {
+    "files": true,
+    "require": ["tsconfig-paths/register"]
   }
 }
