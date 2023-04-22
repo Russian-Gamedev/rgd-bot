@@ -18,6 +18,7 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "noUnusedLocals": false,
+    "allowUnreachableCode": true,
     "sourceMap": true,
     "incremental": true,
     "skipLibCheck": true,

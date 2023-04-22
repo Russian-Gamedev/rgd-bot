@@ -3,6 +3,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Events, Listener } from '@sapphire/framework';
 import { EmbedBuilder } from 'discord.js';
 import { LocalStorage } from '@/lib/LocalStorage';
+import * as process from 'process';
 
 type Commit = {
   hash: string;
@@ -13,6 +14,7 @@ type Commit = {
 @ApplyOptions<Listener.Options>({ once: true, event: Events.ClientReady })
 export class ReadyListener extends Listener<typeof Events.ClientReady> {
   async run() {
+    if (process.env.NODE_ENV === 'development') return;
     const lastCommit = LocalStorage.getItem('last-commit');
     const currentCommit = await this.execAsync('git rev-parse --short HEAD');
     if (lastCommit == currentCommit) return;

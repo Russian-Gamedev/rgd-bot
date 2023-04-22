@@ -10,6 +10,7 @@ import {
 import { User } from '@/lib/directus/directus-entities/User';
 import { FilterRule } from '@/lib/directus/directus-orm/filters';
 import cron from 'node-cron';
+import { DirectusApi } from '@/lib/directus/directus-orm';
 
 @ApplyOptions<Listener.Options>({ once: true, event: Events.ClientReady })
 export class ReadyListener extends Listener<typeof Events.ClientReady> {
@@ -142,7 +143,7 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
   }
 
   private async getNewRegs(period: 'week' | 'day'): Promise<User[]> {
-    const data = await container.api.request({
+    const data = await DirectusApi.instance.request({
       url: 'items/user',
       method: 'GET',
       query: {

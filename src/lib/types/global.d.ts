@@ -6,7 +6,6 @@ declare module '@sapphire/pieces' {
     rgd: Guild;
     mainChannel: TextChannel;
     debugChannel: TextChannel;
-    api: DirectusApi;
   }
 }
 
