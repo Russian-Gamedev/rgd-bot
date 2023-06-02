@@ -44,7 +44,7 @@ export class LoreEditCommand extends BaseCommand {
     const user = interaction.options.getUser(OPTIONS.User, true);
     const text = interaction.options.getString(OPTIONS.Text, true);
 
-    const member = await this.container.rgd.members.fetch(user.id);
+    const member = await this.container.rgd.members.fetch(interaction.user.id);
 
     if (!member.roles.cache.has(ROLE_IDS.ADVISER)) {
       return interaction.reply({ content: 'Вы не советник', ephemeral: true });
