@@ -10,8 +10,8 @@ export class LocalStorage {
     this.data[key] = value;
     this.save();
   }
-  static getItem(key: string) {
-    return this.data[key];
+  static getItem<T>(key: string) {
+    return this.data[key] as T;
   }
 
   static save() {
