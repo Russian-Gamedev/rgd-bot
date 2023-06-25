@@ -1,0 +1,46 @@
+name: Deploy RGD-BOT
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    env:
+      NODE_VERSION: 18.x
+    
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: pnpm/action-setup@v2
+      with:
+          version: 8.3.0
+    - name: Use Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v3
+      with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+    
+    - name: install and lint
+      run: |
+        pnpm install --frozen-lockfile
+        pnpm run lint
+
+  deploy:
+    needs: [test]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: SSH and deploy node app
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.SSH_PORT }}
+        script: |
+          cd ~/rgd-bot
+          git pull
+          pnpm install
+          pm2 restart rgd-bot
