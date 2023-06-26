@@ -88,9 +88,12 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
   private processGoodNumbers(data: Stats[], embed: EmbedBuilder) {
     let goodNumbersText = '';
 
-    const reactionsStats = data
-      .sort((a, b) => b.reactions - a.reactions)
-      .slice(0, 15);
+    let reactionsStats = data.sort((a, b) => b.reactions - a.reactions);
+
+    const last = reactionsStats.at(-1);
+
+    reactionsStats = reactionsStats.slice(0, 14);
+    reactionsStats.push(last);
 
     reactionsStats.forEach((stat, index) => {
       goodNumbersText += `${index + 1}. <@${stat.user}>: \`${

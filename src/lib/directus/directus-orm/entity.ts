@@ -1,5 +1,4 @@
 import type { DirectusQuery } from './types';
-import { container } from '@sapphire/pieces';
 import { DirectusApi } from '@/lib/directus/directus-orm/index';
 
 export class DirectusEntity {

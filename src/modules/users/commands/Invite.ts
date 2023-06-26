@@ -1,4 +1,4 @@
-import { replyAnswer, replyWithError } from '../../../lib/helpers/sapphire';
+import { replyWithError } from '@/lib/helpers/sapphire';
 import { ApplyOptions } from '@sapphire/decorators';
 import {
   type CommandOptions,
@@ -6,9 +6,9 @@ import {
   type ChatInputCommand,
 } from '@sapphire/framework';
 import { ChatInputCommandInteraction } from 'discord.js';
-import { BaseCommand } from '../../../lib/sapphire/base-command';
-import { CHANNEL_IDS } from '../../../configs/discord-constants';
-import { Invites } from '../../../lib/directus/directus-entities/Discord';
+import { BaseCommand } from '@/lib/sapphire/base-command';
+import { CHANNEL_IDS } from '@/configs/discord-constants';
+import { Invites } from '@/lib/directus/directus-entities/Discord';
 
 const OPTIONS = {
   Alias: 'alias',

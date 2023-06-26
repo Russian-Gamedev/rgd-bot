@@ -14,14 +14,6 @@
   }
 */
 
-import type { DateTimeFunctions } from './types';
-
-type FilterDynamicValue =
-  | '$CURRENT_USER'
-  | '$CURRENT_ROLE'
-  | '$NOW'
-  | `$NOW(${number} ${DateTimeFunctions})`;
-
 type FilterValue = string;
 
 type FilterOperator = {

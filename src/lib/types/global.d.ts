@@ -1,5 +1,4 @@
 import { Guild, TextChannel } from 'discord.js';
-import type { DirectusApi } from '@/lib/directus/directus-orm';
 
 declare module '@sapphire/pieces' {
   interface Container {
