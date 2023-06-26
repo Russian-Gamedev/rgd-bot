@@ -13,7 +13,7 @@ export class ReactionsService {
     const isGuard = await this.guard(reaction, user, 2);
     if (!isGuard) return;
 
-    const dayStats = await this.ensureStatsDay(user);
+    const dayStats = await this.ensureStatsDay(reaction.message.author);
     const emoji = reaction.emoji.id || reaction.emoji.name;
     const reactionWeight = EmojiWeight[emoji] ?? 1;
 
@@ -25,7 +25,7 @@ export class ReactionsService {
     const isGuard = await this.guard(reaction, user, 1);
     if (!isGuard) return;
 
-    const dayStats = await this.ensureStatsDay(user);
+    const dayStats = await this.ensureStatsDay(reaction.message.author);
     const emoji = reaction.emoji.id || reaction.emoji.name;
     const reactionWeight = EmojiWeight[emoji] ?? 1;
 
