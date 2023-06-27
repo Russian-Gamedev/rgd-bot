@@ -3,6 +3,8 @@ import { Events, Listener, container, Piece, Store } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import { CHANNEL_IDS, SERVER_ID } from '@/configs/discord-constants';
 import { DirectusService } from '@/lib/directus/services';
+import { TemplateType } from '@/lib/directus/directus-entities/Events';
+import { execAsync } from '@/lib/utils';
 
 @ApplyOptions<Listener.Options>({ once: true, event: Events.ClientReady })
 export class ReadyListener extends Listener<typeof Events.ClientReady> {
@@ -43,6 +45,22 @@ export class ReadyListener extends Listener<typeof Events.ClientReady> {
       this.container.logger.error(e);
     }
     this.container.logger.info('RGD fetched');
+
+    const commitCount = await execAsync('git rev-list --count HEAD');
+    const props = {
+      user: `<@${this.container.client.id}>`,
+    };
+
+    let message = DirectusService.getRandomChatTemplate(
+      TemplateType.MEMBER_JOIN,
+      props,
+    );
+
+    message += `|| ${commitCount} раз ||`;
+
+    await this.container.debugChannel.send({
+      content: message,
+    });
   }
 
   private styleStore(store: Store<Piece>, last: boolean) {
