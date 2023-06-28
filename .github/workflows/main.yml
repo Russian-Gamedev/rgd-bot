@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  test:
+  lint:
     env:
       NODE_VERSION: 18.x
     
@@ -28,7 +28,7 @@ jobs:
         pnpm run lint
 
   deploy:
-    needs: [test]
+    needs: [lint]
     runs-on: ubuntu-latest
 
     steps:
