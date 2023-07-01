@@ -1,5 +1,4 @@
 import { Guild, TextChannel } from 'discord.js';
-import { Directus } from '@/lib/directus';
 
 declare module '@sapphire/pieces' {
   interface Container {
@@ -10,10 +9,6 @@ declare module '@sapphire/pieces' {
   }
 }
 
-declare module '@directus/sdk/src/rest' {
-  export type RestClient<T> = R<T>;
-}
-
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
@@ -21,9 +16,6 @@ declare global {
 
       BOT_TOKEN: string;
       BOT_CLIENT_ID: string;
-
-      DIRECTUS_TOKEN: string;
-      DIRECTUS_URL: string;
 
       DISCORD_LOGGER_WEBHOOK: string;
     }

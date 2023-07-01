@@ -19,7 +19,7 @@
   },
   "keywords": [],
   "bugs": {
-    "url": "https://github.com/Russian-Gamedev/rgd-botissues"
+    "url": "https://github.com/Russian-Gamedev/rgd-bot#issues"
   },
   "homepage": "https://github.com/Russian-Gamedev/rgd-bot#readme",
   "lint-staged": {
@@ -29,7 +29,6 @@
     ]
   },
   "dependencies": {
-    "@directus/sdk": "11.0.0-beta.1",
     "@sapphire/framework": "^4.5.0",
     "@sapphire/pieces": "^3.6.3",
     "@sapphire/plugin-logger": "^3.0.4",
