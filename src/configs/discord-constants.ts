@@ -14,3 +14,5 @@ export const ROLE_IDS = {
 };
 
 export const SERVER_ID = '504617984594018325';
+
+export const DISCORD_CDN = 'https://cdn.discordapp.com';

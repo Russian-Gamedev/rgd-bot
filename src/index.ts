@@ -1,50 +1,29 @@
+import 'reflect-metadata';
 import * as dotenv from 'dotenv';
 import '@sapphire/plugin-logger';
-import { Logger, LogLevel } from '@sapphire/framework';
-import { ActivityType, GatewayIntentBits, Partials } from 'discord.js';
-import { DirectusApi } from '@/lib/directus/directus-orm';
-import { CustomClient } from '@/lib/sapphire/custom-client';
+import { RgdClient } from '@/lib/RgdClient';
+import { container } from '@sapphire/pieces';
+import { Directus } from '@/lib/directus';
 
 dotenv.config();
 
 async function bootstrap() {
-  const client = new CustomClient({
-    presence: {
-      status: 'online',
-      activities: [
-        {
-          type: ActivityType.Playing,
-          name: 'Поднимает геймдев с колен',
-          url: 'https://rgd.chat',
-        },
-      ],
-    },
-    logger: {
-      instance: new Logger(LogLevel.Debug),
-    },
-    disableMentionPrefix: true,
-    intents: [
-      GatewayIntentBits.Guilds,
-      GatewayIntentBits.GuildMembers,
-      GatewayIntentBits.GuildMessages,
-      GatewayIntentBits.GuildMessageReactions,
-      GatewayIntentBits.GuildPresences,
-      GatewayIntentBits.GuildVoiceStates,
-      GatewayIntentBits.GuildModeration,
-      GatewayIntentBits.GuildInvites,
-      GatewayIntentBits.MessageContent,
-    ],
-    partials: [Partials.Channel, Partials.Message, Partials.Reaction],
-  });
+  const client = new RgdClient();
 
   try {
-    const token = process.env.BOT_TOKEN;
-    const profile = await DirectusApi.instance.login(
+    container.directus = new Directus(
+      process.env.DIRECTUS_URL,
       process.env.DIRECTUS_TOKEN,
     );
+
+    const profile = await container.directus.me();
+    console.log(profile);
     client.logger.info(`Directus logged as '${profile.first_name}'`);
 
+    const token = process.env.BOT_TOKEN;
+
     await client.login(token);
+    client.setActivity('Поднимает геймдев с колен');
   } catch (e) {
     console.error(e);
     process.exit(0);
