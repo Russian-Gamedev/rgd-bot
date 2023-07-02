@@ -1,5 +1,4 @@
 import { LogLevel, SapphireClient } from '@sapphire/framework';
-import * as process from 'process';
 import { ActivityType, GatewayIntentBits, Partials } from 'discord.js';
 
 export class RgdClient extends SapphireClient {
@@ -30,6 +29,7 @@ export class RgdClient extends SapphireClient {
   }
 
   setActivity(title: string) {
+    if (!this.user) return;
     this.user.setActivity({
       type: ActivityType.Playing,
       name: title,
