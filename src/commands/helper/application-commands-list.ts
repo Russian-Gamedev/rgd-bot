@@ -18,7 +18,7 @@ export class ApplicationCommandsList extends Command {
   override registerApplicationCommands(registry: ApplicationCommandRegistry) {
     registry.registerChatInputCommand(
       (builder) => builder.setName(this.name).setDescription(this.description),
-      { idHints: ['1127186632831930469'] },
+      { idHints: ['1127244252297040036'] },
     );
   }
 

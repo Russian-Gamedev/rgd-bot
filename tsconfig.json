@@ -9,7 +9,7 @@
     "outDir": "build",
     "rootDir": "src",
     "verbatimModuleSyntax": false,
-    "typeRoots": ["./lib/types/*.d.ts"],
+    "typeRoots": ["./types/*.d.ts"],
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "experimentalDecorators": true,

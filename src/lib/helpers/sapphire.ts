@@ -27,3 +27,21 @@ export function replyAnswer(
     embeds: [{ description: text }],
   });
 }
+
+export function replyJson(
+  interaction: ChatInputCommand.Interaction,
+  json: object,
+) {
+  return interaction.reply(
+    `\`\`\`json\n${JSON.stringify(
+      json,
+      (_, value) => {
+        if (typeof value === 'bigint') {
+          return value.toString() + 'n';
+        }
+        return value;
+      },
+      2,
+    )}\`\`\``,
+  );
+}

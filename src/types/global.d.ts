@@ -1,9 +1,11 @@
 import { Guild, TextChannel } from 'discord.js';
 
+import { RgdClient } from '@/lib/rgd-client';
 import { Locale } from '@/locale';
 
 declare module '@sapphire/pieces' {
   interface Container {
+    client: RgdClient;
     rgd: Guild;
     mainChannel: TextChannel;
     debugChannel: TextChannel;
