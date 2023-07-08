@@ -1,9 +1,8 @@
-import 'reflect-metadata';
-import * as dotenv from 'dotenv';
-import '@sapphire/plugin-logger';
-import { RgdClient } from './lib/RgdClient';
+import { container } from '@sapphire/pieces';
 
-dotenv.config();
+import './config';
+
+import { RgdClient } from './lib/rgd-client';
 
 async function bootstrap() {
   const client = new RgdClient();
@@ -13,9 +12,9 @@ async function bootstrap() {
     await client.login(token);
     client.setActivity('Поднимает геймдев с колен');
   } catch (e) {
-    console.error(e);
+    container.logger.error(e);
     process.exit(0);
   }
 }
 
-bootstrap();
+bootstrap().catch((error) => container.logger.error(error));

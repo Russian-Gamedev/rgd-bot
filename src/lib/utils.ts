@@ -1,8 +1,9 @@
 import { exec } from 'child_process';
 import { User } from 'discord.js';
+
 import { DISCORD_CDN } from '@/configs/discord-constants';
 
-export const wait = (ms: number) => new Promise((res) => setTimeout(res, ms));
+export const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 export const execAsync = (command: string) => {
   return new Promise<string>((res) => {

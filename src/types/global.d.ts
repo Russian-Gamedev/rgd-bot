@@ -1,10 +1,13 @@
 import { Guild, TextChannel } from 'discord.js';
 
+import { Locale } from '@/locale';
+
 declare module '@sapphire/pieces' {
   interface Container {
     rgd: Guild;
     mainChannel: TextChannel;
     debugChannel: TextChannel;
+    locale: Locale;
   }
 }
 
