@@ -27,11 +27,12 @@ export class AboutCommand extends Command {
     const embed = new EmbedBuilder();
     embed.setAuthor({
       name: 'RGD Bot',
-      iconURL: interaction.client.user.displayAvatarURL(),
+      iconURL:
+        'https://cdn.discordapp.com/emojis/850081111241785425.gif?size=96&quality=lossless',
     });
     embed.setColor(Colors.Primary);
     embed.setThumbnail(
-      'https://cdn.discordapp.com/attachments/735105892264968234/745941444044390400/YxQQFFHzypg.png',
+      'https://cdn.discordapp.com/attachments/958976541696618537/1107780924982177852/504617984594018325.gif',
     );
 
     const authors = ['357130048882343937', '371690693233737740'];
