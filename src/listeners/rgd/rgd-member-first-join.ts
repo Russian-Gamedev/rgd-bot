@@ -10,7 +10,7 @@ import {
 import { RgdEvents } from '@/lib/discord/custom-events';
 
 @ApplyOptions<Listener.Options>({ event: RgdEvents.MemberFirstJoin })
-export class MemberFirstJoin extends Listener {
+export class RgdMemberFirstJoin extends Listener {
   async run(user: User) {
     const message = await BotEventsTemplates.getRandom(
       TemplateType.MEMBER_FIRST_JOIN,

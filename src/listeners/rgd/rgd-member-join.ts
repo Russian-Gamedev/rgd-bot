@@ -10,14 +10,12 @@ import {
 import { RgdEvents } from '@/lib/discord/custom-events';
 
 @ApplyOptions<Listener.Options>({ event: RgdEvents.MemberJoin })
-export class MemberJoin extends Listener {
+export class RgdMemberJoin extends Listener {
   async run(user: User) {
-    const message = await BotEventsTemplates.getRandom(
-      TemplateType.MEMBER_JOIN,
-      {
-        user: `<@${user.id}>`,
-      },
-    );
+    let message = await BotEventsTemplates.getRandom(TemplateType.MEMBER_JOIN, {
+      user: `<@${user.id}>`,
+    });
+    message += `|| ${user.leaveCount} раз ||`;
 
     await container.mainChannel.send(message);
   }

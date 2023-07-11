@@ -11,7 +11,6 @@ import { getDisplayAvatar, getDisplayBanner } from '@/lib/utils';
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberRemove })
 export class MemberLeave extends Listener<typeof Events.GuildMemberRemove> {
   async run(member: GuildMember) {
-    console.log(member.guild.id);
     if (member.guild.id != SERVER_ID) return;
     let user = await User.findOne({ where: { id: member.id } });
 

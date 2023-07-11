@@ -3,7 +3,7 @@ import { Listener, Piece, Store } from '@sapphire/framework';
 import { container } from '@sapphire/pieces';
 import { Events, TextChannel } from 'discord.js';
 
-import { CHANNEL_IDS, SERVER_ID } from '@/configs/constants';
+import { CHANNEL_IDS, IS_DEV, SERVER_ID } from '@/configs/constants';
 import {
   BotEventsTemplates,
   TemplateType,
@@ -31,7 +31,10 @@ export class Ready extends Listener {
         this.styleStore(s, stores.indexOf(s) + 1 === stores.length),
       );
     }
-    await this.sendReadyMessage();
+
+    if (!IS_DEV) {
+      await this.sendReadyMessage();
+    }
 
     this.container.logger.info(
       '-> Bot successfully started! Listening to commands...',
