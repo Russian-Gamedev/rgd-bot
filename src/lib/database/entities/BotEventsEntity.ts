@@ -21,7 +21,7 @@ export class BotEventsTemplates extends BaseEntity {
   @Column('varchar')
   message: string;
 
-  @Column('text')
+  @Column('text', { nullable: true })
   attachment: string;
 
   static async getRandom(type: TemplateType, params: Record<string, string>) {
