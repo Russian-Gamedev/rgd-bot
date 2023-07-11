@@ -4,9 +4,8 @@ import { container } from '@sapphire/pieces';
 import { Events, GuildMember } from 'discord.js';
 
 import { SERVER_ID } from '@/configs/constants';
-import { User } from '@/lib/database/entities';
+import { User, UserRoles } from '@/lib/database/entities';
 import { RgdEvents } from '@/lib/discord/custom-events';
-import { getDisplayAvatar, getDisplayBanner } from '@/lib/utils';
 
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberAdd })
 export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
@@ -14,25 +13,28 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
     if (member.guild.id != SERVER_ID) return;
 
     let user = await User.findOne({ where: { id: member.id } });
+
     if (!user) {
-      user = User.create({
-        id: member.id,
-        username: member.user.username,
-        avatar: getDisplayAvatar(member.user),
-        banner: getDisplayBanner(member.user),
-        banner_color: member.displayHexColor,
-      });
-
-      await user.save();
-
+      user = await User.ensure(member);
       this.container.client.emit(RgdEvents.MemberFirstJoin, user);
     } else {
       user.leave = false;
       await user.save();
 
+      await this.loadRoles(member);
+
       this.container.client.emit(RgdEvents.MemberJoin, user);
     }
 
     container.logger.info(member.displayName, 'join to server');
+  }
+
+  private async loadRoles(member: GuildMember) {
+    const roles_db = await UserRoles.find({ where: { user_id: member.id } });
+
+    for (const role of roles_db) {
+      if (member.roles.cache.has(role.role_id)) continue;
+      await member.roles.add(role.role_id);
+    }
   }
 }

@@ -15,9 +15,12 @@ export const ROLE_IDS = {
   default: '504617984594018325',
 };
 
-export const SERVER_ID = IS_DEV ? '1127255165548888196' : '504617984594018325';
+const RGD_DEV_SERVER_ID = '1127255165548888196';
+const RGD_SERVER_ID = '504617984594018325';
 
-export const BOT_ID = '735101707419123784';
+export const SERVER_ID = IS_DEV ? RGD_DEV_SERVER_ID : RGD_SERVER_ID;
+
+export const BOT_ID = process.env.BOT_CLIENT_ID;
 
 export const DISCORD_CDN = 'https://cdn.discordapp.com';
 

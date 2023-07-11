@@ -1,3 +1,4 @@
+import { GuildMember } from 'discord.js';
 import {
   BaseEntity,
   Column,
@@ -5,6 +6,8 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
+import { getDisplayAvatar, getDisplayBanner } from '@/lib/utils';
 
 @Entity('user')
 export class User extends BaseEntity {
@@ -20,7 +23,7 @@ export class User extends BaseEntity {
   @Column('varchar')
   avatar: string;
 
-  @Column('varchar')
+  @Column('varchar', { nullable: true, default: null })
   banner: string | null;
 
   @Column('varchar', { nullable: true, default: null })
@@ -31,42 +34,48 @@ export class User extends BaseEntity {
 
   @Column('bigint', {
     transformer: { to: (value) => value, from: (value) => BigInt(value) },
+    default: 0,
   })
   voiceTime: bigint;
 
-  @Column('integer')
+  @Column('integer', { default: 0 })
   reputation: number;
 
-  @Column('integer')
+  @Column('integer', { default: 0 })
   coins: number;
 
-  @Column('integer')
+  @Column('integer', { default: 0 })
   leaveCount: number;
 
-  @Column('timestamp with time zone')
+  @Column('timestamp with time zone', { default: new Date() })
   firstJoin: Date;
 
-  @Column('text')
+  @Column('text', { default: '' })
   about: string;
 
-  @Column('integer')
+  @Column('integer', { default: 0 })
   experience: number;
 
-  @Column('varchar')
+  @Column('varchar', { default: null, nullable: true })
   birthDate: string;
 
-  @Column('boolean')
+  @Column('boolean', { default: false })
   leave: boolean;
 
-  @Column('text')
+  @Column('text', { default: null, nullable: true })
   lore: string;
 
-  static async ensure(id: string) {
-    let user = await this.findOne({ where: { id } });
+  static async ensure(member: GuildMember) {
+    let user = await this.findOne({ where: { id: member.id } });
     if (!user) {
       user = this.create({
-        id,
+        id: member.id,
+        username: member.user.username,
+        avatar: getDisplayAvatar(member.user),
+        banner: getDisplayBanner(member.user),
+        banner_color: member.displayHexColor,
       });
+      await user.save();
     }
 
     return user;

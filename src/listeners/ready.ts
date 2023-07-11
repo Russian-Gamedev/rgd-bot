@@ -4,10 +4,7 @@ import { container } from '@sapphire/pieces';
 import { Events, TextChannel } from 'discord.js';
 
 import { CHANNEL_IDS, IS_DEV, SERVER_ID } from '@/configs/constants';
-import {
-  BotEventsTemplates,
-  TemplateType,
-} from '@/lib/database/entities/BotEventsEntity';
+import { BotEventsTemplates, TemplateType } from '@/lib/database/entities';
 import { execAsync } from '@/lib/utils';
 
 @ApplyOptions<Listener.Options>({ event: Events.ClientReady, once: true })

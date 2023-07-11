@@ -33,7 +33,8 @@ export class UserCommand extends Command {
   override async chatInputRun(interaction: ChatInputCommandInteraction) {
     const target =
       interaction.options.getUser(Options.User, false) ?? interaction.user;
-    const user = await User.ensure(target.id);
+    const member = await this.container.rgd.members.fetch(target.id);
+    const user = await User.ensure(member);
 
     console.log(user);
 

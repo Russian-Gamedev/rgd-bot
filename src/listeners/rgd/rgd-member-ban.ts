@@ -2,11 +2,11 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
 import { container } from '@sapphire/pieces';
 
-import { User } from '@/lib/database/entities';
 import {
   BotEventsTemplates,
   TemplateType,
-} from '@/lib/database/entities/BotEventsEntity';
+  User,
+} from '@/lib/database/entities';
 import { RgdEvents } from '@/lib/discord/custom-events';
 
 @ApplyOptions<Listener.Options>({ event: RgdEvents.MemberBan })
