@@ -37,6 +37,7 @@ export class BirthdayTask extends ScheduledTask {
     const embed = new EmbedBuilder();
     embed.setDescription('СЕГОДНЯШНИЕ ИМЕНИННИКИ');
     embed.setFooter({ text: 'поздравьте их' });
+    embed.setColor(0xff41fb);
 
     const field: EmbedField = {
       value: '',
