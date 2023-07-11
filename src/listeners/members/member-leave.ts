@@ -1,7 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
 import { container } from '@sapphire/pieces';
-import { Events, GuildMember } from 'discord.js';
+import { AuditLogEvent, Events, GuildMember } from 'discord.js';
 
 import { SERVER_ID } from '@/configs/constants';
 import { User } from '@/lib/database/entities';
@@ -28,6 +28,26 @@ export class MemberLeave extends Listener<typeof Events.GuildMemberRemove> {
     }
     await user.save();
     user.leave = true;
+
+    const banList = await member.guild.bans.fetch();
+    if (banList.find((user) => user.user.id == member.user.id)) {
+      this.container.client.emit(RgdEvents.MemberBan, user);
+      container.logger.info(member.displayName, 'banned at server');
+      return;
+    }
+
+    const fetchedLogs = await member.guild.fetchAuditLogs({
+      limit: 1,
+      type: AuditLogEvent.MemberKick,
+    });
+
+    const kickLog = fetchedLogs.entries.first();
+
+    if (kickLog && kickLog.createdAt > (member.joinedAt ?? 0)) {
+      this.container.client.emit(RgdEvents.MemberKick, user);
+      container.logger.info(member.displayName, 'kicked from server');
+      return;
+    }
 
     this.container.client.emit(RgdEvents.MemberLeave, user);
 
