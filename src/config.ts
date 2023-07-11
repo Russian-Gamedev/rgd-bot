@@ -3,6 +3,7 @@ import fs from 'fs';
 
 import 'reflect-metadata';
 import '@sapphire/plugin-logger/register';
+import '@sapphire/plugin-scheduled-tasks/register';
 
 process.env.NODE_ENV ??= 'development';
 

@@ -30,6 +30,7 @@
     "@sapphire/framework": "^4.5.0",
     "@sapphire/pieces": "^3.6.3",
     "@sapphire/plugin-logger": "^3.0.4",
+    "@sapphire/plugin-scheduled-tasks": "^7.1.0",
     "@sapphire/time-utilities": "^1.7.9",
     "discord.js": "^14.11.0",
     "dotenv": "^16.3.1",

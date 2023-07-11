@@ -29,6 +29,16 @@ export class RgdClient<
       ],
       partials: [Partials.Channel, Partials.Message, Partials.Reaction],
       baseUserDirectory: join(__dirname, '..'),
+      tasks: {
+        bull: {
+          connection: {
+            host: process.env.REDIS_HOST,
+            port: Number(process.env.REDIS_PORT),
+            password: process.env.REDIS_PASSWORD,
+            db: Number(process.env.REDIS_DB),
+          },
+        },
+      },
     });
   }
 
