@@ -1,6 +1,8 @@
+export const IS_DEV = process.env.NODE_ENV !== 'production';
+
 export const CHANNEL_IDS = {
-  MAIN: '504619448632737793',
-  DEBUG: '504618938517159946',
+  MAIN: IS_DEV ? '1127255167096586252' : '504619448632737793',
+  DEBUG: IS_DEV ? '1127256051796934687' : '504618938517159946',
   Welcome: '504618684401188864',
 };
 
@@ -13,7 +15,8 @@ export const ROLE_IDS = {
   default: '504617984594018325',
 };
 
-export const SERVER_ID = '504617984594018325';
+export const SERVER_ID = IS_DEV ? '1127255165548888196' : '504617984594018325';
+
 export const BOT_ID = '735101707419123784';
 
 export const DISCORD_CDN = 'https://cdn.discordapp.com';

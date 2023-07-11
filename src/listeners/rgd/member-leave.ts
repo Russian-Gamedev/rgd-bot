@@ -9,11 +9,11 @@ import {
 } from '@/lib/database/entities/BotEventsEntity';
 import { RgdEvents } from '@/lib/discord/custom-events';
 
-@ApplyOptions<Listener.Options>({ event: RgdEvents.MemberJoin })
-export class MemberJoin extends Listener {
+@ApplyOptions<Listener.Options>({ event: RgdEvents.MemberLeave })
+export class MemberLeave extends Listener {
   async run(user: User) {
     const message = await BotEventsTemplates.getRandom(
-      TemplateType.MEMBER_JOIN,
+      TemplateType.MEMBER_LEAVE,
       {
         user: `<@${user.id}>`,
       },

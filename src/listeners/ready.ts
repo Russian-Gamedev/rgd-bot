@@ -1,13 +1,28 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Listener, Piece, Store } from '@sapphire/framework';
-import { Events } from 'discord.js';
+import { container } from '@sapphire/pieces';
+import { Events, TextChannel } from 'discord.js';
 
-import { SERVER_ID } from '@/configs/constants';
+import { CHANNEL_IDS, SERVER_ID } from '@/configs/constants';
+import {
+  BotEventsTemplates,
+  TemplateType,
+} from '@/lib/database/entities/BotEventsEntity';
+import { execAsync } from '@/lib/utils';
 
 @ApplyOptions<Listener.Options>({ event: Events.ClientReady, once: true })
 export class Ready extends Listener {
   async run() {
     this.container.rgd = await this.container.client.guilds.fetch(SERVER_ID);
+    container.logger.info(`Looking up '${this.container.rgd.name}' server`);
+
+    const [debugChannel, mainChannel] = await Promise.all(
+      [CHANNEL_IDS.DEBUG, CHANNEL_IDS.MAIN].map((id) =>
+        this.container.rgd.channels.fetch(id),
+      ),
+    );
+    this.container.debugChannel = debugChannel as TextChannel;
+    this.container.mainChannel = mainChannel as TextChannel;
 
     const stores = [...this.container.stores.values()];
 
@@ -16,6 +31,7 @@ export class Ready extends Listener {
         this.styleStore(s, stores.indexOf(s) + 1 === stores.length),
       );
     }
+    await this.sendReadyMessage();
 
     this.container.logger.info(
       '-> Bot successfully started! Listening to commands...',
@@ -24,6 +40,24 @@ export class Ready extends Listener {
     this.container.logger.info(
       `Logged as ${this.container.client.user?.username}`,
     );
+  }
+
+  private async sendReadyMessage() {
+    const commitCount = await execAsync('git rev-list --count HEAD');
+    const props = {
+      user: `<@${this.container.client.id}>`,
+    };
+
+    let message = await BotEventsTemplates.getRandom(
+      TemplateType.MEMBER_JOIN,
+      props,
+    );
+
+    message += `|| ${commitCount} раз ||`;
+
+    await this.container.mainChannel.send({
+      content: message,
+    });
   }
 
   private styleStore(store: Store<Piece>, last: boolean) {

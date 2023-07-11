@@ -7,8 +7,6 @@ import { databaseConnect } from '@/lib/database/database.config';
 export class RgdClient<
   Ready extends boolean = boolean,
 > extends SapphireClient<Ready> {
-  public readonly dev = process.env.NODE_ENV !== 'production';
-
   constructor() {
     super({
       logger: {

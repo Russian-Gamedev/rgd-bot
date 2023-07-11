@@ -1,4 +1,5 @@
 export enum RgdEvents {
-  MemberFirstJoin = 'new_member_join',
-  MemberJoin = 'old_member_join',
+  MemberFirstJoin = 'rgd_new_member_join',
+  MemberJoin = 'rgd_old_member_join',
+  MemberLeave = 'rgd_member_leave',
 }
