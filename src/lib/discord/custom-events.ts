@@ -4,4 +4,6 @@ export enum RgdEvents {
   MemberLeave = 'rgd_member_leave',
   MemberBan = 'rgd_member_ban',
   MemberKick = 'rgd_member_kick',
+  ReactionAdd = 'rgd_reaction_add',
+  ReactionRemove = 'rgd_reaction_remove',
 }
