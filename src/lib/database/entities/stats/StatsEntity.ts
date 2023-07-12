@@ -5,6 +5,9 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { PickKeysByType } from 'typeorm/common/PickKeysByType';
+
+export type StatsKey = Exclude<PickKeysByType<BotStats, number>, 'id'>;
 
 export class BotStats extends BaseEntity {
   @PrimaryGeneratedColumn()

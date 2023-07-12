@@ -6,8 +6,7 @@ import { Like } from 'typeorm';
 import { ROLE_IDS } from '@/configs/constants';
 import { User } from '@/lib/database/entities';
 
-@ApplyOptions({
-  name: 'birthday-task',
+@ApplyOptions<ScheduledTask.Options>({
   pattern: '0 8 * * *',
 })
 export class BirthdayTask extends ScheduledTask {
