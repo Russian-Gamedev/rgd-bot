@@ -1,9 +1,10 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { ApplicationCommandRegistry, Command } from '@sapphire/framework';
-import { ChatInputCommandInteraction } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 
+import { Colors } from '@/configs/constants';
 import { User } from '@/lib/database/entities';
-import { replyJson } from '@/lib/helpers/sapphire';
+import { getDisplayAvatar, getRelativeFormat, getTimeInfo } from '@/lib/utils';
 
 const enum Options {
   User = 'user',
@@ -36,8 +37,54 @@ export class UserCommand extends Command {
     const member = await this.container.rgd.members.fetch(target.id);
     const user = await User.ensure(member);
 
-    console.log(user);
+    const embed = new EmbedBuilder();
+    embed.setColor(Colors.Warning);
+    embed.setThumbnail(getDisplayAvatar(member.user));
 
-    return replyJson(interaction, user);
+    const inVoice = getTimeInfo(user.voiceTime);
+
+    embed.setFields(
+      {
+        name: 'Имя аккаунта',
+        value: member.user.username,
+        inline: true,
+      },
+      { name: 'Упоминание', value: `<@${member.id}>`, inline: true },
+      {
+        name: 'Создан',
+        value: getRelativeFormat(member.user.createdTimestamp),
+        inline: true,
+      },
+      {
+        name: 'Первый вход',
+        value: getRelativeFormat(user.firstJoin.getTime()),
+        inline: true,
+      },
+      {
+        name: 'Уровень уважения',
+        value: user.reputation.toLocaleString('ru'),
+        inline: true,
+      },
+      { name: 'Баланс', value: user.coins.toLocaleString('ru'), inline: true },
+      {
+        name: 'Понаписал',
+        value: user.experience.toLocaleString('ru'),
+        inline: true,
+      },
+      {
+        name: 'Наговорил',
+        value: `${inVoice.hours + inVoice.days * 24} ч ${inVoice.minutes
+          .toString()
+          .padStart(2, '0')} мин ${inVoice.seconds
+          .toString()
+          .padStart(2, '0')} сек`,
+        inline: true,
+      },
+      { name: 'Ливал раз', value: `${user.leaveCount}`, inline: true },
+    );
+
+    return interaction.reply({
+      embeds: [embed],
+    });
   }
 }

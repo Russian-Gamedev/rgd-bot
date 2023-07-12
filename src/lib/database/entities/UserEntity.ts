@@ -32,11 +32,11 @@ export class User extends BaseEntity {
   @Column('varchar')
   banner_color: string;
 
-  @Column('bigint', {
-    transformer: { to: (value) => value, from: (value) => BigInt(value) },
+  @Column('integer', {
+    transformer: { to: (value) => value, from: (value) => parseInt(value) },
     default: 0,
   })
-  voiceTime: bigint;
+  voiceTime: number;
 
   @Column('integer', { default: 0 })
   reputation: number;

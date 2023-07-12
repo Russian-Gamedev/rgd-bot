@@ -20,6 +20,7 @@
     "noEmitHelpers": true,
     "noImplicitOverride": true,
     "strictPropertyInitialization": false,
+    "allowUnreachableCode": true,
     "baseUrl": "src",
     "paths": {
       "@/*": ["./*"]
