@@ -8,6 +8,7 @@ import { User } from '@/lib/database/entities';
 
 @ApplyOptions<ScheduledTask.Options>({
   pattern: '0 8 * * *',
+  name: 'birthday-task',
 })
 export class BirthdayTask extends ScheduledTask {
   async run() {

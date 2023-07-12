@@ -13,7 +13,10 @@ import {
 
 type Stat = { user: string; value: number };
 
-@ApplyOptions<ScheduledTask.Options>({ pattern: '0 15 * * *' })
+@ApplyOptions<ScheduledTask.Options>({
+  pattern: '0 15 * * *',
+  name: 'post-stats-task',
+})
 export class StatsTask extends ScheduledTask {
   async run() {
     await this.postDayStats();
