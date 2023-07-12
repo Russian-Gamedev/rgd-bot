@@ -3,6 +3,7 @@ import { Listener } from '@sapphire/framework';
 import { Events, Message } from 'discord.js';
 
 import { User } from '@/lib/database/entities';
+import { StatsDay } from '@/lib/database/entities/stats/StatsEntity';
 
 @ApplyOptions<Listener.Options>({
   event: Events.MessageCreate,
@@ -19,5 +20,10 @@ export class MemberMessage extends Listener<typeof Events.MessageCreate> {
     user.experience += words.length;
 
     await user.save();
+
+    const stats = await StatsDay.ensure(user.id);
+    stats.chat += words.length;
+
+    await stats.save();
   }
 }
