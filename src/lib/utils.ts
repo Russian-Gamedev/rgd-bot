@@ -1,5 +1,5 @@
 import { exec } from 'child_process';
-import { User } from 'discord.js';
+import { Message, User } from 'discord.js';
 
 import { DISCORD_CDN } from '@/configs/constants';
 
@@ -71,4 +71,16 @@ export function getTimeInfo(t: number) {
     minutes,
     seconds,
   };
+}
+
+export function messageLink(message: Message) {
+  return messageLinkRaw(message.guildId, message.channelId, message.id);
+}
+
+export function messageLinkRaw(
+  guildId: string,
+  channelId: string,
+  message: string,
+) {
+  return `https://discord.com/channels/${guildId}/${channelId}/${message}`;
 }
