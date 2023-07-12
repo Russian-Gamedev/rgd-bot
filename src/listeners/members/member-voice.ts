@@ -2,8 +2,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
 import { Events, GuildMember, VoiceState } from 'discord.js';
 
-import { User } from '@/lib/database/entities';
-import { StatsDay } from '@/lib/database/entities/stats/StatsEntity';
+import { StatsDay, User } from '@/lib/database/entities';
 import { Times } from '@/lib/utils';
 
 @ApplyOptions<Listener.Options>({
