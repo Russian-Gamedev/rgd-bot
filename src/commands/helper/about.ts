@@ -10,6 +10,7 @@ import {
 } from 'discord.js';
 
 import { Colors } from '@/configs/constants';
+import { getRelativeFormat } from '@/lib/utils';
 
 @ApplyOptions({
   name: 'about',
@@ -37,10 +38,6 @@ export class AboutCommand extends Command {
 
     const authors = ['357130048882343937', '371690693233737740'];
 
-    const readyTimestamp = Math.floor(
-      (this.container.client.readyTimestamp ?? 0) / 1_000,
-    );
-
     embed.addFields([
       {
         name: 'Написан на',
@@ -59,7 +56,7 @@ export class AboutCommand extends Command {
       },
       {
         name: 'Запущен',
-        value: `<t:${readyTimestamp}:R>`,
+        value: getRelativeFormat(this.container.client.readyTimestamp),
       },
     ]);
 

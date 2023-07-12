@@ -66,17 +66,20 @@ export class User extends BaseEntity {
   lore: string;
 
   static async ensure(member: GuildMember) {
+    const discord_user = await member.user.fetch();
     let user = await this.findOne({ where: { id: member.id } });
     if (!user) {
       user = this.create({
         id: member.id,
-        username: member.user.username,
-        avatar: getDisplayAvatar(member.user),
-        banner: getDisplayBanner(member.user),
-        banner_color: member.displayHexColor,
       });
-      await user.save();
     }
+
+    user.username = member.user.username;
+    user.avatar = getDisplayAvatar(discord_user);
+    user.banner = getDisplayBanner(discord_user);
+    user.banner_color = member.displayHexColor;
+
+    await user.save();
 
     return user;
   }

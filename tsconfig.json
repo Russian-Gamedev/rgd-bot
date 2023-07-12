@@ -21,6 +21,7 @@
     "noImplicitOverride": true,
     "strictPropertyInitialization": false,
     "allowUnreachableCode": true,
+    "strictNullChecks": false,
     "baseUrl": "src",
     "paths": {
       "@/*": ["./*"]

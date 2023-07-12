@@ -13,7 +13,7 @@ export const DatabaseConfig: ConnectionOptions = {
   username: process.env.DATABASE_USERNAME,
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME,
-  entities: [join(__dirname, 'entities/*Entity.ts')],
+  entities: [join(__dirname, 'entities/**/*Entity.ts')],
   synchronize: IS_DEV,
 };
 
@@ -24,6 +24,15 @@ export const databaseConnect = async () => {
   );
   await db.initialize();
   container.logger.info('[DataBase] Connected!');
+
+  const entities = db.entityMetadatas.map((entity) => entity.name);
+
+  entities.forEach((entity, index) => {
+    let line = index + 1 === entities.length ? '└─' : '├─';
+    line += ` Loaded Entity[${entity}]`;
+
+    container.logger.info('[DataBase]', line);
+  });
 
   return;
 };

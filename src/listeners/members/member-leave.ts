@@ -68,7 +68,7 @@ export class MemberLeave extends Listener<typeof Events.GuildMemberRemove> {
 
     const kickLog = fetchedLogs.entries.first();
 
-    if (kickLog && kickLog.createdAt > (member.joinedAt ?? 0)) {
+    if (kickLog && kickLog.createdAt > member.joinedAt) {
       this.container.client.emit(RgdEvents.MemberKick, user);
       container.logger.info(member.displayName, 'kicked from server');
       return true;
