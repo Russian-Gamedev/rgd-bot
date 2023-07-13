@@ -40,6 +40,28 @@ export class Ready extends Listener {
     this.container.logger.info(
       `Logged as ${this.container.client.user?.username}`,
     );
+
+    this.printApiInfo();
+  }
+
+  private printApiInfo() {
+    const server = this.container.client.server;
+    const listenOptions = server.options.listenOptions;
+    const routes = [...server.routes.values()];
+
+    for (const route of routes) {
+      const line = routes.indexOf(route) + 1 === routes.length ? '└─' : '├─';
+
+      const methods = [...route.methods.keys()].join();
+
+      this.container.logger.info(
+        `[API] ${line} ${route.router.path} ${methods}`,
+      );
+    }
+
+    this.container.logger.info(
+      `[API] Server started at http://${listenOptions.host}:${listenOptions.port}`,
+    );
   }
 
   private async sendReadyMessage() {

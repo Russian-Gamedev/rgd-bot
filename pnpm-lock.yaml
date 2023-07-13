@@ -14,6 +14,9 @@ dependencies:
   '@sapphire/pieces':
     specifier: ^3.6.3
     version: 3.6.3
+  '@sapphire/plugin-api':
+    specifier: ^5.1.0
+    version: 5.1.0
   '@sapphire/plugin-logger':
     specifier: ^3.0.4
     version: 3.0.4
@@ -612,6 +615,16 @@ packages:
       '@discordjs/collection': 1.5.1
       '@sapphire/utilities': 3.12.0
       tslib: 2.6.0
+    dev: false
+
+  /@sapphire/plugin-api@5.1.0:
+    resolution: {integrity: sha512-Yy9JdyT1ZTkIpa0+iaxOsQwwWfM4KGWt3y0xqtVVmtGpQYfj2cszVLX1y30uo3sEnuOLb8NrFUSDCQqntqskng==}
+    engines: {node: '>=v14.0.0', npm: '>=7.0.0'}
+    dependencies:
+      '@types/ws': 8.5.5
+      tldts: 6.0.11
+      tslib: 2.6.0
+      undici: 5.22.1
     dev: false
 
   /@sapphire/plugin-logger@3.0.4:
@@ -3233,6 +3246,17 @@ packages:
     resolution: {integrity: sha512-KxVu8EYHDPBdUYdKZdKtU2aj2XfEx9AfjXxE/Aj0vT06w2icA09Vus1rh6eSu1y01akYg6BjIK/hxyLJINoMLQ==}
     engines: {node: '>=12'}
     dev: true
+
+  /tldts-core@6.0.11:
+    resolution: {integrity: sha512-+RbG0WSUVGNWtA96rAPwjQq8ElqbYwuFPwbe2jxQ9fvoC/3aTwy5zUL0JjE2VPblvORSVykS8suREEjwKy2bEw==}
+    dev: false
+
+  /tldts@6.0.11:
+    resolution: {integrity: sha512-wuFhR06KoAoZ8y83VGXEJcIr53hc78FPtpBr/meAU8ZW9DRGEmc1b8InD3o65sE9McXHWnyn8hVI6byHWtguUA==}
+    hasBin: true
+    dependencies:
+      tldts-core: 6.0.11
+    dev: false
 
   /to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}

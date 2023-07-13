@@ -1,5 +1,10 @@
 import { LogLevel, SapphireClient } from '@sapphire/framework';
-import { ActivityType, GatewayIntentBits, Partials } from 'discord.js';
+import {
+  ActivityType,
+  GatewayIntentBits,
+  OAuth2Scopes,
+  Partials,
+} from 'discord.js';
 import { join } from 'path';
 
 import { databaseConnect } from '@/lib/database/database.config';
@@ -37,6 +42,23 @@ export class RgdClient<
             password: process.env.REDIS_PASSWORD,
             db: Number(process.env.REDIS_DB),
           },
+        },
+      },
+      api: {
+        prefix: '',
+        origin: '*',
+        automaticallyConnect: true,
+        listenOptions: {
+          host: '0.0.0.0',
+          port: Number(process.env.PORT),
+        },
+        auth: {
+          id: process.env.BOT_CLIENT_ID,
+          secret: '',
+          cookie: 'RGD_AUTH',
+          redirect: 'https://rgd.chat',
+          scopes: [OAuth2Scopes.Identify],
+          transformers: [],
         },
       },
     });
