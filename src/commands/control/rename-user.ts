@@ -8,6 +8,8 @@ import {
 import { ChatInputCommandInteraction } from 'discord.js';
 
 import { ROLE_IDS } from '@/configs/constants';
+import { EmojiCoin } from '@/configs/emojies';
+import { User } from '@/lib/database/entities';
 import { HasRole } from '@/lib/decorators/has-role';
 import { replyWithError } from '@/lib/helpers/sapphire';
 
@@ -44,16 +46,31 @@ export class RenameCommand extends Command {
 
   @HasRole(ROLE_IDS.ACTIVE)
   public override async chatInputRun(interaction: ChatInputCommandInteraction) {
-    const user = interaction.options.getUser(OPTIONS.USER, true);
-    const newName = interaction.options.getString(OPTIONS.NEW_NAME, true);
+    const member = await this.container.rgd.members.fetch(interaction.user.id);
 
-    const member = await this.container.rgd.members.fetch(user.id);
-    const prevNickname = member.nickname || member.user.username;
+    const targetUser = interaction.options.getUser(OPTIONS.USER, true);
+    const targetMember = await this.container.rgd.members.fetch(targetUser.id);
+
+    const newName = interaction.options.getString(OPTIONS.NEW_NAME, true);
+    const prevNickname = targetMember.nickname || targetMember.user.username;
+
+    if (targetUser.id === this.container.client.id) {
+      const user = await User.ensure(member);
+      if (user.coins < 10_000) {
+        return replyWithError(
+          interaction,
+          `Чтобы переименовать бота, нужно 10 000 ${EmojiCoin.Top}`,
+        );
+      }
+      user.coins -= 10_000;
+
+      await user.save();
+    }
 
     try {
-      await member.setNickname(
+      await targetMember.setNickname(
         newName,
-        `${interaction.user.username} has renamed ${member.user.username}`,
+        `${interaction.user.username} has renamed ${targetMember.user.username}`,
       );
     } catch (e) {
       this.container.logger.error(e);

@@ -18,3 +18,9 @@ export const EmojiNumber: Record<string, string> = {
   '9': '9️⃣',
   '0': '0️⃣',
 };
+
+export const enum EmojiCoin {
+  Top = '<:coin:1128595913007435887>',
+  Bottom = '<:coin_flipped:1128595915742117992>',
+  Animated = '<a:coin_flip:1128595911577174086>',
+}
