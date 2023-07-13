@@ -10,6 +10,7 @@ import { StatsDay, User } from '@/lib/database/entities';
 })
 export class MemberMessage extends Listener<typeof Events.MessageCreate> {
   async run(message: Message) {
+    if (message.webhookId) return;
     if (message.member.user.bot) return;
     if (message.guildId != SERVER_ID) return;
 

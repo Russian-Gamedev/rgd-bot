@@ -1,6 +1,8 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
+import { Time } from '@sapphire/time-utilities';
 import { EmbedBuilder } from 'discord.js';
+import { MoreThan } from 'typeorm';
 
 import { Colors } from '@/configs/constants';
 import { EmojiMedals } from '@/configs/emojies';
@@ -9,6 +11,7 @@ import {
   StatsDay,
   StatsKey,
   StatsWeek,
+  User,
 } from '@/lib/database/entities';
 
 type Stat = { user: string; value: number };
@@ -31,7 +34,8 @@ export class StatsTask extends ScheduledTask {
     if (stats.length === 0) {
       return this.container.logger.warn(`StatsDay is empty`);
     }
-    const embed = this.buildEmbed(stats);
+    const newRegs = await this.getNewRegs(1);
+    const embed = this.buildEmbed(stats, newRegs);
     embed.setTitle('Ежедневная статистика');
 
     const promises = stats.map(async (stat) => {
@@ -52,8 +56,8 @@ export class StatsTask extends ScheduledTask {
     if (stats.length === 0) {
       return this.container.logger.warn(`StatsWeek is empty`);
     }
-
-    const embed = this.buildEmbed(stats);
+    const newRegs = await this.getNewRegs(7);
+    const embed = this.buildEmbed(stats, newRegs);
     embed.setTitle('Еженедельная статистика');
 
     const promises = stats.map((stat) => stat.remove());
@@ -63,7 +67,7 @@ export class StatsTask extends ScheduledTask {
     await this.container.mainChannel.send({ embeds: [embed] });
   }
 
-  private buildEmbed(stats: BotStats[]) {
+  private buildEmbed(stats: BotStats[], newRegs: number) {
     const embed = new EmbedBuilder();
     embed.setColor(Colors.Primary);
 
@@ -109,7 +113,7 @@ export class StatsTask extends ScheduledTask {
     embed.addFields(
       {
         name: 'новорегов в базе',
-        value: (0).toString(),
+        value: newRegs.toLocaleString(),
         inline: false,
       },
       {
@@ -148,5 +152,14 @@ export class StatsTask extends ScheduledTask {
     return data
       .sort((a, b) => b[key] - a[key])
       .map((stats) => ({ user: stats.user, value: stats[key] }));
+  }
+
+  private async getNewRegs(days: number) {
+    const yesterday = new Date();
+    yesterday.setTime(yesterday.getTime() - Time.Day * days);
+    const newRegs = await User.find({
+      where: { firstJoin: MoreThan(yesterday) },
+    });
+    return newRegs.length;
   }
 }
