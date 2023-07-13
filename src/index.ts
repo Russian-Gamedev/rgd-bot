@@ -1,5 +1,3 @@
-import { container } from '@sapphire/pieces';
-
 import './config';
 
 import { RgdClient } from './lib/rgd-client';
@@ -12,9 +10,9 @@ async function bootstrap() {
     await client.login(token);
     client.setActivity('Поднимает геймдев с колен');
   } catch (e) {
-    container.logger.error(e);
+    console.error(e);
     process.exit(0);
   }
 }
 
-bootstrap().catch((error) => container.logger.error(error));
+bootstrap().catch((error) => console.error(error));

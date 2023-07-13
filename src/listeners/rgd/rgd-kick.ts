@@ -6,14 +6,14 @@ import {
   BotEventsTemplates,
   TemplateType,
   User,
-} from '@/lib/database/entities';
+} from '@/lib/database/entities/';
 import { RgdEvents } from '@/lib/discord/custom-events';
 
-@ApplyOptions<Listener.Options>({ event: RgdEvents.MemberFirstJoin })
-export class RgdMemberFirstJoin extends Listener {
+@ApplyOptions<Listener.Options>({ event: RgdEvents.MemberKick })
+export class RgdKick extends Listener {
   async run(user: User) {
     const message = await BotEventsTemplates.getRandom(
-      TemplateType.MEMBER_FIRST_JOIN,
+      TemplateType.MEMBER_KICK,
       {
         user: `<@${user.id}>`,
       },

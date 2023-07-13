@@ -10,7 +10,7 @@ import {
 import { RgdEvents } from '@/lib/discord/custom-events';
 
 @ApplyOptions<Listener.Options>({ event: RgdEvents.MemberBan })
-export class RgdMemberBan extends Listener {
+export class RgdBan extends Listener {
   async run(user: User) {
     const message = await BotEventsTemplates.getRandom(
       TemplateType.MEMBER_BAN,

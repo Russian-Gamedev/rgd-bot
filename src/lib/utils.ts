@@ -1,3 +1,4 @@
+import { Time } from '@sapphire/time-utilities';
 import { exec } from 'child_process';
 import { Message, User } from 'discord.js';
 
@@ -49,20 +50,15 @@ export function getRelativeFormat(timestamp: number) {
   return `<t:${Math.floor(timestamp / 1_000)}:R>`;
 }
 
-export enum Times {
-  Minutes = 60,
-  Hours = 60 * 60,
-  Day = 60 * 60 * 24,
-}
-
 export function getTimeInfo(t: number) {
-  const days = Math.floor(t / Times.Day);
-  t -= days * Times.Day;
+  t *= 1_000;
+  const days = Math.floor(t / Time.Day);
+  t -= days * Time.Day;
 
-  const hours = Math.floor(t / Times.Hours);
-  t -= hours * Times.Hours;
-  const minutes = Math.floor(t / Times.Minutes);
-  t -= minutes * Times.Minutes;
+  const hours = Math.floor(t / Time.Hour);
+  t -= hours * Time.Hour;
+  const minutes = Math.floor(t / Time.Minute);
+  t -= minutes * Time.Minute;
   const seconds = t;
 
   return {

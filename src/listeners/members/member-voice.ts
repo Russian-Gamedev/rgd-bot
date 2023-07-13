@@ -1,9 +1,10 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
+import { Time } from '@sapphire/time-utilities';
 import { Events, GuildMember, VoiceState } from 'discord.js';
 
+import { SERVER_ID } from '@/configs/constants';
 import { StatsDay, User } from '@/lib/database/entities';
-import { Times } from '@/lib/utils';
 
 @ApplyOptions<Listener.Options>({
   event: Events.VoiceStateUpdate,
@@ -17,6 +18,8 @@ export class MemberVoice extends Listener {
   }
 
   async run(oldState: VoiceState, newState: VoiceState) {
+    if (oldState.guild.id != SERVER_ID) return;
+
     if (newState.member.user.bot) return;
     if (oldState.channelId == newState.id) return;
     const member = newState.member;
@@ -35,17 +38,14 @@ export class MemberVoice extends Listener {
   }
 
   private async onReady() {
-    setInterval(
-      async () => {
-        const members = [...this.voiceMap.keys()];
+    setInterval(async () => {
+      const members = [...this.voiceMap.keys()];
 
-        for (const member of members) {
-          await this.calcVoice(member);
-          this.voiceMap.set(member, Date.now());
-        }
-      },
-      1_000 * Times.Minutes * 5,
-    );
+      for (const member of members) {
+        await this.calcVoice(member);
+        this.voiceMap.set(member, Date.now());
+      }
+    }, Time.Minute * 5);
   }
 
   private async calcVoice(member: GuildMember) {

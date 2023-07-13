@@ -2,6 +2,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
 import { Events, MessageReaction, User as DiscordUser } from 'discord.js';
 
+import { SERVER_ID } from '@/configs/constants';
 import { RoleBindings } from '@/lib/database/entities';
 import { RgdEvents } from '@/lib/discord/custom-events';
 
@@ -11,6 +12,7 @@ import { RgdEvents } from '@/lib/discord/custom-events';
 export class ReactionsAdd extends Listener<typeof Events.MessageReactionAdd> {
   async run(reaction: MessageReaction, user: DiscordUser) {
     if (user.bot) return;
+    if (reaction.message.guildId != SERVER_ID) return;
     try {
       const member = await this.container.rgd.members.fetch(user);
       const emoji = reaction.emoji.id || reaction.emoji.name;

@@ -10,7 +10,7 @@ import {
 import { RgdEvents } from '@/lib/discord/custom-events';
 
 @ApplyOptions<Listener.Options>({ event: RgdEvents.MemberLeave })
-export class RgdMemberLeave extends Listener {
+export class RgdLeave extends Listener {
   async run(user: User) {
     const message = await BotEventsTemplates.getRandom(
       TemplateType.MEMBER_LEAVE,

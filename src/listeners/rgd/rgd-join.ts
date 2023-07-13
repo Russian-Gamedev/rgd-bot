@@ -9,15 +9,13 @@ import {
 } from '@/lib/database/entities/';
 import { RgdEvents } from '@/lib/discord/custom-events';
 
-@ApplyOptions<Listener.Options>({ event: RgdEvents.MemberKick })
-export class RgdMemberKick extends Listener {
+@ApplyOptions<Listener.Options>({ event: RgdEvents.MemberJoin })
+export class RgdJoin extends Listener {
   async run(user: User) {
-    const message = await BotEventsTemplates.getRandom(
-      TemplateType.MEMBER_KICK,
-      {
-        user: `<@${user.id}>`,
-      },
-    );
+    let message = await BotEventsTemplates.getRandom(TemplateType.MEMBER_JOIN, {
+      user: `<@${user.id}>`,
+    });
+    message += `|| ${user.leaveCount} раз ||`;
 
     await container.mainChannel.send(message);
   }
