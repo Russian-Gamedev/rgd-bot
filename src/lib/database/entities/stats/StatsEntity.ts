@@ -32,6 +32,7 @@ export class BotStats extends BaseEntity {
     let stats = await this.findOne({ where: { user } });
     if (!stats) {
       stats = this.create({ user });
+      await stats.save();
     }
 
     return stats;

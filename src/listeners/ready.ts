@@ -77,7 +77,7 @@ export class Ready extends Listener {
 
     message += `|| ${commitCount} раз ||`;
 
-    await this.container.mainChannel.send({
+    await this.container.debugChannel.send({
       content: message,
     });
   }
