@@ -7,6 +7,7 @@ import {
 } from '@sapphire/framework';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 
+import { SERVER_ID } from '@/configs/constants';
 import { EmojiWeight } from '@/configs/emoji-weight';
 
 @ApplyOptions<Command.Options>({
@@ -25,6 +26,7 @@ export class EmojiWeightCommand extends Command {
   }
 
   override async chatInputRun(interaction: ChatInputCommandInteraction) {
+    if (interaction.guildId != SERVER_ID) return;
     const embed = new EmbedBuilder();
 
     embed.setTitle('Список эмоджи с весами');
@@ -43,6 +45,6 @@ export class EmojiWeightCommand extends Command {
 
     embed.setDescription(text);
 
-    return interaction.reply({ embeds: [embed] });
+    await interaction.reply({ embeds: [embed] });
   }
 }

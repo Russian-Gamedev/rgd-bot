@@ -7,6 +7,7 @@ import {
 import { container } from '@sapphire/pieces';
 import { ChatInputCommandInteraction } from 'discord.js';
 
+import { SERVER_ID } from '@/configs/constants';
 import locale from '@/locale';
 
 @ApplyOptions({
@@ -23,6 +24,7 @@ export class ApplicationCommandsList extends Command {
   }
 
   override async chatInputRun(interaction: ChatInputCommandInteraction) {
+    if (interaction.guildId != SERVER_ID) return;
     const commands = container.client.stores.get('commands');
 
     const categories: Record<string, Command[]> = {};

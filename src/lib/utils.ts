@@ -1,4 +1,3 @@
-import { Time } from '@sapphire/time-utilities';
 import { exec } from 'child_process';
 import { Message, User } from 'discord.js';
 
@@ -51,18 +50,11 @@ export function getRelativeFormat(timestamp: number) {
 }
 
 export function getTimeInfo(t: number) {
-  t *= 1_000;
-  const days = Math.floor(t / Time.Day);
-  t -= days * Time.Day;
-
-  const hours = Math.floor(t / Time.Hour);
-  t -= hours * Time.Hour;
-  const minutes = Math.floor(t / Time.Minute);
-  t -= minutes * Time.Minute;
-  const seconds = t;
+  const hours = Math.floor(t / 3600);
+  const minutes = Math.floor((t - hours * 3600) / 60);
+  const seconds = Math.floor(t - (hours * 3600 + minutes * 60));
 
   return {
-    days,
     hours,
     minutes,
     seconds,

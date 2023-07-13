@@ -17,6 +17,7 @@ import {
   TextBasedChannel,
 } from 'discord.js';
 
+import { SERVER_ID } from '@/configs/constants';
 import { EmojiNumber } from '@/configs/emojies';
 import { RoleBindings } from '@/lib/database/entities/';
 import { replyWithError } from '@/lib/helpers/sapphire';
@@ -84,6 +85,7 @@ export class RoleBindingCommand extends Subcommand {
   }
 
   async chatInputList(interaction: Subcommand.ChatInputCommandInteraction) {
+    if (interaction.guildId != SERVER_ID) return;
     const list = await RoleBindings.find();
 
     const group: Record<string, number> = {};
@@ -106,13 +108,14 @@ export class RoleBindingCommand extends Subcommand {
       text += `* ${link} \`${count}\`\n`;
     }
 
-    return interaction.reply({
+    await interaction.reply({
       content: text,
       ephemeral: true,
     });
   }
 
   async chatInputSet(interaction: Subcommand.ChatInputCommandInteraction) {
+    if (interaction.guildId != SERVER_ID) return;
     const messageId = interaction.options.getString('message', true);
     const channel = cast<TextBasedChannel>(
       interaction.options.getChannel('channel', false) ?? interaction.channel,
@@ -201,7 +204,10 @@ export class RoleBindingCommand extends Subcommand {
     }
   }
 
-  async chatInputRemove(interaction: Subcommand.ChatInputCommandInteraction) {
+  async chatInputRemove(
+    interaction: Subcommand.ChatInputCommandInteraction,
+  ): Promise<any> {
+    if (interaction.guildId != SERVER_ID) return;
     const messageId = interaction.options.getString('message', true);
     const channel = cast<TextBasedChannel>(
       interaction.options.getChannel('channel', false) ?? interaction.channel,
@@ -225,7 +231,6 @@ export class RoleBindingCommand extends Subcommand {
       }
       this.container.logger.warn(e);
     }
-    return undefined;
   }
 
   private parseMessage(content: string) {

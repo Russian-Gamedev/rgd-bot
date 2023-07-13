@@ -2,7 +2,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { ApplicationCommandRegistry, Command } from '@sapphire/framework';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 
-import { Colors } from '@/configs/constants';
+import { Colors, SERVER_ID } from '@/configs/constants';
 import { User } from '@/lib/database/entities';
 import { getDisplayAvatar, getRelativeFormat, getTimeInfo } from '@/lib/utils';
 
@@ -32,6 +32,8 @@ export class UserCommand extends Command {
   }
 
   override async chatInputRun(interaction: ChatInputCommandInteraction) {
+    if (interaction.guildId != SERVER_ID) return;
+
     const target =
       interaction.options.getUser(Options.User, false) ?? interaction.user;
     const member = await this.container.rgd.members.fetch(target.id);
@@ -73,7 +75,7 @@ export class UserCommand extends Command {
       },
       {
         name: 'Наговорил',
-        value: `${inVoice.hours + inVoice.days * 24} ч ${inVoice.minutes
+        value: `${inVoice.hours} ч ${inVoice.minutes
           .toString()
           .padStart(2, '0')} мин ${inVoice.seconds
           .toString()
@@ -83,7 +85,7 @@ export class UserCommand extends Command {
       { name: 'Ливал раз', value: `${user.leaveCount}`, inline: true },
     );
 
-    return interaction.reply({
+    await interaction.reply({
       embeds: [embed],
     });
   }

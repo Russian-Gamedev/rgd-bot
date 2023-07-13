@@ -7,7 +7,7 @@ import {
 } from '@sapphire/framework';
 import { ChannelType, ChatInputCommandInteraction } from 'discord.js';
 
-import { ROLE_IDS } from '@/configs/constants';
+import { ROLE_IDS, SERVER_ID } from '@/configs/constants';
 import { HasRole } from '@/lib/decorators/has-role';
 import { replyWithError } from '@/lib/helpers/sapphire';
 
@@ -46,7 +46,10 @@ export class RenameVoiceCommand extends Command {
   }
 
   @HasRole(ROLE_IDS.ACTIVE)
-  public override async chatInputRun(interaction: ChatInputCommandInteraction) {
+  public override async chatInputRun(
+    interaction: ChatInputCommandInteraction,
+  ): Promise<any> {
+    if (interaction.guildId != SERVER_ID) return;
     const channel = interaction.options.getChannel(OPTIONS.CHANNEL, true);
     const newName = interaction.options.getString(OPTIONS.NEW_NAME, true);
 

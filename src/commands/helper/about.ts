@@ -9,7 +9,7 @@ import {
   MessageActionRowComponentBuilder,
 } from 'discord.js';
 
-import { Colors } from '@/configs/constants';
+import { Colors, SERVER_ID } from '@/configs/constants';
 import { getRelativeFormat } from '@/lib/utils';
 
 @ApplyOptions({
@@ -24,7 +24,8 @@ export class AboutCommand extends Command {
     );
   }
 
-  override chatInputRun(interaction: ChatInputCommandInteraction) {
+  override async chatInputRun(interaction: ChatInputCommandInteraction) {
+    if (interaction.guildId != SERVER_ID) return;
     const embed = new EmbedBuilder();
     embed.setAuthor({
       name: 'RGD Bot',
@@ -69,7 +70,7 @@ export class AboutCommand extends Command {
         .setLabel('Сурсы'),
     );
 
-    return interaction.reply({
+    await interaction.reply({
       embeds: [embed],
       components: [row],
     });
