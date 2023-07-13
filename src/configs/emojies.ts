@@ -1,4 +1,4 @@
-export const enum EmojiPlaces {
+export const enum EmojiMedals {
   First = '🥇',
   Second = '🥈',
   Third = '🥉',

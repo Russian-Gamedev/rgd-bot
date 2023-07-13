@@ -1,4 +1,5 @@
 import type { ChatInputCommand } from '@sapphire/framework';
+import { codeBlock } from 'discord.js';
 
 export async function replyWithError(
   interaction: ChatInputCommand.Interaction,
@@ -32,16 +33,8 @@ export function replyJson(
   interaction: ChatInputCommand.Interaction,
   json: object,
 ) {
-  return interaction.reply(
-    `\`\`\`json\n${JSON.stringify(
-      json,
-      (_, value) => {
-        if (typeof value === 'bigint') {
-          return value.toString() + 'n';
-        }
-        return value;
-      },
-      2,
-    )}\`\`\``,
-  );
+  return interaction.reply({
+    content: codeBlock('json', JSON.stringify(json, null, 2)),
+    ephemeral: true,
+  });
 }

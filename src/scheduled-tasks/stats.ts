@@ -3,7 +3,7 @@ import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { EmbedBuilder } from 'discord.js';
 
 import { Colors } from '@/configs/constants';
-import { EmojiPlaces } from '@/configs/emojies';
+import { EmojiMedals } from '@/configs/emojies';
 import {
   BotStats,
   StatsDay,
@@ -100,7 +100,7 @@ export class StatsTask extends ScheduledTask {
       value: this.buildTop(
         reactions,
         ({ user, value }, position) =>
-          this.buildLine(user, value, value >= 0 ? position : EmojiPlaces.Last),
+          this.buildLine(user, value, value >= 0 ? position : EmojiMedals.Last),
         'никто не ставил реакций :(',
       ),
       inline: false,
