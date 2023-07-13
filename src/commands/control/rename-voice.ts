@@ -8,6 +8,7 @@ import {
 import { ChannelType, ChatInputCommandInteraction } from 'discord.js';
 
 import { ROLE_IDS } from '@/configs/constants';
+import { HasRole } from '@/lib/decorators/has-role';
 import { replyWithError } from '@/lib/helpers/sapphire';
 
 const OPTIONS = {
@@ -44,13 +45,10 @@ export class RenameVoiceCommand extends Command {
     );
   }
 
+  @HasRole(ROLE_IDS.ACTIVE)
   public override async chatInputRun(interaction: ChatInputCommandInteraction) {
     const channel = interaction.options.getChannel(OPTIONS.CHANNEL, true);
     const newName = interaction.options.getString(OPTIONS.NEW_NAME, true);
-    const member = await this.container.rgd.members.fetch(interaction.user.id);
-    if (!member.roles.cache.has(ROLE_IDS.ACTIVE)) {
-      return replyWithError(interaction, 'Вы не можете переименовать канал.');
-    }
 
     if (channel) {
       const voiceChannel = await this.container.rgd.channels.fetch(channel.id);
