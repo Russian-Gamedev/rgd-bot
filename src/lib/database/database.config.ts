@@ -2,8 +2,6 @@ import { container } from '@sapphire/pieces';
 import { join } from 'path';
 import { ConnectionOptions, DataSource } from 'typeorm';
 
-import { IS_DEV } from '@/configs/constants';
-
 import '@/config';
 
 export const DatabaseConfig: ConnectionOptions = {
@@ -14,7 +12,7 @@ export const DatabaseConfig: ConnectionOptions = {
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME,
   entities: [join(__dirname, 'entities/**/*Entity.ts')],
-  synchronize: IS_DEV,
+  synchronize: false,
 };
 
 export const databaseConnect = async () => {
