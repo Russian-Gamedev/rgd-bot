@@ -15,10 +15,7 @@ export class RgdClient<
   constructor() {
     super({
       logger: {
-        level:
-          process.env.NODE_ENV === 'production'
-            ? LogLevel.Info
-            : LogLevel.Debug,
+        level: LogLevel.Debug,
       },
       disableMentionPrefix: true,
       intents: [

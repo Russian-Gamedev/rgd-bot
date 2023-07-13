@@ -10,9 +10,9 @@ async function bootstrap() {
     await client.login(token);
     client.setActivity('Поднимает геймдев с колен');
   } catch (e) {
-    console.error(e);
+    console.trace(e);
     process.exit(0);
   }
 }
 
-bootstrap().catch((error) => console.error(error));
+bootstrap().catch((error) => console.trace(error));

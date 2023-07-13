@@ -46,5 +46,5 @@ class RoleBindingsCache {
 
 container.client.on('ready', () => {
   RoleBindings.cache = new RoleBindingsCache();
-  RoleBindings.cache.load().catch(container.logger.error);
+  RoleBindings.cache.load().catch(console.error);
 });

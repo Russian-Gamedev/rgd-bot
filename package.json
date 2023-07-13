@@ -31,7 +31,6 @@
     "@sapphire/framework": "^4.5.0",
     "@sapphire/pieces": "^3.6.3",
     "@sapphire/plugin-api": "^5.1.0",
-    "@sapphire/plugin-logger": "^3.0.4",
     "@sapphire/plugin-scheduled-tasks": "^7.1.0",
     "@sapphire/plugin-subcommands": "^4.0.1",
     "@sapphire/result": "^2.6.4",

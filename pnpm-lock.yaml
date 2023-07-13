@@ -17,9 +17,6 @@ dependencies:
   '@sapphire/plugin-api':
     specifier: ^5.1.0
     version: 5.1.0
-  '@sapphire/plugin-logger':
-    specifier: ^3.0.4
-    version: 3.0.4
   '@sapphire/plugin-scheduled-tasks':
     specifier: ^7.1.0
     version: 7.1.0
@@ -625,15 +622,6 @@ packages:
       tldts: 6.0.11
       tslib: 2.6.0
       undici: 5.22.1
-    dev: false
-
-  /@sapphire/plugin-logger@3.0.4:
-    resolution: {integrity: sha512-a5TnOouMiwTjXEj5HBbmq22csNijP07Xncsc5/eJA1e13lRCGoTbfQjQQ0/AOA4/g31hixycG8btQ4GOWptCIg==}
-    engines: {node: '>=v14.0.0', npm: '>=7.0.0'}
-    dependencies:
-      '@sapphire/timestamp': 1.0.1
-      colorette: 2.0.20
-      tslib: 2.6.0
     dev: false
 
   /@sapphire/plugin-scheduled-tasks@7.1.0:
@@ -1262,6 +1250,7 @@ packages:
 
   /colorette@2.0.20:
     resolution: {integrity: sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w==}
+    dev: true
 
   /commander@10.0.1:
     resolution: {integrity: sha512-y4Mg2tXshplEbSGzx7amzPwKKOCGuoSRP/CjEdwwk0FOGlUbq6lKuoyDZTNZkmxHdJtp54hdfY/JUrdL7Xfdug==}
