@@ -15,7 +15,7 @@ import locale from '@/locale';
   description: 'Помощь по всем командам',
   runIn: [CommandOptionsRunTypeEnum.GuildText],
 })
-export class ApplicationCommandsList extends Command {
+export class Help extends Command {
   override registerApplicationCommands(registry: ApplicationCommandRegistry) {
     registry.registerChatInputCommand(
       (builder) => builder.setName(this.name).setDescription(this.description),
@@ -50,8 +50,16 @@ export class ApplicationCommandsList extends Command {
       for (const command of commands) {
         const id = command.applicationCommandRegistry.globalCommandId;
         if (!id) continue;
-
-        content += `</${command.name}:${id}> ${command.description}\n`;
+        if ('subcommands' in command.options) {
+          content += `\n**${command.description}**\n`;
+          for (const subcommand of command.options.subcommands as Array<{
+            name: string;
+          }>) {
+            content += `</${command.name} ${subcommand.name}:${id}>\n`;
+          }
+        } else {
+          content += `</${command.name}:${id}> ${command.description}\n`;
+        }
       }
     }
 
