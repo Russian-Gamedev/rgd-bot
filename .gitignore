@@ -34,8 +34,7 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 
-.development.env
+.env
 *.sqlite
 
-.local-storage.json
 /build
