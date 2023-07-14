@@ -14,7 +14,7 @@ export class User extends BaseEntity {
   @PrimaryColumn('varchar', { length: 19 })
   id: string;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ default: new Date() })
   date_updated: Date;
 
   @Column('varchar')

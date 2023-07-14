@@ -29,7 +29,12 @@ export class RgdClient<
         GatewayIntentBits.GuildInvites,
         GatewayIntentBits.MessageContent,
       ],
-      partials: [Partials.Channel, Partials.Message, Partials.Reaction],
+      partials: [
+        Partials.Channel,
+        Partials.Message,
+        Partials.Reaction,
+        Partials.GuildMember,
+      ],
       baseUserDirectory: join(__dirname, '..'),
       tasks: {
         bull: {
