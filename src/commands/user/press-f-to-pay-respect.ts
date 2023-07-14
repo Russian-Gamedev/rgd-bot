@@ -88,7 +88,13 @@ export class PressFToPayRespectCommand extends Command {
       content: `${interaction.user.toString()} проявил уважение ${targetMember.toString()}, и оно повысилось до \`${
         user.reputation
       }\``,
-      embeds: [{ title: 'Причина', description: reason }],
+      embeds: [
+        {
+          title: 'Причина',
+          description: reason,
+          color: targetMember.displayColor,
+        },
+      ],
     });
   }
 }
