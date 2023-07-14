@@ -13,6 +13,7 @@ import {
   StatsWeek,
   User,
 } from '@/lib/database/entities';
+import { formatTime } from '@/lib/utils';
 
 type Stat = { user: string; value: number };
 
@@ -84,7 +85,9 @@ export class StatsTask extends ScheduledTask {
       name: 'стата по войсу',
       value: this.buildTop(
         this.sort(stats, 'voice').slice(0, 15),
-        ({ user, value }, position) => this.buildLine(user, value, position),
+        ({ user, value }, position) => {
+          return this.buildLine(user, formatTime(value), position);
+        },
         'никто не заходил в войс :(',
       ),
       inline: true,

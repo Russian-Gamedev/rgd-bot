@@ -61,6 +61,11 @@ export function getTimeInfo(t: number) {
   };
 }
 
+export function formatTime(t: number) {
+  const time = getTimeInfo(t);
+  return `${time.hours} ч ${time.minutes.toString().padStart(2, '0')} мин`;
+}
+
 export function messageLink(message: Message) {
   return messageLinkRaw(message.guildId, message.channelId, message.id);
 }

@@ -6,7 +6,7 @@ import { EmbedBuilder } from 'discord.js';
 import { Colors } from '@/configs/constants';
 import { EmojiMedals } from '@/configs/emojies';
 import { User } from '@/lib/database/entities';
-import { getTimeInfo } from '@/lib/utils';
+import { formatTime } from '@/lib/utils';
 
 const medals = [EmojiMedals.First, EmojiMedals.Second, EmojiMedals.Third];
 
@@ -50,10 +50,11 @@ export class VoiceTopCommand extends Subcommand {
   async chatInputVoice(intereaction: Subcommand.ChatInputCommandInteraction) {
     const users = await User.find({ order: { voiceTime: -1 }, take: 10 });
 
-    const embed = this.buildTop('Топ по времени в войсе', users, (user) => {
-      const time = getTimeInfo(user.voiceTime);
-      return `${time.hours} ч ${time.minutes.toString().padStart(2, '0')} мин`;
-    });
+    const embed = this.buildTop(
+      'Топ по времени в войсе',
+      users,
+      ({ voiceTime }) => formatTime(voiceTime),
+    );
 
     return intereaction.reply({ embeds: [embed] });
   }
