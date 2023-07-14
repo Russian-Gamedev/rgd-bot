@@ -12,6 +12,7 @@ export const DatabaseConfig: ConnectionOptions = {
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME,
   entities: [join(__dirname, 'entities/**/*Entity.ts')],
+  applicationName: 'rgd-bot',
   synchronize: false,
 };
 

@@ -1,6 +1,6 @@
 import { BaseEntity, Column, Entity, PrimaryColumn } from 'typeorm';
 
-@Entity({ name: 'Discord_Roles' })
+@Entity('Discord_Roles')
 export class DiscordRole extends BaseEntity {
   @PrimaryColumn('varchar', { length: 19 })
   id: string;
