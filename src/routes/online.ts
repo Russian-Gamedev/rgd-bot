@@ -18,8 +18,8 @@ export class OnlineRoute extends Route {
         'https://discord.com/api/v9/invites/5kZhhWD?with_counts=true',
       ).then((res) => res.json());
 
-      this.cache.online = response.approximate_member_count;
-      this.cache.members = response.approximate_presence_count;
+      this.cache.members = response.approximate_member_count;
+      this.cache.online = response.approximate_presence_count;
 
       this.cacheNext = Date.now() + Time.Minute * 5;
     }
