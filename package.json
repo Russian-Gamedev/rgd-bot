@@ -41,6 +41,7 @@
     "node-cron": "^3.0.2",
     "pg": "^8.11.1",
     "reflect-metadata": "^0.1.13",
+    "semantic-commit-emoji": "^0.6.2",
     "tslib": "^2.6.0",
     "typeorm": "^0.3.17"
   },
