@@ -71,6 +71,7 @@ export class User extends BaseEntity {
     if (!user) {
       user = this.create({
         id: member.id,
+        firstJoin: member.joinedAt,
       });
     }
 
