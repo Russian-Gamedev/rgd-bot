@@ -23,6 +23,7 @@
     "allowUnreachableCode": true,
     "strictNullChecks": false,
     "declaration": false,
+    "declarationMap": false,
     "baseUrl": "src",
     "paths": {
       "@/*": ["./*"]

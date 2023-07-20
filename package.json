@@ -18,6 +18,7 @@
     "start:dev": "nodemon",
     "format": "prettier --write \"src/**/*.ts\" ",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "ts-check": "tsc --noEmit --incremental",
     "prepare": "husky install .github/.husky"
   },
   "lint-staged": {
