@@ -45,4 +45,4 @@ jobs:
           git reset --hard
           git pull
           pnpm install
-          pm2 restart rgd-bot
+          pm2 restart rgd.bot
