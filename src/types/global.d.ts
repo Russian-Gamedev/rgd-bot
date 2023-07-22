@@ -1,5 +1,6 @@
 import { Guild, TextChannel } from 'discord.js';
 
+import { ClydeBot } from '@/lib/clyde-bot';
 import { RgdClient } from '@/lib/rgd-client';
 import { Locale } from '@/locale';
 
@@ -10,6 +11,7 @@ declare module '@sapphire/pieces' {
     mainChannel: TextChannel;
     debugChannel: TextChannel;
     locale: Locale;
+    clyde: ClydeBot;
   }
 }
 

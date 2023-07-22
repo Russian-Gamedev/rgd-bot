@@ -8,6 +8,7 @@ import {
 } from 'discord.js';
 import { join } from 'path';
 
+import { ClydeBot } from '@/lib/clyde-bot';
 import { databaseConnect } from '@/lib/database/database.config';
 import { RgdShop } from '@/lib/shop';
 import { RgdShopStore } from '@/lib/shop/rgd-shop-store';
@@ -76,6 +77,8 @@ export class RgdClient<
     this.stores.register(container.RgdShop.store);
 
     container.RgdShop.store.registerPath(join(__dirname, RgdShopStore.name));
+
+    container.clyde = new ClydeBot(process.env.USER_BOT_TOKEN);
 
     return super.login(token);
   }
