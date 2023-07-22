@@ -1,4 +1,5 @@
 import { LogLevel, SapphireClient } from '@sapphire/framework';
+import { container } from '@sapphire/pieces';
 import {
   ActivityType,
   GatewayIntentBits,
@@ -8,6 +9,8 @@ import {
 import { join } from 'path';
 
 import { databaseConnect } from '@/lib/database/database.config';
+import { RgdShop } from '@/lib/shop';
+import { RgdShopStore } from '@/lib/shop/rgd-shop-store';
 
 export class RgdClient<
   Ready extends boolean = boolean,
@@ -68,6 +71,12 @@ export class RgdClient<
 
   override async login(token?: string): Promise<string> {
     await databaseConnect();
+
+    container.RgdShop = new RgdShop();
+    this.stores.register(container.RgdShop.store);
+
+    container.RgdShop.store.registerPath(join(__dirname, RgdShopStore.name));
+
     return super.login(token);
   }
 
