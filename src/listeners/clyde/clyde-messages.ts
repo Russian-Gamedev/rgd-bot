@@ -2,11 +2,14 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
 import { Events, Message } from 'discord.js';
 
+import { SERVER_ID } from '@/configs/constants';
+
 @ApplyOptions<Listener.Options>({
   event: Events.MessageCreate,
 })
 export class ClydeMessages extends Listener {
   async run(message: Message) {
+    if (message.guild.id != SERVER_ID) return;
     if (message.member.user.bot) return;
     const botId = this.container.client.id;
     if (message.mentions.has(botId)) {
