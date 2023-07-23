@@ -53,7 +53,7 @@ export class ClydeMessages extends Listener {
       if (!id) continue;
       const member = await this.container.rgd.members.fetch(id);
 
-      text = text.replaceAll(mention_ping, member.displayName);
+      text = text.replaceAll(mention_ping, member.user.username);
     }
     return text;
   }
