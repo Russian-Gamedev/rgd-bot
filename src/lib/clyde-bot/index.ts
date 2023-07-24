@@ -5,7 +5,8 @@ type PromiseResolver = (value: string | PromiseLike<string>) => void;
 
 export class ClydeBot {
   private client: Client;
-  private readonly clyde_id = '1132385202551914597';
+  private readonly channel_id = '852644110640873512';
+  private readonly clyde_id = '1081004946872352958';
   private queue: Array<PromiseResolver> = [];
 
   constructor(token: string) {
@@ -16,7 +17,8 @@ export class ClydeBot {
     };
 
     this.client.on.message_create = (message) => {
-      if (message.author.username != 'clyde') return;
+      if (message.channel_id != this.channel_id) return;
+      if (message.author.id != this.clyde_id) return;
       const content = message.content;
       const resolve = this.queue.shift();
       if (!resolve) return;
@@ -27,7 +29,8 @@ export class ClydeBot {
   send(content: string) {
     return new Promise<string>((resolve) => {
       this.queue.push(resolve);
-      this.client.send(this.clyde_id, { content });
+      content = '@Clyde ' + content;
+      this.client.send(this.channel_id, { content });
     });
   }
 }
