@@ -44,14 +44,18 @@ export class StatsTask extends ScheduledTask {
       week.chat += stat.chat;
       week.voice += stat.voice;
       week.reactions += stat.reactions;
-      await week.save();
-      await stat.remove();
+
+      const user = await User.findOne({ where: { id: stat.user } });
+      user.coins += stat.reactions;
+
+      await Promise.all([user.save(), week.save(), stat.remove()]);
     });
 
     await Promise.all(promises);
 
     await this.container.mainChannel.send({ embeds: [embed] });
   }
+
   private async postWeekStats() {
     const stats = await StatsWeek.find();
     if (stats.length === 0) {
