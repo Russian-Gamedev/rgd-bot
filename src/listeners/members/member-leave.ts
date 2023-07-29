@@ -20,7 +20,7 @@ export class MemberLeave extends Listener<typeof Events.GuildMemberRemove> {
 
     if (await this.checkIsBan(member, user)) return;
 
-    this.container.client.emit(RgdEvents.MemberLeave, user);
+    this.container.client.emit(RgdEvents.MemberLeave, user, member);
 
     container.logger.info(member.displayName, 'left from server');
   }

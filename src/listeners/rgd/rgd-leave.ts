@@ -1,6 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
 import { container } from '@sapphire/pieces';
+import { GuildMember } from 'discord.js';
 
 import {
   BotEventsTemplates,
@@ -11,11 +12,11 @@ import { RgdEvents } from '@/lib/discord/custom-events';
 
 @ApplyOptions<Listener.Options>({ event: RgdEvents.MemberLeave })
 export class RgdLeave extends Listener {
-  async run(user: User) {
+  async run(user: User, member: GuildMember) {
     const message = await BotEventsTemplates.getRandom(
       TemplateType.MEMBER_LEAVE,
       {
-        user: `<@${user.id}>`,
+        user: `[<@${user.id}>] **${member.displayName}**`,
       },
     );
 
