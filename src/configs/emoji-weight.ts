@@ -5,7 +5,8 @@ export const EmojiWeight: Record<string, number> = {
   '746270313112928257': -1, /// kolya-clown
   '🤡': -1,
   '874759751043514379': -1, /// poel-govno
-  '765423655990722560': -1, /// cringe
+  '765423655990722560': -1, /// cringe,
+  '1121918483010171033': -1 /// mdnt
 };
 
 export function getEmojiWeight(emoji: ReactionEmoji | GuildEmoji) {
