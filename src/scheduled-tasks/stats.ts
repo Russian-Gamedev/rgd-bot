@@ -72,7 +72,7 @@ export class StatsTask extends ScheduledTask {
     await this.container.mainChannel.send({ embeds: [embed] });
   }
 
-  private buildEmbed(stats: BotStats[], newRegs: number) {
+  private buildEmbed(stats: BotStats[], newRegs: User[]) {
     const embed = new EmbedBuilder();
     embed.setColor(Colors.Primary);
 
@@ -117,25 +117,28 @@ export class StatsTask extends ScheduledTask {
       inline: false,
     });
 
-    embed.addFields(
-      {
-        name: 'новорегов в базе',
-        value: newRegs.toLocaleString(),
-        inline: false,
-      },
-      {
-        name: 'писало в чате',
-        value: stats.length.toLocaleString('ru-RU'),
-        inline: false,
-      },
-    );
+    embed.addFields({
+      name: 'новореги',
+      value: this.buildTop(
+        newRegs,
+        (user) => `<@${user.id}>\n`,
+        'никто не пришел к нам :(',
+      ),
+      inline: true,
+    });
+
+    embed.addFields({
+      name: 'писало в чате',
+      value: stats.length.toLocaleString('ru-RU'),
+      inline: false,
+    });
 
     return embed;
   }
 
-  private buildTop(
-    data: Stat[],
-    buildLine: (value: Stat, position: number) => string,
+  private buildTop<T>(
+    data: T[],
+    buildLine: (value: T, position: number) => string,
     emptyText: string,
   ) {
     let text = data.reduce(
@@ -162,11 +165,10 @@ export class StatsTask extends ScheduledTask {
   }
 
   private async getNewRegs(days: number) {
-    const yesterday = new Date();
-    yesterday.setTime(yesterday.getTime() - Time.Day * days);
-    const newRegs = await User.find({
-      where: { firstJoin: MoreThan(yesterday) },
+    const time = new Date();
+    time.setTime(time.getTime() - Time.Day * days);
+    return await User.find({
+      where: { firstJoin: MoreThan(time) },
     });
-    return newRegs.length;
   }
 }
