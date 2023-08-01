@@ -22,13 +22,6 @@ type Stat = { user: string; value: number };
   name: 'post-stats-task',
 })
 export class StatsTask extends ScheduledTask {
-  override onLoad() {
-    super.onLoad();
-    setTimeout(() => {
-      this.run().catch(console.error);
-    }, 5_000);
-  }
-
   async run() {
     await this.postDayStats();
     const today = new Date().getDay();
@@ -130,7 +123,7 @@ export class StatsTask extends ScheduledTask {
       name: 'новореги',
       value: this.buildTop(
         newRegs,
-        (user) => `<@${user.id}>\n`,
+        (user, i) => `${i}. <@${user.id}>\n`,
         'никто не пришел к нам :(',
       ),
       inline: true,
