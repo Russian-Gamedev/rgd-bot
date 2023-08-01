@@ -102,7 +102,7 @@ export class StatsTask extends ScheduledTask {
     const lastReaction = reactionsRaw.at(-1);
     const reactions = reactionsRaw.slice(0, 15);
 
-    if (lastReaction.value < 0) {
+    if (lastReaction.value < 0 || reactions.at(-1) != lastReaction) {
       reactions.push(lastReaction);
     }
 
