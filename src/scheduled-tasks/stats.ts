@@ -22,6 +22,13 @@ type Stat = { user: string; value: number };
   name: 'post-stats-task',
 })
 export class StatsTask extends ScheduledTask {
+  override onLoad() {
+    super.onLoad();
+    setTimeout(() => {
+      this.run().catch(console.error);
+    }, 5_000);
+  }
+
   async run() {
     await this.postDayStats();
     const today = new Date().getDay();
@@ -106,6 +113,8 @@ export class StatsTask extends ScheduledTask {
       reactions.push(lastReaction);
     }
 
+    embed.addFields({ name: '\u200b', value: '\u200b' });
+
     embed.addFields({
       name: 'подсчёт неплохих цифр',
       value: this.buildTop(
@@ -114,7 +123,7 @@ export class StatsTask extends ScheduledTask {
           this.buildLine(user, value, value >= 0 ? position : EmojiMedals.Last),
         'никто не ставил реакций :(',
       ),
-      inline: false,
+      inline: true,
     });
 
     embed.addFields({
@@ -168,7 +177,7 @@ export class StatsTask extends ScheduledTask {
     const time = new Date();
     time.setTime(time.getTime() - Time.Day * days);
     return await User.find({
-      where: { firstJoin: MoreThan(time) },
+      where: { firstJoin: MoreThan(time), leave: false },
     });
   }
 }
