@@ -5,7 +5,6 @@ import { EmbedBuilder } from 'discord.js';
 import { MoreThan } from 'typeorm';
 
 import { Colors } from '@/configs/constants';
-import { EmojiWeight } from '@/configs/emoji-weight';
 import {
   BotStats,
   StatsDay,
@@ -108,18 +107,20 @@ export class StatsTask extends ScheduledTask {
 
     embed.addFields({ name: '\u200b', value: '\u200b' });
 
-    const randomLastEmoji = () => pickRandom(Object.keys(EmojiWeight));
+    const randomLastEmoji = pickRandom([
+      '🤡',
+      '<:poel:874759751043514379>',
+      '<:clown:965322944731570266>',
+      '<:kolyatrap:746270313112928257>',
+      '<:mdnt:1121918483010171033>',
+    ]);
 
     embed.addFields({
       name: 'подсчёт неплохих цифр',
       value: this.buildTop(
         reactions,
         ({ user, value }, position) =>
-          this.buildLine(
-            user,
-            value,
-            value >= 0 ? position : randomLastEmoji(),
-          ),
+          this.buildLine(user, value, value >= 0 ? position : randomLastEmoji),
         'никто не ставил реакций :(',
       ),
       inline: true,
