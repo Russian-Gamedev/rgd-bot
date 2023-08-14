@@ -60,7 +60,7 @@ export class Ready extends Listener {
     }
 
     this.container.logger.info(
-      `[API] Server started at http://${listenOptions.host}:${listenOptions.port}`,
+      `[API] Server started at http://${listenOptions.host}:${listenOptions.port}/${server.options.prefix}`,
     );
   }
 

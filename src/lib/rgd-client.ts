@@ -50,7 +50,7 @@ export class RgdClient<
         },
       },
       api: {
-        prefix: '',
+        prefix: 'api/',
         origin: '*',
         automaticallyConnect: true,
         listenOptions: {
@@ -59,11 +59,12 @@ export class RgdClient<
         },
         auth: {
           id: process.env.BOT_CLIENT_ID,
-          secret: '',
-          cookie: 'RGD_AUTH',
+          secret: process.env.BOT_SECRET,
+          cookie: process.env.OUATH_COOKIE,
           redirect: 'https://rgd.chat',
           scopes: [OAuth2Scopes.Identify],
           transformers: [],
+          domainOverwrite: '127.0.0.1',
         },
       },
     });

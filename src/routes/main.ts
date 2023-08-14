@@ -17,7 +17,7 @@ const randomMessages = [
 ];
 
 @ApplyOptions<Route.Options>({
-  route: '/',
+  route: '',
 })
 export class MainRoute extends Route {
   public [methods.GET](_request: ApiRequest, response: ApiResponse) {
