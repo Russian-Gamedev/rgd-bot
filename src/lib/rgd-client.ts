@@ -8,7 +8,6 @@ import {
 } from 'discord.js';
 import { join } from 'path';
 
-import { ClydeBot } from '@/lib/clyde-bot';
 import { databaseConnect } from '@/lib/database/database.config';
 import { RgdShop } from '@/lib/shop';
 import { RgdShopStore } from '@/lib/shop/rgd-shop-store';
