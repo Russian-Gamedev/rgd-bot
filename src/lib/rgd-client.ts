@@ -78,8 +78,6 @@ export class RgdClient<
 
     container.RgdShop.store.registerPath(join(__dirname, RgdShopStore.name));
 
-    container.clyde = new ClydeBot(process.env.USER_BOT_TOKEN);
-
     return super.login(token);
   }
 
