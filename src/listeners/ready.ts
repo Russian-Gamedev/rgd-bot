@@ -5,6 +5,7 @@ import { Events, TextChannel } from 'discord.js';
 
 import { CHANNEL_IDS, IS_DEV, SERVER_ID } from '@/configs/constants';
 import { BotEventsTemplates, TemplateType } from '@/lib/database/entities';
+import { RgdEvents } from '@/lib/discord/custom-events';
 import { execAsync } from '@/lib/utils';
 
 @ApplyOptions<Listener.Options>({ event: Events.ClientReady, once: true })
@@ -42,6 +43,7 @@ export class Ready extends Listener {
     );
 
     this.printApiInfo();
+    this.container.client.emit(RgdEvents.Ready);
   }
 
   private printApiInfo() {

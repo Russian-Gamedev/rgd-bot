@@ -65,6 +65,9 @@ export class User extends BaseEntity {
   @Column('text', { default: null, nullable: true })
   lore: string;
 
+  @Column('varchar')
+  invite: string;
+
   static async ensure(member: GuildMember) {
     const discord_user = await member.user.fetch();
     let user = await this.findOne({ where: { id: member.id } });
