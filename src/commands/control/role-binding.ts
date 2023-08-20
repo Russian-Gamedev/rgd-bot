@@ -122,9 +122,16 @@ export class RoleBindingCommand extends Subcommand {
     );
     try {
       const message = await channel.messages.fetch(messageId);
+      const roles = {} as Record<string, string>;
 
-      const roles = this.parseMessage(message.content);
-
+      if (message.mentions.roles.size === 1) {
+        const mention = message.mentions.roles.at(0);
+        const [emoji] = message.content.match(/<a?:\w{2,32}:\d{17,20}>/);
+        roles[emoji] = mention.id;
+      } else {
+        const parsedRoles = this.parseMessage(message.content);
+        Object.assign(roles, parsedRoles);
+      }
       if (Object.keys(roles).length === 0) {
         return replyWithError(
           interaction,
@@ -241,7 +248,7 @@ export class RoleBindingCommand extends Subcommand {
 
       1. @GameMaker
       OR
-      <web:111111111> - @WebDeveloper
+      <web:111111111> @WebDeveloper
 
      */
 
