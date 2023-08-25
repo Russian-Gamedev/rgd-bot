@@ -22,7 +22,7 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
       this.container.client.emit(RgdEvents.MemberFirstJoin, user);
     } else {
       user.leave = false;
-      if (!user.invite) {
+      if (invite && !user.invite) {
         user.invite = invite.id;
       }
 
@@ -34,6 +34,7 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
     }
 
     await this.notifyInviteTrack(user, invite);
+
     container.logger.info(member.displayName, 'join to server');
   }
 
@@ -53,11 +54,14 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
     const thread = await channel.threads.fetch('1142029578504785952');
 
     let description = '';
-
-    if (invite.alias) {
-      description = `<@${user.id}> прибыл из ${invite.alias}`;
-    } else if (invite.inviter) {
-      description = `<@${user.id}> приглашен <@${invite.inviter}>`;
+    if (invite) {
+      if (invite.alias) {
+        description = `<@${user.id}> прибыл из ${invite.alias}`;
+      } else if (invite.inviter) {
+        description = `<@${user.id}> приглашен <@${invite.inviter}>`;
+      }
+    } else {
+      description = `<@${user.id}> пришел не известно откуда`;
     }
 
     console.log(description);
