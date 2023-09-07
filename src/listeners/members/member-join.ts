@@ -3,7 +3,7 @@ import { Listener } from '@sapphire/framework';
 import { container } from '@sapphire/pieces';
 import { Events, GuildMember, TextChannel } from 'discord.js';
 
-import { RGD_SERVER_ID, SERVER_ID } from '@/configs/constants';
+import { RGD_SERVER_ID, ROLE_IDS, SERVER_ID } from '@/configs/constants';
 import { User, UserRoles } from '@/lib/database/entities';
 import { DiscordInvites } from '@/lib/database/entities/discord/InviteEntity';
 import { RgdEvents } from '@/lib/discord/custom-events';
@@ -42,6 +42,8 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
     const roles_db = await UserRoles.find({ where: { user_id: member.id } });
 
     for (const role of roles_db) {
+      if (role.role_id === ROLE_IDS.default) continue;
+      if (role.role_id === ROLE_IDS.NITRO) continue;
       if (member.roles.cache.has(role.role_id)) continue;
       await member.roles.add(role.role_id);
     }

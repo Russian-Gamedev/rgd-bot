@@ -38,6 +38,7 @@ export class MemberLeave extends Listener<typeof Events.GuildMemberRemove> {
 
     for (const role of member.roles.cache.values()) {
       if (role.id === ROLE_IDS.default) continue;
+      if (role.id === ROLE_IDS.NITRO) continue;
       if (roles_db.some(({ role_id }) => role_id === role.id)) continue;
 
       const role_db = UserRoles.create({
