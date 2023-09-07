@@ -1,5 +1,4 @@
 {
-  "extends": "@sapphire/ts-config/extra-strict",
   "compilerOptions": {
     "target": "es2022",
     "module": "commonjs",
