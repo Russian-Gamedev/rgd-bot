@@ -2,9 +2,11 @@
   "compilerOptions": {
     "target": "es2022",
     "module": "commonjs",
+
     "lib": [
       "es2022"
     ],
+
     "outDir": "build",
     "rootDir": "src",
     "verbatimModuleSyntax": false,
@@ -21,12 +23,21 @@
     "strictPropertyInitialization": false,
     "allowUnreachableCode": true,
     "strictNullChecks": false,
-    "declaration": false,
-    "declarationMap": false,
+    "declaration": true,
+    "declarationMap": true,
     "baseUrl": "src",
+
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+
+    "sourceMap": true,
+    "inlineSources": true,
+
+    // Set `sourceRoot` to  "/" to strip the build path prefix
+    // from generated source code references.
+    // This improves issue grouping in Sentry.
+    "sourceRoot": "/"
   },
   "ts-node": {
     "files": true,

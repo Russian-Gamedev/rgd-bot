@@ -40,3 +40,5 @@ lerna-debug.log*
 /build
 
 .local-storage.json
+# Sentry Config File
+.sentryclirc

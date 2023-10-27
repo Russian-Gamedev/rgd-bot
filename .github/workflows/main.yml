@@ -9,6 +9,7 @@ jobs:
   lint:
     env:
       NODE_VERSION: 18.x
+      SENTRY_AUTH_TOKEN: ${{env.SENTRY_AUTH_TOKEN}}
     
     runs-on: ubuntu-latest
     steps:
@@ -27,6 +28,8 @@ jobs:
         pnpm install --frozen-lockfile
         pnpm run lint
         pnpm run ts-check
+        tsc .
+        pnpm sentry:sourcemaps
 
   deploy:
     needs: [lint]
