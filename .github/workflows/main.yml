@@ -28,7 +28,7 @@ jobs:
         pnpm install --no-frozen-lockfile
         pnpm run lint
         pnpm run ts-check
-        tsc .
+        tsc
         pnpm sentry:sourcemaps
 
   deploy:
