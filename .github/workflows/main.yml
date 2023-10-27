@@ -25,7 +25,7 @@ jobs:
     
     - name: install and lint
       run: |
-        pnpm install --frozen-lockfile
+        pnpm install
         pnpm run lint
         pnpm run ts-check
         tsc .
