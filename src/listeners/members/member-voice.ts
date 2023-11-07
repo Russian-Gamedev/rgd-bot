@@ -54,12 +54,16 @@ export class MemberVoice extends Listener {
 
     const user = await User.ensure(member);
 
-    user.voiceTime += elapsedTime;
+    user.voiceTime ??= 0;
+
+    user.voiceTime += elapsedTime ?? 0;
     await user.save();
 
     const stats = await StatsDay.ensure(member.id);
 
-    stats.voice += elapsedTime;
+    stats.voice ??= 0;
+
+    stats.voice += elapsedTime ?? 0;
 
     await stats.save();
 
