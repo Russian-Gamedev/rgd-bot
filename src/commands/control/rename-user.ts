@@ -7,11 +7,11 @@ import {
 } from '@sapphire/framework';
 import { ChatInputCommandInteraction } from 'discord.js';
 
-import { ROLE_IDS, SERVER_ID } from '@/configs/constants';
-import { EmojiCoin } from '@/configs/emojies';
-import { User } from '@/lib/database/entities';
-import { HasRole } from '@/lib/decorators/has-role';
-import { replyWithError } from '@/lib/helpers/sapphire';
+import { ROLE_IDS, SERVER_ID } from '#configs/constants';
+import { EmojiCoin } from '#configs/emojies';
+import { User } from '#lib/database/entities';
+import { HasRole } from '#lib/decorators/has-role';
+import { replyWithError } from '#lib/helpers/sapphire';
 
 const OPTIONS = {
   USER: 'user',

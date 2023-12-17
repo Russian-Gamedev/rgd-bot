@@ -2,7 +2,7 @@ import { container } from '@sapphire/pieces';
 import { join } from 'path';
 import { ConnectionOptions, DataSource } from 'typeorm';
 
-import '@/config';
+import '#base/config';
 
 export const DatabaseConfig: ConnectionOptions = {
   type: 'postgres',

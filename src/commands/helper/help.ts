@@ -7,8 +7,8 @@ import {
 import { container } from '@sapphire/pieces';
 import { ChatInputCommandInteraction } from 'discord.js';
 
-import { SERVER_ID } from '@/configs/constants';
-import locale from '@/locale';
+import locale from '#base/locale';
+import { SERVER_ID } from '#configs/constants';
 
 @ApplyOptions({
   name: 'help',

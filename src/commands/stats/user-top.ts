@@ -3,10 +3,10 @@ import { ApplicationCommandRegistry } from '@sapphire/framework';
 import { Subcommand } from '@sapphire/plugin-subcommands';
 import { EmbedBuilder } from 'discord.js';
 
-import { Colors } from '@/configs/constants';
-import { EmojiMedals } from '@/configs/emojies';
-import { User } from '@/lib/database/entities';
-import { formatTime } from '@/lib/utils';
+import { Colors } from '#configs/constants';
+import { EmojiMedals } from '#configs/emojies';
+import { User } from '#lib/database/entities';
+import { formatTime } from '#lib/utils';
 
 const medals = [EmojiMedals.First, EmojiMedals.Second, EmojiMedals.Third];
 

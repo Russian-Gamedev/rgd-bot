@@ -2,8 +2,8 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
 import { Events, Message } from 'discord.js';
 
-import { SERVER_ID } from '@/configs/constants';
-import { StatsDay, User } from '@/lib/database/entities';
+import { SERVER_ID } from '#configs/constants';
+import { StatsDay, User } from '#lib/database/entities';
 
 @ApplyOptions<Listener.Options>({
   event: Events.MessageCreate,

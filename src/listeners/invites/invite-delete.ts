@@ -2,7 +2,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
 import { Events, Invite } from 'discord.js';
 
-import { DiscordInvites } from '@/lib/database/entities/discord/InviteEntity';
+import { DiscordInvites } from '#lib/database/entities/discord/InviteEntity';
 
 @ApplyOptions<Listener.Options>({ event: Events.InviteDelete })
 export class InviteDelete extends Listener<typeof Events.InviteDelete> {

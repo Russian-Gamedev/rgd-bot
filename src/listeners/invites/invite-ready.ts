@@ -1,9 +1,9 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
 
-import { RGD_SERVER_ID } from '@/configs/constants';
-import { DiscordInvites } from '@/lib/database/entities/discord/InviteEntity';
-import { RgdEvents } from '@/lib/discord/custom-events';
+import { RGD_SERVER_ID } from '#configs/constants';
+import { DiscordInvites } from '#lib/database/entities/discord/InviteEntity';
+import { RgdEvents } from '#lib/discord/custom-events';
 
 @ApplyOptions<Listener.Options>({ event: RgdEvents.Ready, once: true })
 export class InviteReady extends Listener {

@@ -1,7 +1,7 @@
 import { container } from '@sapphire/pieces';
 import { ChatInputCommandInteraction } from 'discord.js';
 
-import { replyWithError } from '@/lib/helpers/sapphire';
+import { replyWithError } from '#lib/helpers/sapphire';
 
 type Interaction = ChatInputCommandInteraction;
 

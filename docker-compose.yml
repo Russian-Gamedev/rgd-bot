@@ -1,0 +1,58 @@
+version: "3.9"
+
+name: "rgd-bot"
+
+services:
+  bot-app:
+    container_name: "bot-app"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .development.env
+    restart: unless-stopped
+    ports:
+      - "3232:3333"
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - backend
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: "rgdbot_postgres"
+    environment:
+      POSTGRES_USER: rgdbot_dev
+      POSTGRES_PASSWORD: rgdbot
+      POSTGRES_DB: rgdbot_dev
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    restart: unless-stopped
+    ports:
+      - "5435:5432"
+    volumes:
+      - rgdbot_database:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  redis:
+    image: 'redis:alpine'
+    container_name: 'rgdbot_redis'
+    command: 'redis-server --appendonly yes'
+    restart: unless-stopped
+    ports:
+      - "6382:6379"
+    volumes:
+      - rgdbot_redis:/data
+    networks:
+      - backend
+
+volumes:
+  rgdbot_database:
+  rgdbot_redis:
+
+networks:
+  backend:

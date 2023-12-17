@@ -2,7 +2,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
 import { Events, GuildMember } from 'discord.js';
 
-import { UserRoles } from '@/lib/database/entities';
+import { UserRoles } from '#lib/database/entities';
 
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberUpdate })
 export class MemberUpdate extends Listener<typeof Events.GuildMemberUpdate> {

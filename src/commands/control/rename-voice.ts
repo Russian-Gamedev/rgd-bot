@@ -7,9 +7,9 @@ import {
 } from '@sapphire/framework';
 import { ChannelType, ChatInputCommandInteraction } from 'discord.js';
 
-import { ROLE_IDS, SERVER_ID } from '@/configs/constants';
-import { HasRole } from '@/lib/decorators/has-role';
-import { replyWithError } from '@/lib/helpers/sapphire';
+import { ROLE_IDS, SERVER_ID } from '#configs/constants';
+import { HasRole } from '#lib/decorators/has-role';
+import { replyWithError } from '#lib/helpers/sapphire';
 
 const OPTIONS = {
   CHANNEL: 'channel',

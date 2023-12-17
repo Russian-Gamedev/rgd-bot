@@ -3,12 +3,8 @@ import { Listener } from '@sapphire/framework';
 import { container } from '@sapphire/pieces';
 import { GuildMember } from 'discord.js';
 
-import {
-  BotEventsTemplates,
-  TemplateType,
-  User,
-} from '@/lib/database/entities';
-import { RgdEvents } from '@/lib/discord/custom-events';
+import { BotEventsTemplates, TemplateType, User } from '#lib/database/entities';
+import { RgdEvents } from '#lib/discord/custom-events';
 
 @ApplyOptions<Listener.Options>({ event: RgdEvents.MemberLeave })
 export class RgdLeave extends Listener {

@@ -3,10 +3,10 @@ import { ApplicationCommandRegistry, Command } from '@sapphire/framework';
 import { Time } from '@sapphire/time-utilities';
 import { ChatInputCommandInteraction } from 'discord.js';
 
-import { SERVER_ID } from '@/configs/constants';
-import { ReputationList, User } from '@/lib/database/entities';
-import { LocalStorage } from '@/lib/local-storage';
-import { getRelativeFormat } from '@/lib/utils';
+import { SERVER_ID } from '#configs/constants';
+import { ReputationList, User } from '#lib/database/entities';
+import { LocalStorage } from '#lib/local-storage';
+import { getRelativeFormat } from '#lib/utils';
 
 @ApplyOptions<Command.Options>({
   name: 'respect',

@@ -5,14 +5,18 @@ import 'reflect-metadata';
 import '@sapphire/plugin-scheduled-tasks/register';
 import '@sapphire/plugin-api/register';
 
-process.env.NODE_ENV ??= 'development';
+const isLocal = process.env.NODE_ENV === 'local';
 
-const envFile = `.${process.env.NODE_ENV}.env`;
+if (isLocal) {
+  const envFile = `.${process.env.NODE_ENV}.env`;
 
-if (!fs.existsSync(envFile)) {
-  throw new Error(`File '${process.env.NODE_ENV}' not found`);
+  if (!fs.existsSync(envFile)) {
+    throw new Error(`File '.${process.env.NODE_ENV}.env' is not found`);
+  }
+
+  dotenv.config({
+    path: envFile,
+  });
 }
 
-dotenv.config({
-  path: envFile,
-});
+console.debug(process.env);

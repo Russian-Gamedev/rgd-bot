@@ -1,6 +1,6 @@
 import { BaseEntity, Column, Entity, PrimaryColumn } from 'typeorm';
 
-import { pickRandom } from '@/lib/utils';
+import { pickRandom } from '#lib/utils';
 
 export enum TemplateType {
   MEMBER_FIRST_JOIN = 'member_first_join',

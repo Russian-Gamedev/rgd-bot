@@ -2,9 +2,9 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
 import { Events, MessageReaction, User as DiscordUser } from 'discord.js';
 
-import { SERVER_ID } from '@/configs/constants';
-import { RoleBindings } from '@/lib/database/entities';
-import { RgdEvents } from '@/lib/discord/custom-events';
+import { SERVER_ID } from '#configs/constants';
+import { RoleBindings } from '#lib/database/entities';
+import { RgdEvents } from '#lib/discord/custom-events';
 
 @ApplyOptions<Listener.Options>({
   event: Events.MessageReactionAdd,

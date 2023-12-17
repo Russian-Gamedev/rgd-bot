@@ -17,11 +17,11 @@ import {
   TextBasedChannel,
 } from 'discord.js';
 
-import { SERVER_ID } from '@/configs/constants';
-import { EmojiNumber } from '@/configs/emojies';
-import { RoleBindings } from '@/lib/database/entities/';
-import { replyWithError } from '@/lib/helpers/sapphire';
-import { messageLink, messageLinkRaw } from '@/lib/utils';
+import { SERVER_ID } from '#configs/constants';
+import { EmojiNumber } from '#configs/emojies';
+import { RoleBindings } from '#lib/database/entities/';
+import { replyWithError } from '#lib/helpers/sapphire';
+import { messageLink, messageLinkRaw } from '#lib/utils';
 
 @ApplyOptions<Subcommand.Options>({
   name: 'role-binding',

@@ -2,9 +2,9 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { ApplicationCommandRegistry, Command } from '@sapphire/framework';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 
-import { Colors, SERVER_ID } from '@/configs/constants';
-import { User } from '@/lib/database/entities';
-import { getDisplayAvatar, getRelativeFormat, getTimeInfo } from '@/lib/utils';
+import { Colors, SERVER_ID } from '#configs/constants';
+import { User } from '#lib/database/entities';
+import { getDisplayAvatar, getRelativeFormat, getTimeInfo } from '#lib/utils';
 
 const enum Options {
   User = 'user',

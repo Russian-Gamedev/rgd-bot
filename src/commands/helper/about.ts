@@ -9,8 +9,8 @@ import {
   MessageActionRowComponentBuilder,
 } from 'discord.js';
 
-import { Colors, SERVER_ID } from '@/configs/constants';
-import { getRelativeFormat } from '@/lib/utils';
+import { Colors, SERVER_ID } from '#configs/constants';
+import { getRelativeFormat } from '#lib/utils';
 
 @ApplyOptions({
   name: 'about',

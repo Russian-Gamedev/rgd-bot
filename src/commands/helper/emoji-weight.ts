@@ -7,8 +7,8 @@ import {
 } from '@sapphire/framework';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 
-import { SERVER_ID } from '@/configs/constants';
-import { EmojiWeight } from '@/configs/emoji-weight';
+import { SERVER_ID } from '#configs/constants';
+import { EmojiWeight } from '#configs/emoji-weight';
 
 @ApplyOptions<Command.Options>({
   name: 'emoji-weight',

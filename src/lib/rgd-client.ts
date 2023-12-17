@@ -8,9 +8,9 @@ import {
 } from 'discord.js';
 import { join } from 'path';
 
-import { databaseConnect } from '@/lib/database/database.config';
-import { RgdShop } from '@/lib/shop';
-import { RgdShopStore } from '@/lib/shop/rgd-shop-store';
+import { databaseConnect } from '#lib/database/database.config';
+import { RgdShop } from '#lib/shop';
+import { RgdShopStore } from '#lib/shop/rgd-shop-store';
 
 export class RgdClient<
   Ready extends boolean = boolean,
@@ -54,12 +54,12 @@ export class RgdClient<
         origin: '*',
         automaticallyConnect: true,
         listenOptions: {
-          host: '0.0.0.0',
+          host: 'localhost',
           port: Number(process.env.PORT),
         },
         auth: {
           id: process.env.BOT_CLIENT_ID,
-          secret: process.env.BOT_SECRET,
+          secret: process.env.OAUTH_SECRET,
           cookie: process.env.OUATH_COOKIE,
           redirect: 'https://rgd.chat',
           scopes: [OAuth2Scopes.Identify],

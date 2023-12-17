@@ -3,9 +3,9 @@ import { Listener } from '@sapphire/framework';
 import { container } from '@sapphire/pieces';
 import { Events, GuildMember } from 'discord.js';
 
-import { ROLE_IDS, SERVER_ID } from '@/configs/constants';
-import { DiscordRole, User, UserRoles } from '@/lib/database/entities/';
-import { RgdEvents } from '@/lib/discord/custom-events';
+import { ROLE_IDS, SERVER_ID } from '#configs/constants';
+import { DiscordRole, User, UserRoles } from '#lib/database/entities/';
+import { RgdEvents } from '#lib/discord/custom-events';
 
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberRemove })
 export class MemberLeave extends Listener<typeof Events.GuildMemberRemove> {

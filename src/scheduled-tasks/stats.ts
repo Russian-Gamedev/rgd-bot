@@ -4,15 +4,15 @@ import { Time } from '@sapphire/time-utilities';
 import { EmbedBuilder } from 'discord.js';
 import { MoreThan } from 'typeorm';
 
-import { Colors } from '@/configs/constants';
+import { Colors } from '#configs/constants';
 import {
   BotStats,
   StatsDay,
   StatsKey,
   StatsWeek,
   User,
-} from '@/lib/database/entities';
-import { formatTime, pickRandom } from '@/lib/utils';
+} from '#lib/database/entities';
+import { formatTime, pickRandom } from '#lib/utils';
 
 type Stat = { user: string; value: number };
 

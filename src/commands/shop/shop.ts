@@ -6,7 +6,7 @@ import {
 import { Subcommand } from '@sapphire/plugin-subcommands';
 import { ChatInputCommandInteraction } from 'discord.js';
 
-import { EmojiCoin } from '@/configs/emojies';
+import { EmojiCoin } from '#configs/emojies';
 
 @ApplyOptions<Subcommand.Options>({
   name: 'shop',

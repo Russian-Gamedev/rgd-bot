@@ -1,7 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { ApiRequest, ApiResponse, methods, Route } from '@sapphire/plugin-api';
 
-import { pickRandom } from '@/lib/utils';
+import { pickRandom } from '#lib/utils';
 
 const randomMessages = [
   'Проклятая водянка',

@@ -6,8 +6,8 @@ import {
   BotEventsTemplates,
   TemplateType,
   User,
-} from '@/lib/database/entities/';
-import { RgdEvents } from '@/lib/discord/custom-events';
+} from '#lib/database/entities/';
+import { RgdEvents } from '#lib/discord/custom-events';
 
 @ApplyOptions<Listener.Options>({ event: RgdEvents.MemberJoin })
 export class RgdJoin extends Listener {

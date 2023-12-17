@@ -1,6 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { ApiRequest, ApiResponse, methods, Route } from '@sapphire/plugin-api';
 import { Time } from '@sapphire/time-utilities';
+import * as process from 'process';
 
 @ApplyOptions<Route.Options>({
   route: '/online',
@@ -14,12 +15,13 @@ export class OnlineRoute extends Route {
 
   public async [methods.GET](_request: ApiRequest, response: ApiResponse) {
     if (Date.now() - this.cacheNext > 0) {
-      const response = await fetch(
-        'https://discord.com/api/v9/invites/5kZhhWD?with_counts=true',
-      ).then((res) => res.json());
+      const invite =
+        await this.container.client.application.guild.invites.fetch({
+          code: process.env.RGD_INVITE_CODE,
+        });
 
-      this.cache.members = response.approximate_member_count;
-      this.cache.online = response.approximate_presence_count;
+      this.cache.members = invite.memberCount;
+      this.cache.online = invite.presenceCount;
 
       this.cacheNext = Date.now() + Time.Minute * 5;
     }

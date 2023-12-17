@@ -3,8 +3,8 @@ import { Listener } from '@sapphire/framework';
 import { Time } from '@sapphire/time-utilities';
 import { Events, GuildMember, VoiceState } from 'discord.js';
 
-import { SERVER_ID } from '@/configs/constants';
-import { StatsDay, User } from '@/lib/database/entities';
+import { SERVER_ID } from '#configs/constants';
+import { StatsDay, User } from '#lib/database/entities';
 
 @ApplyOptions<Listener.Options>({
   event: Events.VoiceStateUpdate,

@@ -3,8 +3,8 @@ import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { EmbedBuilder, EmbedField } from 'discord.js';
 import { Like } from 'typeorm';
 
-import { ROLE_IDS } from '@/configs/constants';
-import { User } from '@/lib/database/entities';
+import { ROLE_IDS } from '#configs/constants';
+import { User } from '#lib/database/entities';
 
 @ApplyOptions<ScheduledTask.Options>({
   pattern: '0 8 * * *',

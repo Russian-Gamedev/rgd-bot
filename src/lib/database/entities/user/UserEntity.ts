@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { getDisplayAvatar, getDisplayBanner } from '@/lib/utils';
+import { getDisplayAvatar, getDisplayBanner } from '#lib/utils';
 
 @Entity('user')
 export class User extends BaseEntity {

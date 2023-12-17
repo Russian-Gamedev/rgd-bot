@@ -3,10 +3,10 @@ import { Listener } from '@sapphire/framework';
 import { container } from '@sapphire/pieces';
 import { Events, GuildMember, TextChannel } from 'discord.js';
 
-import { RGD_SERVER_ID, ROLE_IDS, SERVER_ID } from '@/configs/constants';
-import { User, UserRoles } from '@/lib/database/entities';
-import { DiscordInvites } from '@/lib/database/entities/discord/InviteEntity';
-import { RgdEvents } from '@/lib/discord/custom-events';
+import { RGD_SERVER_ID, ROLE_IDS, SERVER_ID } from '#configs/constants';
+import { User, UserRoles } from '#lib/database/entities';
+import { DiscordInvites } from '#lib/database/entities/discord/InviteEntity';
+import { RgdEvents } from '#lib/discord/custom-events';
 
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberAdd })
 export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {

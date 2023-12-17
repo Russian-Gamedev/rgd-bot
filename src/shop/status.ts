@@ -1,7 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { SlashCommandSubcommandBuilder } from 'discord.js';
 
-import { ShopItem } from '@/lib/shop/shop-item';
+import { ShopItem } from '#lib/shop/shop-item';
 
 @ApplyOptions<ShopItem.Options>({
   cost: 500,

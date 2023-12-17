@@ -2,12 +2,8 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { Listener } from '@sapphire/framework';
 import { container } from '@sapphire/pieces';
 
-import {
-  BotEventsTemplates,
-  TemplateType,
-  User,
-} from '@/lib/database/entities';
-import { RgdEvents } from '@/lib/discord/custom-events';
+import { BotEventsTemplates, TemplateType, User } from '#lib/database/entities';
+import { RgdEvents } from '#lib/discord/custom-events';
 
 @ApplyOptions<Listener.Options>({ event: RgdEvents.MemberFirstJoin })
 export class RgdFirstJoin extends Listener {
