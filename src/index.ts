@@ -3,7 +3,7 @@ import { ProfilingIntegration } from '@sentry/profiling-node';
 
 import './config';
 
-import { RgdClient } from './lib/rgd-client';
+import { RgdClient } from '#lib/rgd-client';
 
 async function bootstrap() {
   Sentry.init({

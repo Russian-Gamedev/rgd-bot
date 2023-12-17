@@ -21,7 +21,7 @@ export class DiscordInvites extends BaseEntity {
   @Column({ type: 'integer', default: 0 })
   uses: number;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   alias: string;
 
   @Column({ type: 'varchar', length: 19 })

@@ -9,7 +9,7 @@ services:
       context: .
       dockerfile: Dockerfile
     env_file:
-      - .development.env
+      - .env
     restart: unless-stopped
     ports:
       - "3232:3333"
