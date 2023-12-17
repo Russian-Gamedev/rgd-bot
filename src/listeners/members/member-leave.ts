@@ -4,7 +4,7 @@ import { container } from '@sapphire/pieces';
 import { Events, GuildMember } from 'discord.js';
 
 import { ROLE_IDS, SERVER_ID } from '@/configs/constants';
-import { User, UserRoles } from '@/lib/database/entities/';
+import { DiscordRole, User, UserRoles } from '@/lib/database/entities/';
 import { RgdEvents } from '@/lib/discord/custom-events';
 
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberRemove })
@@ -16,7 +16,11 @@ export class MemberLeave extends Listener<typeof Events.GuildMemberRemove> {
     user.leave = true;
     await user.save();
 
-    await this.saveRoles(member);
+    try {
+      await this.saveRoles(member);
+    } catch (e) {
+      this.container.logger.error(e);
+    }
 
     if (await this.checkIsBan(member, user)) return;
 
@@ -40,6 +44,19 @@ export class MemberLeave extends Listener<typeof Events.GuildMemberRemove> {
       if (role.id === ROLE_IDS.default) continue;
       if (role.id === ROLE_IDS.NITRO) continue;
       if (roles_db.some(({ role_id }) => role_id === role.id)) continue;
+
+      const discord_role = await DiscordRole.findOne({
+        where: { id: role.id },
+      });
+
+      if (!discord_role) {
+        await DiscordRole.create({
+          id: role.id,
+          color: role.hexColor,
+          name: role.name,
+          position: role.position,
+        }).save();
+      }
 
       const role_db = UserRoles.create({
         role_id: role.id,
