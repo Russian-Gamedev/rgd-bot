@@ -8,8 +8,9 @@ import { StatsEntity, StatsPeriod } from '#base/entities/stats.entity';
 import { UserEntity } from '#base/entities/user.entity';
 import { GuildSettingService } from '#base/services/guild-setting.service';
 import { StatsService } from '#base/services/stats.service';
+import { UserService } from '#base/services/user.service';
 import { Colors, GuildSettings } from '#config/constants';
-import { formatTime, pickRandom } from '#lib/utils';
+import { formatTime, getTimeInfo, pickRandom } from '#lib/utils';
 
 @ApplyOptions<ScheduledTask.Options>({
   pattern: '0 15 * * *',
@@ -22,6 +23,10 @@ export class StatsTask extends ScheduledTask {
 
   get settingsService() {
     return GuildSettingService.Instance;
+  }
+
+  get userService() {
+    return UserService.Instance;
   }
 
   async run() {
@@ -79,6 +84,24 @@ export class StatsTask extends ScheduledTask {
 
         await channel.send({ embeds: [embed] });
       }
+    }
+
+    if (period === StatsPeriod.Day) {
+      /// give bonuses
+      await Promise.all(
+        allStats.map(async (stats) => {
+          const hours = getTimeInfo(stats.voice).hours;
+          const coins = stats.chat + hours * 100 + stats.reactions * 10;
+          const user = await this.userService.get(
+            stats.user_id,
+            stats.guild_id,
+          );
+          user.coins += coins;
+          this.userService.database.persist(user);
+        }),
+      );
+
+      await this.userService.database.flush();
     }
 
     const nextPeriod = this.getNextPeriod(period);
