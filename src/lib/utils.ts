@@ -1,9 +1,7 @@
 import { exec } from 'child_process';
 import { Message, User } from 'discord.js';
 
-import { DISCORD_CDN } from '@/configs/constants';
-
-export const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+import { DISCORD_CDN } from '#config/constants';
 
 export const execAsync = (command: string) => {
   return new Promise<string>((res) => {
@@ -31,20 +29,6 @@ export function pickRandom<T>(array: readonly T[]): T {
   return array[Math.floor(Math.random() * length)];
 }
 
-export const shuffle = <T>(array: T[]): T[] => {
-  let m = array.length;
-  while (m) {
-    const i = Math.floor(Math.random() * m--);
-    [array[m], array[i]] = [array[i], array[m]];
-  }
-  return array;
-};
-
-export function randomRange(min: number, max: number, floor = true) {
-  const value = Math.random() * (max - min) + min;
-  return floor ? Math.floor(value) : value;
-}
-
 export function getRelativeFormat(timestamp: number) {
   return `<t:${Math.floor(timestamp / 1_000)}:R>`;
 }
@@ -58,6 +42,10 @@ export function getTimeInfo(t: number) {
     hours,
     minutes,
     seconds,
+    toString: () =>
+      `${hours} ч ${minutes.toString().padStart(2, '0')} мин ${seconds
+        .toString()
+        .padStart(2, '0')} сек`,
   };
 }
 

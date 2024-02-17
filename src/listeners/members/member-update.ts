@@ -1,50 +1,35 @@
 import { ApplyOptions } from '@sapphire/decorators';
-import { Listener } from '@sapphire/framework';
-import { Events, GuildMember } from 'discord.js';
+import { Events, Listener } from '@sapphire/framework';
+import { GuildMember, User } from 'discord.js';
 
-import { UserRoles } from '@/lib/database/entities';
+import { UserService } from '#base/services/user.service';
 
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberUpdate })
 export class MemberUpdate extends Listener<typeof Events.GuildMemberUpdate> {
+  get userService() {
+    return UserService.Instance;
+  }
+
   async run(oldMember: GuildMember, newMember: GuildMember) {
-    const deletedRoles: string[] = [];
-    const addedRoles: string[] = [];
+    await Promise.all([this.processUserInfo(oldMember, newMember)]);
+  }
 
-    if (oldMember.roles.cache.size > newMember.roles.cache.size) {
-      for (const [role] of oldMember.roles.cache) {
-        if (!newMember.roles.cache.has(role)) {
-          deletedRoles.push(role);
-        }
-      }
-    }
-    if (oldMember.roles.cache.size < newMember.roles.cache.size) {
-      for (const [role] of newMember.roles.cache) {
-        if (!oldMember.roles.cache.has(role)) {
-          addedRoles.push(role);
-        }
-      }
-    }
+  async processUserInfo(oldMember: GuildMember, newMember: GuildMember) {
+    const watch_field: Array<keyof User> = [
+      'username',
+      'avatar',
+      'banner',
+      'hexAccentColor',
+    ];
 
-    const userRoles = await UserRoles.find({
-      where: {
-        user_id: oldMember.id,
-      },
-    });
+    const isNeedUpdate = watch_field.reduce(
+      (accumulate, field) =>
+        accumulate || oldMember.user[field] !== newMember.user[field],
+      false,
+    );
 
-    for (const role of deletedRoles) {
-      const findRole = userRoles.find((userRole) => userRole.role_id === role);
-      if (findRole) await findRole.remove();
-    }
-
-    for (const role of addedRoles) {
-      const findRole = userRoles.find((userRole) => userRole.role_id === role);
-      if (!findRole) {
-        const userRole = UserRoles.create({
-          role_id: role,
-          user_id: oldMember.id,
-        });
-        await userRole.save();
-      }
+    if (isNeedUpdate) {
+      await this.userService.updateInfo(newMember);
     }
   }
 }

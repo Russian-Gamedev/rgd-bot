@@ -1,18 +1,18 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { ApplicationCommandRegistry, Command } from '@sapphire/framework';
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder, Message } from 'discord.js';
 
-import { Colors, SERVER_ID } from '@/configs/constants';
-import { User } from '@/lib/database/entities';
-import { getDisplayAvatar, getRelativeFormat, getTimeInfo } from '@/lib/utils';
+import { UserService } from '#base/services/user.service';
+import { getDisplayAvatar, getRelativeFormat, getTimeInfo } from '#lib/utils';
 
 const enum Options {
   User = 'user',
 }
 
-@ApplyOptions({
+@ApplyOptions<Command.Options>({
   name: 'user',
   description: 'Информация о себе/пользователе',
+  aliases: ['u'],
 })
 export class UserCommand extends Command {
   override registerApplicationCommands(registry: ApplicationCommandRegistry) {
@@ -32,18 +32,30 @@ export class UserCommand extends Command {
   }
 
   override async chatInputRun(interaction: ChatInputCommandInteraction) {
-    if (interaction.guildId != SERVER_ID) return;
-
     const target =
       interaction.options.getUser(Options.User, false) ?? interaction.user;
-    const member = await this.container.rgd.members.fetch(target.id);
-    const user = await User.ensure(member);
+    const embed = await this.getInfo(target.id, interaction.guildId);
+    await interaction.reply({
+      embeds: [embed],
+    });
+  }
+  override async messageRun(message: Message) {
+    const target =
+      message.mentions.users.map((user) => user.id).at(0) ?? message.author.id;
+    const embed = await this.getInfo(target, message.guildId);
+    await message.channel.send({ embeds: [embed] });
+  }
+
+  private async getInfo(user_id: string, guild_id: string) {
+    const guild = await this.container.client.guilds.fetch(guild_id);
+    const member = await guild.members.fetch(user_id);
+    const user = await UserService.Instance.get(user_id, guild_id);
 
     const embed = new EmbedBuilder();
-    embed.setColor(Colors.Warning);
+    embed.setColor(member.displayColor);
     embed.setThumbnail(getDisplayAvatar(member.user));
 
-    const inVoice = getTimeInfo(user.voiceTime);
+    const inVoice = getTimeInfo(user.voice_time).toString();
 
     embed.setFields(
       {
@@ -59,7 +71,7 @@ export class UserCommand extends Command {
       },
       {
         name: 'Первый вход',
-        value: getRelativeFormat(user.firstJoin.getTime()),
+        value: getRelativeFormat(user.first_join.getTime()),
         inline: true,
       },
       {
@@ -75,18 +87,12 @@ export class UserCommand extends Command {
       },
       {
         name: 'Наговорил',
-        value: `${inVoice.hours} ч ${inVoice.minutes
-          .toString()
-          .padStart(2, '0')} мин ${inVoice.seconds
-          .toString()
-          .padStart(2, '0')} сек`,
+        value: inVoice,
         inline: true,
       },
-      { name: 'Ливал раз', value: `${user.leaveCount}`, inline: true },
+      { name: 'Ливал раз', value: `${user.leave_count}`, inline: true },
     );
 
-    await interaction.reply({
-      embeds: [embed],
-    });
+    return embed;
   }
 }

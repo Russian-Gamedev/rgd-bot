@@ -14,12 +14,12 @@ module.exports = {
   env: {
     node: true,
   },
-  ignorePatterns: ['.eslintrc.js'],
+  ignorePatterns: ['.eslintrc.js','./**/migrations/**/*.ts'],
   rules: {
     'prettier/prettier': [
       'error',
       {
-        endOfLine: 'auto',
+        endOfLine: 'auto'
       },
     ],
     '@typescript-eslint/interface-name-prefix': 'off',
@@ -32,7 +32,6 @@ module.exports = {
       {
         groups: [
           ['^@?\\w'],
-          ['^(@|components)(/.*|$)'],
           ['^\\u0000'],
           ['^\\.\\.(?!/?$)', '^\\.\\./?$'],
           ['^\\./(?=.*/)(?!/?$)', '^\\.(?!/?$)', '^\\./?$'],
