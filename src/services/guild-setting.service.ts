@@ -17,12 +17,21 @@ export class GuildSettingService {
 
   constructor(readonly database: EntityManager) {}
 
-  get(key: GuildSettings, guild_id: string) {
-    return this.database.findOne(
+  async get(key: GuildSettings, fallback: string, guild_id: string) {
+    let setting = await this.database.findOne(
       GuildSettingEntity,
       { guild_id, key },
       { cache: 15_000 },
     );
+    if (!setting) {
+      setting = this.database.create(GuildSettingEntity, {
+        guild_id,
+        key,
+        value: fallback,
+      });
+    }
+
+    return setting.value || fallback;
   }
   set(key: GuildSettings, value: string, guild_id: string) {
     return this.database.nativeUpdate(

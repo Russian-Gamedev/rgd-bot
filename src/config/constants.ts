@@ -12,6 +12,7 @@ export enum Colors {
 export enum GuildSettings {
   EventsMessage = 'events_message',
   StatsMessage = 'stats_message',
+  ChannelMessage = 'channel_message',
 }
 
 export enum BotEvents {
