@@ -91,7 +91,7 @@ export class StatsTask extends ScheduledTask {
       await Promise.all(
         allStats.map(async (stats) => {
           const hours = getTimeInfo(stats.voice).hours;
-          const coins = stats.chat + hours * 100 + stats.reactions * 10;
+          const coins = stats.chat + hours * 100 + stats.reactions * 50;
           const user = await this.userService.get(
             stats.user_id,
             stats.guild_id,

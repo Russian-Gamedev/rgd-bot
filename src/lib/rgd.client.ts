@@ -8,6 +8,7 @@ import {
   Partials,
 } from 'discord.js';
 import { join } from 'path';
+import { createClient } from 'redis';
 
 import MikroOrmConfig from '#base/mikro-orm.config';
 import { IS_DEV } from '#config/constants';
@@ -94,6 +95,20 @@ export class RgdClient<
         await orm.migrator.up();
         container.logger.info('Migration end');
       }
+    }
+
+    container.redis = createClient({
+      socket: {
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT),
+      },
+      database: Number(process.env.REDIS_DB),
+      password: process.env.REDIS_PASSWORD,
+    });
+
+    await container.redis.connect();
+    if (container.redis.isReady) {
+      container.logger.info('redis connected');
     }
 
     return super.login(token);
