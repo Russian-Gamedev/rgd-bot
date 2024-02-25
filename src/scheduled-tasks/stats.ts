@@ -48,54 +48,44 @@ export class StatsTask extends ScheduledTask {
   }
 
   private async postStats(period: StatsPeriod) {
-    const allStats = await this.statsService.getAllByPeriod(period);
+    const guild = container.rgd;
+    const stats = await this.statsService.getAllByPeriod(period);
 
-    const grouped = this.groupByGuild(allStats);
+    const postMessageStats = await this.settingsService.get(
+      GuildSettings.StatsMessage,
+      'false',
+    );
 
-    for (const [guild_id, stats] of Object.entries(grouped)) {
-      const guild = await container.client.guilds.fetch(guild_id);
-
-      const postMessageStats = await this.settingsService.get(
-        GuildSettings.StatsMessage,
-        'false',
-        guild_id,
+    if (postMessageStats === 'true') {
+      const channel_id = await this.settingsService.get(
+        GuildSettings.ChannelMessage,
+        guild.systemChannelId,
       );
 
-      if (postMessageStats === 'true') {
-        const channel_id = await this.settingsService.get(
-          GuildSettings.ChannelMessage,
-          guild.systemChannelId,
-          guild_id,
-        );
+      const channel = (await guild.channels.fetch(channel_id)) as TextChannel;
 
-        const channel = (await guild.channels.fetch(channel_id)) as TextChannel;
+      const newRegs = await this.statsService.getNewRegs(period);
+      newRegs.length = 15;
+      const embed = this.buildEmbed(stats, newRegs);
 
-        const newRegs = await this.statsService.getNewRegs(guild_id, period);
-        newRegs.length = 15;
-        const embed = this.buildEmbed(stats, newRegs);
+      const title = {
+        [StatsPeriod.Day]: 'Ежедневная статистика',
+        [StatsPeriod.Week]: 'Еженедельная статистика',
+        [StatsPeriod.Month]: 'Ежемесячная статистика',
+      }[period];
 
-        const title = {
-          [StatsPeriod.Day]: 'Ежедневная статистика',
-          [StatsPeriod.Week]: 'Еженедельная статистика',
-          [StatsPeriod.Month]: 'Ежемесячная статистика',
-        }[period];
+      embed.setTitle(title);
 
-        embed.setTitle(title);
-
-        await channel.send({ embeds: [embed] });
-      }
+      await channel.send({ embeds: [embed] });
     }
 
     if (period === StatsPeriod.Day) {
       /// give bonuses
       await Promise.all(
-        allStats.map(async (stats) => {
+        stats.map(async (stats) => {
           const hours = getTimeInfo(stats.voice).hours;
           const coins = stats.chat + hours * 100 + stats.reactions * 50;
-          const user = await this.userService.get(
-            stats.user_id,
-            stats.guild_id,
-          );
+          const user = await this.userService.get(stats.user_id);
           user.coins += coins;
           this.userService.database.persist(user);
         }),
@@ -106,7 +96,7 @@ export class StatsTask extends ScheduledTask {
 
     const nextPeriod = this.getNextPeriod(period);
     if (nextPeriod) {
-      await this.statsService.mergeStats(allStats, nextPeriod);
+      await this.statsService.mergeStats(stats, nextPeriod);
     }
 
     await this.statsService.database.nativeDelete(StatsEntity, {
@@ -230,16 +220,5 @@ export class StatsTask extends ScheduledTask {
         return StatsPeriod.Month;
     }
     return null;
-  }
-
-  private groupByGuild(stats: StatsEntity[]): Record<string, StatsEntity[]> {
-    return stats.reduce((object, stat) => {
-      if (object[stat.guild_id] === undefined) {
-        object[stat.guild_id] = [];
-      }
-      object[stat.guild_id].push(stat);
-
-      return object;
-    }, {});
   }
 }

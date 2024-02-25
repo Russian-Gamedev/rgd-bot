@@ -34,7 +34,7 @@ export class UserCommand extends Command {
   override async chatInputRun(interaction: ChatInputCommandInteraction) {
     const target =
       interaction.options.getUser(Options.User, false) ?? interaction.user;
-    const embed = await this.getInfo(target.id, interaction.guildId);
+    const embed = await this.getInfo(target.id);
     await interaction.reply({
       embeds: [embed],
     });
@@ -42,14 +42,14 @@ export class UserCommand extends Command {
   override async messageRun(message: Message) {
     const target =
       message.mentions.users.map((user) => user.id).at(0) ?? message.author.id;
-    const embed = await this.getInfo(target, message.guildId);
+    const embed = await this.getInfo(target);
     await message.channel.send({ embeds: [embed] });
   }
 
-  private async getInfo(user_id: string, guild_id: string) {
-    const guild = await this.container.client.guilds.fetch(guild_id);
+  private async getInfo(user_id: string) {
+    const guild = this.container.rgd;
     const member = await guild.members.fetch(user_id);
-    const user = await UserService.Instance.get(user_id, guild_id);
+    const user = await UserService.Instance.get(user_id);
 
     const embed = new EmbedBuilder();
     embed.setColor(member.displayColor);

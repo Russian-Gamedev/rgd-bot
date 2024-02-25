@@ -3,6 +3,7 @@ export const OWNER_ID = process.env.OWNER_ID.split(',');
 export const IS_DEV = process.env.NODE_ENV !== 'production';
 export const BOT_ID = process.env.BOT_CLIENT_ID;
 export const DISCORD_CDN = 'https://cdn.discordapp.com';
+export const RGD_ID = process.env.RGD_ID;
 
 export enum Colors {
   Primary = 0x5c87e7,

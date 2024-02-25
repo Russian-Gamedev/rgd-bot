@@ -73,14 +73,13 @@ export class MemberVoice extends Listener<typeof Events.VoiceStateUpdate> {
       (Date.now() - Math.min(enteredTime, Time.Minute * 10)) / 1_000,
     );
 
-    const user = await UserService.Instance.get(member.id, member.guild.id);
+    const user = await UserService.Instance.get(member.id);
     user.voice_time += elapsedTime ?? 0;
 
     UserService.Instance.database.persist(user);
 
     const stats = await StatsService.Instance.getByUser(
       member.id,
-      member.guild.id,
       StatsPeriod.Day,
     );
 

@@ -18,15 +18,14 @@ export class UserService {
 
   constructor(readonly database: EntityManager) {}
 
-  async get(user_id: string, guild_id: string) {
-    let user = await this.database.findOne(UserEntity, { user_id, guild_id });
+  async get(user_id: string) {
+    let user = await this.database.findOne(UserEntity, { user_id });
     if (!user) {
-      const guild = await container.client.guilds.fetch(guild_id);
+      const guild = await container.client.guilds.fetch('');
       const member = await guild.members.fetch(user_id);
 
       user = this.database.create(UserEntity, {
         user_id,
-        guild_id,
         username: member.user.username,
         avatar: getDisplayAvatar(member.user),
       });
@@ -39,7 +38,7 @@ export class UserService {
   }
 
   async updateInfo(member: GuildMember) {
-    const user = await this.get(member.user.id, member.guild.id);
+    const user = await this.get(member.user.id);
 
     user.username = member.user.username;
     user.avatar = getDisplayAvatar(member.user);

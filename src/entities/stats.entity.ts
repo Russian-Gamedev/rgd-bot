@@ -14,9 +14,6 @@ export class StatsEntity extends BaseEntity {
   id: number;
 
   @Property()
-  guild_id: string;
-
-  @Property()
   user_id: string;
 
   @Property()

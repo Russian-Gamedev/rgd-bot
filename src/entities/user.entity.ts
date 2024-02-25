@@ -11,9 +11,6 @@ export class UserEntity extends BaseEntity {
   user_id: string;
 
   @Property()
-  guild_id: string;
-
-  @Property()
   username: string;
 
   @Property()
@@ -28,8 +25,8 @@ export class UserEntity extends BaseEntity {
   @Property({ nullable: false, default: '#fff' })
   banner_color: string;
 
-  @Property({ nullable: true })
-  first_join: Date;
+  @Property({ nullable: false, defaultRaw: 'now()' })
+  first_join = new Date();
 
   @Property({ nullable: true, default: null })
   about: string | null;

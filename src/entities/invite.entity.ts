@@ -10,9 +10,6 @@ export class InviteEntity extends BaseEntity {
   @Property()
   invite_id: string;
 
-  @Property()
-  guild_id: string;
-
   @Property({ nullable: true, default: null })
   alias: string | null;
 

@@ -25,7 +25,7 @@ export class MemberMessage extends Listener<typeof Events.MessageCreate> {
     const words = message.content.split(' ').filter((word) => word.length);
     if (words.length === 0) return;
 
-    const user = await this.userService.get(message.member.id, message.guildId);
+    const user = await this.userService.get(message.member.id);
 
     user.experience += words.length;
 
@@ -33,7 +33,6 @@ export class MemberMessage extends Listener<typeof Events.MessageCreate> {
 
     const daysStats = await this.statsService.getByUser(
       message.member.id,
-      message.guildId,
       StatsPeriod.Day,
     );
 

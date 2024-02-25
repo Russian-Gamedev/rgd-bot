@@ -21,7 +21,7 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
       member.guild,
     );
 
-    const user = await this.userService.get(member.id, member.guild.id);
+    const user = await this.userService.get(member.id);
     if (user.is_new) {
       /// send message
     }
