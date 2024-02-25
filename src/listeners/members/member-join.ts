@@ -22,15 +22,20 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
     );
 
     const user = await this.userService.get(member.id);
+
+    user.left_guild = false;
+
     if (user.is_new) {
       /// send message
+    } else {
+      await this.userService.loadRoles(member);
     }
 
     if (recentInvite && !user.invite) {
       user.invite = recentInvite.invite_id;
-
-      await this.userService.database.persistAndFlush(user);
     }
+
+    await this.userService.database.persistAndFlush(user);
 
     container.logger.info(member.displayName, 'joined to server');
   }

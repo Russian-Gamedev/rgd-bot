@@ -3,6 +3,7 @@ import { container } from '@sapphire/pieces';
 import { GuildMember } from 'discord.js';
 
 import { UserEntity } from '#base/entities/user.entity';
+import { UserRolesEntity } from '#base/entities/user-roles.entity';
 import { getDisplayAvatar, getDisplayBanner } from '#lib/utils';
 
 export class UserService {
@@ -50,5 +51,46 @@ export class UserService {
     }
 
     await this.database.persistAndFlush(user);
+  }
+
+  async loadRoles(member: GuildMember) {
+    const roles = await this.database.find(UserRolesEntity, {
+      user_id: member.id,
+    });
+
+    await Promise.all(roles.map((role) => member.roles.add(role.role_id)));
+  }
+
+  async saveRoles(member: GuildMember) {
+    const roles = member.roles.cache;
+
+    const saved_roles = await this.database.find(UserRolesEntity, {
+      user_id: member.id,
+    });
+
+    /// delete if not exist in members
+    for (const role of saved_roles) {
+      if (!roles.has(role.role_id)) {
+        this.database.remove(role);
+      }
+    }
+
+    const needSave = roles.filter(
+      (role) =>
+        !saved_roles.every((saved_role) => saved_role.role_id === role.id),
+    );
+
+    console.log(needSave);
+
+    for (const role of needSave.values()) {
+      const entity = this.database.create(UserRolesEntity, {
+        user_id: member.id,
+        role_id: role.id,
+      });
+
+      this.database.persist(entity);
+    }
+
+    await this.database.flush();
   }
 }
