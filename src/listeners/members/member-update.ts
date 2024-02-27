@@ -13,7 +13,10 @@ export class MemberUpdate extends Listener<typeof Events.GuildMemberUpdate> {
 
   async run(oldMember: GuildMember, newMember: GuildMember) {
     if (oldMember.guild.id !== RGD_ID) return;
-    await Promise.all([this.processUserInfo(oldMember, newMember)]);
+    await Promise.all([
+      this.processUserInfo(oldMember, newMember),
+      this.processRoles(oldMember, newMember),
+    ]);
   }
 
   async processUserInfo(oldMember: GuildMember, newMember: GuildMember) {
@@ -32,6 +35,30 @@ export class MemberUpdate extends Listener<typeof Events.GuildMemberUpdate> {
 
     if (isNeedUpdate) {
       await this.userService.updateInfo(newMember);
+    }
+  }
+
+  async processRoles(oldMember: GuildMember, newMember: GuildMember) {
+    const deletedRoles: string[] = [];
+    const addedRoles: string[] = [];
+
+    if (oldMember.roles.cache.size > newMember.roles.cache.size) {
+      for (const [role] of oldMember.roles.cache) {
+        if (!newMember.roles.cache.has(role)) {
+          deletedRoles.push(role);
+        }
+      }
+    }
+    if (oldMember.roles.cache.size < newMember.roles.cache.size) {
+      for (const [role] of newMember.roles.cache) {
+        if (!oldMember.roles.cache.has(role)) {
+          addedRoles.push(role);
+        }
+      }
+    }
+
+    if (deletedRoles.length > 0 || addedRoles.length > 0) {
+      await this.userService.saveRoles(newMember);
     }
   }
 }

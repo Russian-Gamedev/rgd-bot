@@ -1,6 +1,6 @@
 import { EntityManager } from '@mikro-orm/postgresql';
 import { container } from '@sapphire/pieces';
-import { Guild } from 'discord.js';
+import { Guild, Invite } from 'discord.js';
 
 import { InviteEntity } from '#base/entities/invite.entity';
 
@@ -17,13 +17,20 @@ export class InviteService {
 
   constructor(readonly database: EntityManager) {}
 
+  create(invite: Invite) {
+    return this.database.create(InviteEntity, {
+      id: invite.code,
+      inviter: invite.inviterId,
+    });
+  }
+
   async updateGuildInvites(guild: Guild) {
     const guildInvites = await guild.invites.fetch();
     const inviteEntities = await this.database.find(InviteEntity, {});
 
     /// delete if not exist invite in guild
     for (const inviteEntity of inviteEntities) {
-      if (!guildInvites.has(inviteEntity.invite_id)) {
+      if (!guildInvites.has(inviteEntity.id)) {
         this.database.remove(inviteEntity);
       }
     }
@@ -33,12 +40,10 @@ export class InviteService {
       if (invite.inviter.bot) continue;
 
       let inviteEntity = inviteEntities.find(
-        (entity) => entity.invite_id === invite.code,
+        (entity) => entity.id === invite.code,
       );
       if (!inviteEntity) {
-        inviteEntity = this.database.create(InviteEntity, {
-          invite_id: invite.code,
-        });
+        inviteEntity = this.create(invite);
       }
 
       inviteEntity.createdAt = invite.createdAt;
@@ -56,7 +61,7 @@ export class InviteService {
 
     for (const invite of invites.values()) {
       const inviteEntity = inviteEntities.find(
-        (entity) => entity.invite_id === invite.code,
+        (entity) => entity.id === invite.code,
       );
 
       if (inviteEntity && inviteEntity.uses < invite.uses) {

@@ -5,10 +5,7 @@ import { BaseEntity } from '#lib/orm/BaseEntity';
 @Entity({ tableName: 'guild_invites' })
 export class InviteEntity extends BaseEntity {
   @PrimaryKey()
-  id: number;
-
-  @Property()
-  invite_id: string;
+  id: string;
 
   @Property({ nullable: true, default: null })
   alias: string | null;

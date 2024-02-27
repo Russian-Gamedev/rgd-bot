@@ -19,6 +19,7 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
 
   async run(member: GuildMember) {
     if (member.guild.id !== RGD_ID) return;
+    container.logger.info(member.displayName, 'joined to server');
 
     const recentInvite = await this.inviteService.findRecentUpdated(
       member.guild,
@@ -31,15 +32,14 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
     if (user.is_new) {
       /// send message
     } else {
+      container.logger.info('loading roles for member');
       await this.userService.loadRoles(member);
     }
 
     if (recentInvite && !user.invite) {
-      user.invite = recentInvite.invite_id;
+      user.invite = recentInvite.id;
     }
 
     await this.userService.database.persistAndFlush(user);
-
-    container.logger.info(member.displayName, 'joined to server');
   }
 }

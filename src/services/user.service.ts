@@ -1,6 +1,6 @@
 import { EntityManager } from '@mikro-orm/postgresql';
 import { container } from '@sapphire/pieces';
-import { GuildMember } from 'discord.js';
+import { GuildMember, User } from 'discord.js';
 
 import { UserEntity } from '#base/entities/user.entity';
 import { UserRolesEntity } from '#base/entities/user-roles.entity';
@@ -22,12 +22,12 @@ export class UserService {
   async get(user_id: string) {
     let user = await this.database.findOne(UserEntity, { user_id });
     if (!user) {
-      const member = await container.rgd.members.fetch(user_id);
+      const member = await container.client.users.fetch(user_id);
 
       user = this.database.create(UserEntity, {
         user_id,
-        username: member.user.username,
-        avatar: getDisplayAvatar(member.user),
+        username: member.username,
+        avatar: getDisplayAvatar(member),
       });
       user.is_new = true;
 
@@ -37,16 +37,19 @@ export class UserService {
     return user;
   }
 
-  async updateInfo(member: GuildMember) {
-    const user = await this.get(member.user.id);
+  async updateInfo(member: User | GuildMember) {
+    const user = await this.get(member.id);
+    const _user = member instanceof User ? member : member.user;
 
-    user.username = member.user.username;
-    user.avatar = getDisplayAvatar(member.user);
-    user.banner = getDisplayBanner(member.user);
-    user.banner_color = member.displayHexColor;
+    user.username = member.displayName;
+    user.avatar = getDisplayAvatar(_user);
+    user.banner = getDisplayBanner(_user);
+    if (member instanceof GuildMember) {
+      user.banner_color = member.displayHexColor;
 
-    if (!user.first_join) {
-      user.first_join = member.joinedAt;
+      if (!user.first_join) {
+        user.first_join = member.joinedAt;
+      }
     }
 
     await this.database.persistAndFlush(user);
@@ -74,14 +77,12 @@ export class UserService {
       }
     }
 
-    const needSave = roles.filter(
-      (role) =>
-        !saved_roles.every((saved_role) => saved_role.role_id === role.id),
-    );
+    for (const role of roles.values()) {
+      if (role.name === '@everyone') continue;
+      if (role.tags) continue;
+      if (saved_roles.some((saved_role) => saved_role.role_id === role.id))
+        continue;
 
-    console.log(needSave);
-
-    for (const role of needSave.values()) {
       const entity = this.database.create(UserRolesEntity, {
         user_id: member.id,
         role_id: role.id,
