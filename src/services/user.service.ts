@@ -22,8 +22,7 @@ export class UserService {
   async get(user_id: string) {
     let user = await this.database.findOne(UserEntity, { user_id });
     if (!user) {
-      const guild = await container.client.guilds.fetch('');
-      const member = await guild.members.fetch(user_id);
+      const member = await container.rgd.members.fetch(user_id);
 
       user = this.database.create(UserEntity, {
         user_id,

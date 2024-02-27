@@ -6,6 +6,7 @@ import { GuildMember, VoiceState } from 'discord.js';
 import { StatsPeriod } from '#base/entities/stats.entity';
 import { StatsService } from '#base/services/stats.service';
 import { UserService } from '#base/services/user.service';
+import { RGD_ID } from '#config/constants';
 
 @ApplyOptions<Listener.Options>({
   event: Events.VoiceStateUpdate,
@@ -42,6 +43,7 @@ export class MemberVoice extends Listener<typeof Events.VoiceStateUpdate> {
   }
 
   async run(oldState: VoiceState, newState: VoiceState) {
+    if (newState.guild.id !== RGD_ID) return;
     if (newState.member.user.bot) return;
     if (oldState.channelId == newState.id) return;
 

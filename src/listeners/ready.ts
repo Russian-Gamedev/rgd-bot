@@ -24,14 +24,13 @@ export class Ready extends Listener {
 
   async updateGuild() {
     const guild = await this.container.client.guilds.fetch(RGD_ID);
+    this.container.rgd = guild;
 
     await GuildService.Instance.updateInfo(guild);
     await Promise.all([
       GuildService.Instance.updateRoles(guild),
       InviteService.Instance.updateGuildInvites(guild),
     ]);
-
-    this.container.rgd = guild;
   }
 
   private printApiInfo() {

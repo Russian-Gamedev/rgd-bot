@@ -5,6 +5,7 @@ import { Message } from 'discord.js';
 import { StatsPeriod } from '#base/entities/stats.entity';
 import { StatsService } from '#base/services/stats.service';
 import { UserService } from '#base/services/user.service';
+import { RGD_ID } from '#config/constants';
 
 @ApplyOptions<Listener.Options>({
   event: Events.MessageCreate,
@@ -19,6 +20,7 @@ export class MemberMessage extends Listener<typeof Events.MessageCreate> {
   }
 
   async run(message: Message) {
+    if (message.guild.id !== RGD_ID) return;
     if (message.webhookId) return;
     if (message.member.user.bot) return;
 

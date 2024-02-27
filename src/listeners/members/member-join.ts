@@ -5,6 +5,7 @@ import { GuildMember } from 'discord.js';
 
 import { InviteService } from '#base/services/invite.service';
 import { UserService } from '#base/services/user.service';
+import { RGD_ID } from '#config/constants';
 
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberAdd })
 export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
@@ -17,6 +18,8 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
   }
 
   async run(member: GuildMember) {
+    if (member.guild.id !== RGD_ID) return;
+
     const recentInvite = await this.inviteService.findRecentUpdated(
       member.guild,
     );
