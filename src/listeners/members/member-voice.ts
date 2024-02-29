@@ -29,6 +29,7 @@ export class MemberVoice extends Listener<typeof Events.VoiceStateUpdate> {
           const guild = await this.container.client.guilds.fetch(
             key.replace('guild:', ''),
           );
+          if (guild?.id !== RGD_ID) return;
           const members = await this.redis.hGetAll(key);
           for (const member_id of Object.keys(members)) {
             const member = await guild.members.fetch(member_id);
