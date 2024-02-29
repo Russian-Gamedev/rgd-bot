@@ -45,4 +45,5 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         script: |
           cd ~/rgd-bot
+          chmod +x ./scripts/deploy.sh
           ./scripts/deploy.sh
