@@ -58,7 +58,7 @@ export class StatsTask extends ScheduledTask {
 
     if (postMessageStats === 'true') {
       const channel_id = await this.settingsService.get(
-        GuildSettings.ChannelMessage,
+        GuildSettings.SystemChannel,
         guild.systemChannelId,
       );
 

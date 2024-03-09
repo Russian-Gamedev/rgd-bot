@@ -3,9 +3,11 @@ import { Events, Listener } from '@sapphire/framework';
 import { container } from '@sapphire/pieces';
 import { GuildMember } from 'discord.js';
 
+import { BotEventsService } from '#base/services/events.service';
+import { GuildSettingService } from '#base/services/guild-setting.service';
 import { InviteService } from '#base/services/invite.service';
 import { UserService } from '#base/services/user.service';
-import { RGD_ID } from '#config/constants';
+import { BotEvents, RGD_ID } from '#config/constants';
 
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberAdd })
 export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
@@ -15,6 +17,13 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
 
   get inviteService() {
     return InviteService.Instance;
+  }
+
+  get botEventsService() {
+    return BotEventsService.Instance;
+  }
+  get settingsService() {
+    return GuildSettingService.Instance;
   }
 
   async run(member: GuildMember) {
@@ -29,9 +38,7 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
 
     user.left_guild = false;
 
-    if (user.is_new) {
-      /// send message
-    } else {
+    if (!user.is_new) {
       container.logger.info('loading roles for member');
       await this.userService.loadRoles(member);
     }
@@ -39,6 +46,21 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
     if (recentInvite && !user.invite) {
       user.invite = recentInvite.id;
     }
+
+    const event = user.is_new
+      ? BotEvents.MEMBER_FIRST_JOIN
+      : BotEvents.MEMBER_JOIN;
+
+    let message = await this.botEventsService.getRandom(event, {
+      user: `<@${member.id}>`,
+    });
+
+    if (!user.is_new) {
+      message += `|| ${user.leave_count} раз ||`;
+    }
+
+    const channel = await this.settingsService.getSystemChannel();
+    channel.send(message);
 
     await this.userService.database.persistAndFlush(user);
   }

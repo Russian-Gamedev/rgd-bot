@@ -1,5 +1,6 @@
 import { EntityManager } from '@mikro-orm/postgresql';
 import { container } from '@sapphire/pieces';
+import { TextChannel } from 'discord.js';
 
 import { GuildSettingEntity } from '#base/entities/guild-setting.entity';
 import { GuildSettings } from '#config/constants';
@@ -34,5 +35,14 @@ export class GuildSettingService {
   }
   set(key: GuildSettings, value: string) {
     return this.database.nativeUpdate(GuildSettingEntity, { key }, { value });
+  }
+
+  async getSystemChannel() {
+    const channel_id = await this.get(
+      GuildSettings.SystemChannel,
+      container.rgd.systemChannelId,
+    );
+
+    return (await container.rgd.channels.fetch(channel_id)) as TextChannel;
   }
 }
