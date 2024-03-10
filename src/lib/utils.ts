@@ -65,3 +65,17 @@ export function messageLinkRaw(
 ) {
   return `https://discord.com/channels/${guildId}/${channelId}/${message}`;
 }
+
+export async function getUserReactionsCount(
+  message: Message,
+  member_id: string,
+) {
+  let count = 0;
+
+  for (const react of message.reactions.cache.values()) {
+    const users = await react.users.fetch();
+    count += +users.has(member_id);
+  }
+
+  return count;
+}
