@@ -30,4 +30,28 @@ export class ReactionsService {
 
     return entity?.weight || 1;
   }
+
+  async deleteRolesReaction(channel_id: string, message_id: string) {
+    return this.database.nativeDelete(RoleReactionEntity, {
+      channel_id,
+      message_id,
+    });
+  }
+
+  async addRolesReaction(
+    channel_id: string,
+    message_id: string,
+    roles: [string, string][],
+  ) {
+    for (const [role_id, emoji] of roles) {
+      const entity = this.database.create(RoleReactionEntity, {
+        channel_id,
+        message_id,
+        role_id,
+        emoji,
+      });
+      this.database.persist(entity);
+    }
+    await this.database.flush();
+  }
 }
