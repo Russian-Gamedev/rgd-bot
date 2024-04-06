@@ -57,7 +57,7 @@ export class RgdClient<
         origin: '*',
         automaticallyConnect: true,
         listenOptions: {
-          host: 'localhost',
+          host: '0.0.0.0',
           port: Number(process.env.PORT),
         },
         auth: {
