@@ -60,10 +60,10 @@ jobs:
           ENDSSH
       - name: Transfer Docker Compose file to remote server
         run: |
-          scp -o StrictHostKeyChecking=no docker-compose.yaml ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_PATH }}
+          scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_PATH }}
 
       - name: Deploy Docker containers using Docker Compose on remote server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
-          docker compose -f ${{ secrets.REMOTE_PATH }}/docker-compose.yaml up -d
+          docker compose -f ${{ secrets.REMOTE_PATH }}/docker-compose.yml up -d
           ENDSSH
