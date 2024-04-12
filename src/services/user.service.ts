@@ -19,8 +19,8 @@ export class UserService {
 
   constructor(readonly database: EntityManager) {}
 
-  async get(user_id: string) {
-    let user = await this.database.findOne(UserEntity, { user_id });
+  async get(guild_id: string, user_id: string) {
+    let user = await this.database.findOne(UserEntity, { user_id, guild_id });
     if (!user) {
       const member = await container.client.users.fetch(user_id);
 
@@ -28,17 +28,18 @@ export class UserService {
         user_id,
         username: member.username,
         avatar: getDisplayAvatar(member),
+        guild_id,
       });
       user.is_new = true;
 
-      await this.updateInfo(member);
+      await this.updateInfo(guild_id, member);
     }
 
     return user;
   }
 
-  async updateInfo(member: User | GuildMember) {
-    const user = await this.get(member.id);
+  async updateInfo(guild_id: string, member: User | GuildMember) {
+    const user = await this.get(guild_id, member.id);
     const _user = member instanceof User ? member : member.user;
 
     user.username = member.displayName;
@@ -55,19 +56,21 @@ export class UserService {
     await this.database.persistAndFlush(user);
   }
 
-  async loadRoles(member: GuildMember) {
+  async loadRoles(guild_id: string, member: GuildMember) {
     const roles = await this.database.find(UserRolesEntity, {
       user_id: member.id,
+      guild_id,
     });
 
     await Promise.all(roles.map((role) => member.roles.add(role.role_id)));
   }
 
-  async saveRoles(member: GuildMember) {
+  async saveRoles(guild_id: string, member: GuildMember) {
     const roles = member.roles.cache;
 
     const saved_roles = await this.database.find(UserRolesEntity, {
       user_id: member.id,
+      guild_id,
     });
 
     /// delete if not exist in members
@@ -86,6 +89,7 @@ export class UserService {
       const entity = this.database.create(UserRolesEntity, {
         user_id: member.id,
         role_id: role.id,
+        guild_id,
       });
 
       this.database.persist(entity);

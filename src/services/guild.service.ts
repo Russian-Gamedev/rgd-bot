@@ -45,7 +45,9 @@ export class GuildService {
 
   async updateRoles(guild: Guild) {
     const guildRoles = await guild.roles.fetch();
-    const roleEntities = await this.database.find(RoleEntity, {});
+    const roleEntities = await this.database.find(RoleEntity, {
+      guild_id: guild.id,
+    });
 
     /// delete if not exists in guild
     for (const roleEntity of roleEntities) {
@@ -65,6 +67,7 @@ export class GuildService {
       if (!roleEntity) {
         roleEntity = this.database.create(RoleEntity, {
           role_id: role.id,
+          guild_id: guild.id,
         });
       }
 

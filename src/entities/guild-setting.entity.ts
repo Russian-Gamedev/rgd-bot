@@ -9,6 +9,9 @@ export class GuildSettingEntity extends BaseEntity {
   id: number;
 
   @Property()
+  guild_id: string;
+
+  @Property()
   key: GuildSettings;
 
   @Property()

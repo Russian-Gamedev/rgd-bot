@@ -15,7 +15,6 @@ import {
   TextBasedChannel,
 } from 'discord.js';
 
-import { RGD_ID } from '#base/config/constants';
 import { EmojiNumber } from '#base/config/emojies';
 import { replyWithError } from '#base/lib/sapphire';
 import { ReactionsService } from '#base/services/reactions.service';
@@ -68,11 +67,10 @@ export class RoleReactionCommand extends Subcommand {
   }
 
   async chatInputSet(interaction: Subcommand.ChatInputCommandInteraction) {
-    if (interaction.guildId !== RGD_ID) return;
     const messageLink = interaction.options.getString('message', true);
     const [channel_id, message_id] = messageLink.split('/').slice(-2);
 
-    const channel = (await this.container.rgd.channels.fetch(
+    const channel = (await interaction.guild.channels.fetch(
       channel_id,
     )) as TextBasedChannel;
     const message = await channel.messages.fetch(message_id);
@@ -134,7 +132,11 @@ export class RoleReactionCommand extends Subcommand {
       await message.react(emoji);
     }
 
-    await ReactionsService.Instance.deleteRolesReaction(channel_id, message_id);
+    await ReactionsService.Instance.deleteRolesReaction(
+      interaction.guild.id,
+      channel_id,
+      message_id,
+    );
 
     const emojiRoles = [] as [string, string][];
 
@@ -146,6 +148,7 @@ export class RoleReactionCommand extends Subcommand {
     }
 
     await ReactionsService.Instance.addRolesReaction(
+      interaction.guild.id,
       channel_id,
       message_id,
       emojiRoles,
@@ -160,11 +163,10 @@ export class RoleReactionCommand extends Subcommand {
   }
 
   async chatInputRemove(interaction: Subcommand.ChatInputCommandInteraction) {
-    if (interaction.guildId !== RGD_ID) return;
     const messageLink = interaction.options.getString('message', true);
     const [channel_id, message_id] = messageLink.split('/').slice(-2);
 
-    const channel = (await this.container.rgd.channels.fetch(
+    const channel = (await interaction.guild.channels.fetch(
       channel_id,
     )) as TextBasedChannel;
     const message = await channel.messages.fetch(message_id);
@@ -172,7 +174,11 @@ export class RoleReactionCommand extends Subcommand {
       return replyWithError(interaction, 'Сообщение не найдено');
     }
 
-    await ReactionsService.Instance.deleteRolesReaction(channel_id, message_id);
+    await ReactionsService.Instance.deleteRolesReaction(
+      interaction.guild.id,
+      channel_id,
+      message_id,
+    );
 
     for (const reactions of message.reactions.cache.values()) {
       await reactions.users.remove(this.container.client.id);

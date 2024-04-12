@@ -3,7 +3,6 @@ import { Events, Listener } from '@sapphire/framework';
 import { GuildMember, User } from 'discord.js';
 
 import { UserService } from '#base/services/user.service';
-import { RGD_ID } from '#config/constants';
 
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberUpdate })
 export class MemberUpdate extends Listener<typeof Events.GuildMemberUpdate> {
@@ -12,7 +11,6 @@ export class MemberUpdate extends Listener<typeof Events.GuildMemberUpdate> {
   }
 
   async run(oldMember: GuildMember, newMember: GuildMember) {
-    if (oldMember.guild.id !== RGD_ID) return;
     await Promise.all([
       this.processUserInfo(oldMember, newMember),
       this.processRoles(oldMember, newMember),
@@ -34,7 +32,7 @@ export class MemberUpdate extends Listener<typeof Events.GuildMemberUpdate> {
     );
 
     if (isNeedUpdate) {
-      await this.userService.updateInfo(newMember);
+      await this.userService.updateInfo(newMember.guild.id, newMember);
     }
   }
 
@@ -58,7 +56,7 @@ export class MemberUpdate extends Listener<typeof Events.GuildMemberUpdate> {
     }
 
     if (deletedRoles.length > 0 || addedRoles.length > 0) {
-      await this.userService.saveRoles(newMember);
+      await this.userService.saveRoles(newMember.guild.id, newMember);
     }
   }
 }

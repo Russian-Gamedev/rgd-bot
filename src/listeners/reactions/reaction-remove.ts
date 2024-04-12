@@ -3,7 +3,6 @@ import { Events, Listener } from '@sapphire/framework';
 import { Time } from '@sapphire/time-utilities';
 import { MessageReaction, User } from 'discord.js';
 
-import { RGD_ID } from '#base/config/constants';
 import { StatsPeriod } from '#base/entities/stats.entity';
 import { getUserReactionsCount } from '#base/lib/utils';
 import { ReactionsService } from '#base/services/reactions.service';
@@ -19,16 +18,16 @@ export class ReactionRemove extends Listener<
 
   async run(reaction: MessageReaction, user: User) {
     if (user.bot) return;
-    if (reaction.message.guildId !== RGD_ID) return;
 
-    const member = await this.container.rgd.members.fetch(user.id);
+    const member = await reaction.message.guild.members.fetch(user.id);
     const emoji = reaction.emoji.id || reaction.emoji.name;
 
-    const roleReaction = await this.reactionService.getRoleByEmoji(
-      reaction.message.channelId,
-      reaction.message.id,
+    const roleReaction = await this.reactionService.getRole({
+      guild_id: reaction.message.guild.id,
+      channel_id: reaction.message.channelId,
+      message_id: reaction.message.id,
       emoji,
-    );
+    });
 
     if (roleReaction) {
       await member.roles.remove(roleReaction.role_id);
@@ -48,9 +47,13 @@ export class ReactionRemove extends Listener<
 
     const emoji = reaction.emoji.id || reaction.emoji.name;
 
-    const emojiWeight = await this.reactionService.getEmojiWeight(emoji);
+    const emojiWeight = await this.reactionService.getEmojiWeight(
+      message.guild.id,
+      emoji,
+    );
 
     const stats = await StatsService.Instance.getByUser(
+      message.guild.id,
       user.id,
       StatsPeriod.Day,
     );

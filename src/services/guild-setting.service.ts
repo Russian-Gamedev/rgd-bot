@@ -18,16 +18,17 @@ export class GuildSettingService {
 
   constructor(readonly database: EntityManager) {}
 
-  async get(key: GuildSettings, fallback: string) {
+  async get(guild_id: string, key: GuildSettings, fallback: string) {
     let setting = await this.database.findOne(
       GuildSettingEntity,
-      { key },
+      { key, guild_id },
       { cache: 15_000 },
     );
     if (!setting) {
       setting = this.database.create(GuildSettingEntity, {
         key,
         value: fallback,
+        guild_id,
       });
     }
 
@@ -37,12 +38,15 @@ export class GuildSettingService {
     return this.database.nativeUpdate(GuildSettingEntity, { key }, { value });
   }
 
-  async getSystemChannel() {
+  async getSystemChannel(guild_id: string) {
+    const guild = await container.client.guilds.fetch(guild_id);
+
     const channel_id = await this.get(
+      guild_id,
       GuildSettings.SystemChannel,
-      container.rgd.systemChannelId,
+      guild.systemChannelId,
     );
 
-    return (await container.rgd.channels.fetch(channel_id)) as TextChannel;
+    return (await guild.channels.fetch(channel_id)) as TextChannel;
   }
 }

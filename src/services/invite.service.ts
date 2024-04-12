@@ -21,12 +21,15 @@ export class InviteService {
     return this.database.create(InviteEntity, {
       id: invite.code,
       inviter: invite.inviterId,
+      guild_id: invite.guild.id,
     });
   }
 
   async updateGuildInvites(guild: Guild) {
     const guildInvites = await guild.invites.fetch();
-    const inviteEntities = await this.database.find(InviteEntity, {});
+    const inviteEntities = await this.database.find(InviteEntity, {
+      guild_id: guild.id,
+    });
 
     /// delete if not exist invite in guild
     for (const inviteEntity of inviteEntities) {
@@ -56,7 +59,9 @@ export class InviteService {
   }
 
   async findRecentUpdated(guild: Guild) {
-    const inviteEntities = await this.database.find(InviteEntity, {});
+    const inviteEntities = await this.database.find(InviteEntity, {
+      guild_id: guild.id,
+    });
     const invites = await guild.invites.fetch();
 
     for (const invite of invites.values()) {

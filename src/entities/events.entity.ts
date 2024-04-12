@@ -9,6 +9,9 @@ export class BotEventsEntity extends BaseEntity {
   id: number;
 
   @Property()
+  guild_id: string;
+
+  @Property()
   type: BotEvents;
 
   @Property()

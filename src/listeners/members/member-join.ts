@@ -7,7 +7,7 @@ import { BotEventsService } from '#base/services/events.service';
 import { GuildSettingService } from '#base/services/guild-setting.service';
 import { InviteService } from '#base/services/invite.service';
 import { UserService } from '#base/services/user.service';
-import { BotEvents, RGD_ID } from '#config/constants';
+import { BotEvents } from '#config/constants';
 
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberAdd })
 export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
@@ -27,20 +27,19 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
   }
 
   async run(member: GuildMember) {
-    if (member.guild.id !== RGD_ID) return;
     container.logger.info(member.displayName, 'joined to server');
 
     const recentInvite = await this.inviteService.findRecentUpdated(
       member.guild,
     );
 
-    const user = await this.userService.get(member.id);
+    const user = await this.userService.get(member.guild.id, member.id);
 
     user.left_guild = false;
 
     if (!user.is_new) {
       container.logger.info('loading roles for member');
-      await this.userService.loadRoles(member);
+      await this.userService.loadRoles(member.guild.id, member);
     }
 
     if (recentInvite && !user.invite) {
@@ -51,15 +50,21 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
       ? BotEvents.MEMBER_FIRST_JOIN
       : BotEvents.MEMBER_JOIN;
 
-    let message = await this.botEventsService.getRandom(event, {
-      user: `<@${member.id}>`,
-    });
+    let message = await this.botEventsService.getRandom(
+      member.guild.id,
+      event,
+      {
+        user: `<@${member.id}>`,
+      },
+    );
 
     if (!user.is_new) {
       message += `|| ${user.leave_count} раз ||`;
     }
 
-    const channel = await this.settingsService.getSystemChannel();
+    const channel = await this.settingsService.getSystemChannel(
+      member.guild.id,
+    );
     channel.send(message);
 
     await this.userService.database.persistAndFlush(user);

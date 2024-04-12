@@ -8,6 +8,9 @@ export class RoleEntity extends BaseEntity {
   id: number;
 
   @Property()
+  guild_id: string;
+
+  @Property()
   role_id: string;
 
   @Property()

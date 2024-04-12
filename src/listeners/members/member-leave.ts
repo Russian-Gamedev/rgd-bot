@@ -5,7 +5,7 @@ import { GuildMember } from 'discord.js';
 import { BotEventsService } from '#base/services/events.service';
 import { GuildSettingService } from '#base/services/guild-setting.service';
 import { UserService } from '#base/services/user.service';
-import { BotEvents, RGD_ID } from '#config/constants';
+import { BotEvents } from '#config/constants';
 
 @ApplyOptions<Listener.Options>({ event: Events.GuildMemberRemove })
 export class MemberLeave extends Listener<typeof Events.GuildMemberRemove> {
@@ -22,24 +22,26 @@ export class MemberLeave extends Listener<typeof Events.GuildMemberRemove> {
   }
 
   async run(member: GuildMember) {
-    if (member.guild.id !== RGD_ID) return;
-    const user = await this.userService.get(member.id);
+    const user = await this.userService.get(member.guild.id, member.id);
 
     user.leave_count++;
     user.left_guild = true;
 
     await this.userService.database.persistAndFlush(user);
 
-    await this.userService.saveRoles(member);
+    await this.userService.saveRoles(member.guild.id, member);
 
     const message = await this.botEventsService.getRandom(
+      member.guild.id,
       BotEvents.MEMBER_LEAVE,
       {
         user: `[<@${user.id}>] **${member.displayName}**`,
       },
     );
 
-    const channel = await this.settingsService.getSystemChannel();
+    const channel = await this.settingsService.getSystemChannel(
+      member.guild.id,
+    );
     channel.send(message);
 
     this.container.logger.info(member.displayName, 'leave server');

@@ -1,6 +1,11 @@
 import { ApplyOptions } from '@sapphire/decorators';
 import { ApplicationCommandRegistry, Command } from '@sapphire/framework';
-import { ChatInputCommandInteraction, EmbedBuilder, Message } from 'discord.js';
+import {
+  ChatInputCommandInteraction,
+  EmbedBuilder,
+  Guild,
+  Message,
+} from 'discord.js';
 
 import { UserService } from '#base/services/user.service';
 import { getDisplayAvatar, getRelativeFormat, getTimeInfo } from '#lib/utils';
@@ -32,7 +37,7 @@ export class UserCommand extends Command {
   override async chatInputRun(interaction: ChatInputCommandInteraction) {
     const target =
       interaction.options.getUser(Options.User, false) ?? interaction.user;
-    const embed = await this.getInfo(target.id);
+    const embed = await this.getInfo(interaction.guild, target.id);
     await interaction.reply({
       embeds: [embed],
     });
@@ -40,14 +45,13 @@ export class UserCommand extends Command {
   override async messageRun(message: Message) {
     const target =
       message.mentions.users.map((user) => user.id).at(0) ?? message.author.id;
-    const embed = await this.getInfo(target);
+    const embed = await this.getInfo(message.guild, target);
     await message.channel.send({ embeds: [embed] });
   }
 
-  private async getInfo(user_id: string) {
-    const guild = this.container.rgd;
+  private async getInfo(guild: Guild, user_id: string) {
     const member = await guild.members.fetch(user_id);
-    const user = await UserService.Instance.get(user_id);
+    const user = await UserService.Instance.get(guild.id, user_id);
 
     const embed = new EmbedBuilder();
     embed.setColor(member.displayColor);

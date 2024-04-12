@@ -18,30 +18,32 @@ export class StatsService {
 
   constructor(readonly database: EntityManager) {}
 
-  get(period: StatsPeriod) {
-    return this.database.find(StatsEntity, { period });
+  get(guild_id: string, period: StatsPeriod) {
+    return this.database.find(StatsEntity, { period, guild_id });
   }
 
-  getAllByPeriod(period: StatsPeriod) {
-    return this.database.find(StatsEntity, { period });
+  getAllByPeriod(guild_id: string, period: StatsPeriod) {
+    return this.database.find(StatsEntity, { period, guild_id });
   }
 
-  async getByUser(user_id: string, period: StatsPeriod) {
+  async getByUser(guild_id: string, user_id: string, period: StatsPeriod) {
     let stats = await this.database.findOne(StatsEntity, {
       period,
       user_id,
+      guild_id,
     });
     if (!stats) {
       stats = this.database.create(StatsEntity, {
         user_id,
         period,
+        guild_id,
       });
     }
 
     return stats;
   }
 
-  async getNewRegs(period: StatsPeriod) {
+  async getNewRegs(guild_id: string, period: StatsPeriod) {
     const days = this.getDaysPeriod(period);
 
     const date = new Date();
@@ -51,12 +53,13 @@ export class StatsService {
       first_join: {
         $gte: date,
       },
+      guild_id,
     });
   }
 
   async mergeStats(from: StatsEntity[], to: StatsPeriod) {
     for (const stat of from) {
-      const toStat = await this.getByUser(stat.user_id, to);
+      const toStat = await this.getByUser(stat.guild_id, stat.user_id, to);
 
       toStat.chat += stat.chat;
       toStat.voice += stat.voice;

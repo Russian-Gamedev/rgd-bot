@@ -6,7 +6,6 @@ import { GuildMember, VoiceState } from 'discord.js';
 import { StatsPeriod } from '#base/entities/stats.entity';
 import { StatsService } from '#base/services/stats.service';
 import { UserService } from '#base/services/user.service';
-import { RGD_ID } from '#config/constants';
 
 @ApplyOptions<Listener.Options>({
   event: Events.VoiceStateUpdate,
@@ -29,7 +28,7 @@ export class MemberVoice extends Listener<typeof Events.VoiceStateUpdate> {
           const guild = await this.container.client.guilds.fetch(
             key.replace('guild:', ''),
           );
-          if (guild?.id !== RGD_ID) return;
+
           const members = await this.redis.hGetAll(key);
           for (const member_id of Object.keys(members)) {
             const member = await guild.members.fetch(member_id);
@@ -44,7 +43,6 @@ export class MemberVoice extends Listener<typeof Events.VoiceStateUpdate> {
   }
 
   async run(oldState: VoiceState, newState: VoiceState) {
-    if (newState.guild.id !== RGD_ID) return;
     if (newState.member.user.bot) return;
     if (oldState.channelId == newState.id) return;
 
@@ -76,12 +74,13 @@ export class MemberVoice extends Listener<typeof Events.VoiceStateUpdate> {
       (Date.now() - Math.min(enteredTime, Time.Minute * 10)) / 1_000,
     );
 
-    const user = await UserService.Instance.get(member.id);
+    const user = await UserService.Instance.get(member.guild.id, member.id);
     user.voice_time += elapsedTime ?? 0;
 
     UserService.Instance.database.persist(user);
 
     const stats = await StatsService.Instance.getByUser(
+      member.guild.id,
       member.id,
       StatsPeriod.Day,
     );

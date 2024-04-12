@@ -1,4 +1,4 @@
-import { EntityManager } from '@mikro-orm/core';
+import { EntityManager, FilterQuery } from '@mikro-orm/core';
 import { container } from '@sapphire/pieces';
 
 import { ReactionWeightEntity } from '#base/entities/reaction-weight.entity';
@@ -17,34 +17,40 @@ export class ReactionsService {
 
   constructor(readonly database: EntityManager) {}
 
-  async getRoleByEmoji(channel_id: string, message_id: string, emoji: string) {
-    return this.database.findOne(RoleReactionEntity, {
-      channel_id,
-      message_id,
-      emoji,
-    });
+  async getRole(filter: FilterQuery<RoleReactionEntity>) {
+    return this.database.findOne(RoleReactionEntity, filter);
   }
 
-  async getEmojiWeight(emoji: string) {
-    const entity = await this.database.findOne(ReactionWeightEntity, { emoji });
+  async getEmojiWeight(guild_id: string, emoji: string) {
+    const entity = await this.database.findOne(ReactionWeightEntity, {
+      emoji,
+      guild_id,
+    });
 
     return entity?.weight || 1;
   }
 
-  async deleteRolesReaction(channel_id: string, message_id: string) {
+  async deleteRolesReaction(
+    guild_id: string,
+    channel_id: string,
+    message_id: string,
+  ) {
     return this.database.nativeDelete(RoleReactionEntity, {
       channel_id,
       message_id,
+      guild_id,
     });
   }
 
   async addRolesReaction(
+    guild_id: string,
     channel_id: string,
     message_id: string,
     roles: [string, string][],
   ) {
     for (const [role_id, emoji] of roles) {
       const entity = this.database.create(RoleReactionEntity, {
+        guild_id,
         channel_id,
         message_id,
         role_id,

@@ -1,8 +1,7 @@
 import { ApplyOptions } from '@sapphire/decorators';
-import { container } from '@sapphire/pieces';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { Time } from '@sapphire/time-utilities';
-import { EmbedBuilder, TextChannel } from 'discord.js';
+import { EmbedBuilder, Guild, TextChannel } from 'discord.js';
 
 import { StatsEntity, StatsPeriod } from '#base/entities/stats.entity';
 import { UserEntity } from '#base/entities/user.entity';
@@ -30,41 +29,47 @@ export class StatsTask extends ScheduledTask {
   }
 
   async run() {
-    await this.postStats(StatsPeriod.Day);
+    const guilds = await this.container.client.guilds.fetch();
 
-    const today = new Date();
-    const isSaturday = today.getDay() === 6;
+    for (const { id } of guilds.values()) {
+      const guild = await this.container.client.guilds.fetch(id);
+      await this.postStats(guild, StatsPeriod.Day);
 
-    if (isSaturday) {
-      await this.postStats(StatsPeriod.Week);
-    }
+      const today = new Date();
+      const isSaturday = today.getDay() === 6;
 
-    const isLastDayOfMonth =
-      new Date(today.getTime() + Time.Day).getDate() === 1;
+      if (isSaturday) {
+        await this.postStats(guild, StatsPeriod.Week);
+      }
 
-    if (isLastDayOfMonth) {
-      await this.postStats(StatsPeriod.Month);
+      const isLastDayOfMonth =
+        new Date(today.getTime() + Time.Day).getDate() === 1;
+
+      if (isLastDayOfMonth) {
+        await this.postStats(guild, StatsPeriod.Month);
+      }
     }
   }
 
-  private async postStats(period: StatsPeriod) {
-    const guild = container.rgd;
-    const stats = await this.statsService.getAllByPeriod(period);
+  private async postStats(guild: Guild, period: StatsPeriod) {
+    const stats = await this.statsService.getAllByPeriod(guild.id, period);
 
     const postMessageStats = await this.settingsService.get(
+      guild.id,
       GuildSettings.StatsMessage,
       'false',
     );
 
     if (postMessageStats === 'true') {
       const channel_id = await this.settingsService.get(
+        guild.id,
         GuildSettings.SystemChannel,
         guild.systemChannelId,
       );
 
       const channel = (await guild.channels.fetch(channel_id)) as TextChannel;
 
-      const newRegs = await this.statsService.getNewRegs(period);
+      const newRegs = await this.statsService.getNewRegs(guild.id, period);
       newRegs.length = 15;
       const embed = this.buildEmbed(stats, newRegs);
 
@@ -85,7 +90,7 @@ export class StatsTask extends ScheduledTask {
         stats.map(async (stats) => {
           const hours = getTimeInfo(stats.voice).hours;
           const coins = stats.chat + hours * 100 + stats.reactions * 50;
-          const user = await this.userService.get(stats.user_id);
+          const user = await this.userService.get(guild.id, stats.user_id);
           user.coins += coins;
           this.userService.database.persist(user);
         }),

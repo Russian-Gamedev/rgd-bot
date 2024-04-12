@@ -3,7 +3,6 @@ import { Events, Listener, Piece, Store } from '@sapphire/framework';
 
 import { GuildService } from '#base/services/guild.service';
 import { InviteService } from '#base/services/invite.service';
-import { RGD_ID } from '#config/constants';
 
 @ApplyOptions<Listener.Options>({ event: Events.ClientReady, once: true })
 export class Ready extends Listener {
@@ -23,14 +22,22 @@ export class Ready extends Listener {
   }
 
   async updateGuild() {
-    const guild = await this.container.client.guilds.fetch(RGD_ID);
-    this.container.rgd = guild;
+    const guilds = await this.container.client.guilds.fetch();
 
-    await GuildService.Instance.updateInfo(guild);
-    await Promise.all([
-      GuildService.Instance.updateRoles(guild),
-      InviteService.Instance.updateGuildInvites(guild),
-    ]);
+    for (const guild of guilds.values()) {
+      this.container.logger.info('Updating: ' + guild.name);
+      await guild
+        .fetch()
+        .then((guild) =>
+          Promise.all([
+            GuildService.Instance.updateInfo(guild),
+            GuildService.Instance.updateRoles(guild),
+            InviteService.Instance.updateGuildInvites(guild),
+          ]),
+        );
+    }
+
+    this.container.logger.info('Done.');
   }
 
   private printApiInfo() {

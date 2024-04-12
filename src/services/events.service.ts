@@ -18,7 +18,11 @@ export class BotEventsService {
 
   constructor(readonly database: EntityManager) {}
 
-  async getRandom(type: BotEvents, params: Record<string, string>) {
+  async getRandom(
+    guild_id: string,
+    type: BotEvents,
+    params: Record<string, string>,
+  ) {
     /// Получаем список, которые меньше максимального в таблице ИЛИ все равны
 
     const queryMax =
@@ -30,7 +34,7 @@ export class BotEventsService {
     const events = await this.database
       .createQueryBuilder(BotEventsEntity)
       .select('*')
-      .where({ type })
+      .where({ type, guild_id })
       .andWhere(`${queryMax} or ${queryDistinct}`, [type, type])
       .orderBy({ triggered_count: 'ASC' })
       .execute();
@@ -58,6 +62,7 @@ export class BotEventsService {
   }
 
   async addEvent(
+    guild_id: string,
     type: BotEvents,
     message: string,
     attachment: string | null = null,
@@ -66,6 +71,7 @@ export class BotEventsService {
       type,
       message,
       attachment,
+      guild_id,
     });
     await this.database.persistAndFlush(event);
   }
