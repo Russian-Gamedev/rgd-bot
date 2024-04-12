@@ -71,7 +71,7 @@ export class MemberVoice extends Listener<typeof Events.VoiceStateUpdate> {
     const key = 'guild:' + member.guild.id;
     const enteredTime = await this.redis.hGet(key, member.id).then(Number);
     const elapsedTime = Math.floor(
-      (Date.now() - Math.min(enteredTime, Time.Minute * 10)) / 1_000,
+      Math.min(Date.now() - enteredTime, Time.Minute * 10) / 1_000,
     );
 
     const user = await UserService.Instance.get(member.guild.id, member.id);
