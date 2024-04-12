@@ -1,28 +1,30 @@
 # Stage 1: Base image
 FROM node:20-alpine as base
-WORKDIR /usr/src/app
-COPY package.json tsconfig.json pnpm-lock.yaml ./
 
-# Stage 2: Install dependencies
-FROM base as dependencies
-RUN apk add --no-cache curl \
-    && wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.shrc" SHELL="$(which sh)" sh -
-RUN source /root/.shrc && pnpm install
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 
-# Stage 3: Copy source files
-FROM dependencies as source
-COPY . ./
+WORKDIR /app
 
-# Stage 4: Build the application
-FROM source as builder
-WORKDIR /usr/src/app
-COPY --from=dependencies /usr/src/app/node_modules ./node_modules
-RUN source /root/.shrc && pnpm run build
+COPY package.json .
+COPY pnpm-lock.yaml .
+COPY tsconfig.json .
+COPY src src
 
-# Stage 5: Production Environment
-FROM node:20-alpine as production
-WORKDIR /usr/src/app
-COPY --from=dependencies /usr/src/app/node_modules ./node_modules
-COPY --from=builder /usr/src/app/build ./build
+# Stage 2: Install prod dependencies
+FROM base AS prod-deps
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile --ignore-scripts
+
+# Stage 3: Install dev dependencies & build
+FROM base AS build
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
+RUN pnpm run build
+
+# Stage 4: Production Environment
+FROM base as production
+
+COPY --from=prod-deps /app/node_modules /app/node_modules
+COPY --from=build /app/build /app/build
 
 CMD [ "node", "build/index.js" ]

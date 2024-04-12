@@ -4,14 +4,12 @@ name: 'rgd-bot'
 
 services:
   bot-app:
-    container_name: '${COMPOSE_PROJECT_NAME}_bot'
+    container_name: 'rgd-bot'
     build:
       context: .
       dockerfile: Dockerfile
+      target: production
     env_file:
       - .production.env
     restart: unless-stopped
-    depends_on:
-      - redis
-      - postgres
     network_mode: host
