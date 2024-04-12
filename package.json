@@ -22,7 +22,8 @@
     "prepare": "husky install .github/.husky",
     "build": "tsc -p . && tsc-alias -p tsconfig.json",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org damirlutdev --project rgd-bot ./build && sentry-cli sourcemaps upload --org damirlutdev --project rgd-bot ./build",
-    "compose:dev": "docker compose -f docker-compose.dev.yml up -d"
+    "compose:dev": "docker compose -f docker-compose.dev.yml up -d",
+    "migration:create": "npx mikro-orm migration:create"
   },
   "lint-staged": {
     "*.ts": [
