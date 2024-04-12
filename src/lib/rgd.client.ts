@@ -53,11 +53,10 @@ export class RgdClient<
         },
       },
       api: {
-        prefix: 'api/',
         origin: '*',
         automaticallyConnect: true,
         listenOptions: {
-          host: 'localhost',
+          host: '0.0.0.0',
           port: Number(process.env.PORT),
         },
         auth: {
@@ -67,7 +66,6 @@ export class RgdClient<
           redirect: 'https://rgd.chat',
           scopes: [OAuth2Scopes.Identify],
           transformers: [],
-          domainOverwrite: '127.0.0.1',
         },
       },
     });
