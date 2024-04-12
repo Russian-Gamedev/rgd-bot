@@ -8,7 +8,7 @@ on:
 jobs:
   lint:
     env:
-      NODE_VERSION: 18.x
+      NODE_VERSION: 20.x
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
     runs-on: ubuntu-latest
