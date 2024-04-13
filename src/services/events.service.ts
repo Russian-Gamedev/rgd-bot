@@ -26,16 +26,21 @@ export class BotEventsService {
     /// Получаем список, которые меньше максимального в таблице ИЛИ все равны
 
     const queryMax =
-      '("event"."triggered_count" < (SELECT MAX("triggered_count") FROM "bot_events" WHERE "type" = ? ))';
+      '("event"."triggered_count" < (SELECT MAX("triggered_count") FROM "bot_events" WHERE "type" = ? AND "guild_id" = ? ))';
 
     const queryDistinct =
-      '(SELECT COUNT(DISTINCT triggered_count) FROM bot_events WHERE "type" = ?) = 1';
+      '(SELECT COUNT(DISTINCT triggered_count) FROM bot_events WHERE "type" = ? AND "guild_id" = ?) = 1';
 
     const events = await this.database
       .createQueryBuilder(BotEventsEntity)
       .select('*')
-      .where({ type, guild_id })
-      .andWhere(`${queryMax} or ${queryDistinct}`, [type, type])
+      .where({ type })
+      .andWhere(`${queryMax} or ${queryDistinct}`, [
+        type,
+        guild_id,
+        type,
+        guild_id,
+      ])
       .orderBy({ triggered_count: 'ASC' })
       .execute();
 
