@@ -57,22 +57,22 @@
         },
         "message": {
           "name": "message",
-          "type": "varchar(255)",
+          "type": "text",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "mappedType": "string"
+          "mappedType": "text"
         },
         "attachment": {
           "name": "attachment",
-          "type": "varchar(255)",
+          "type": "text",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
           "default": "null",
-          "mappedType": "string"
+          "mappedType": "text"
         },
         "triggered_count": {
           "name": "triggered_count",

@@ -14,10 +14,10 @@ export class BotEventsEntity extends BaseEntity {
   @Property()
   type: BotEvents;
 
-  @Property()
+  @Property({ type: 'text' })
   message: string;
 
-  @Property({ nullable: true, default: null })
+  @Property({ type: 'text', nullable: true, default: null })
   attachment: string | null;
 
   @Property({ default: 0 })
