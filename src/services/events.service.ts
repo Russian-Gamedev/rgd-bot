@@ -26,13 +26,13 @@ export class BotEventsService {
     /// Получаем список, которые меньше максимального в таблице ИЛИ все равны
 
     const queryMax =
-      '("event"."triggered_count" < (SELECT MAX("triggered_count") FROM "bot_events" WHERE "type" = ? AND "guild_id" = ? ))';
+      '("events"."triggered_count" < (SELECT MAX("triggered_count") FROM "bot_events" WHERE "type" = ? AND "guild_id" = ? ))';
 
     const queryDistinct =
       '(SELECT COUNT(DISTINCT triggered_count) FROM bot_events WHERE "type" = ? AND "guild_id" = ?) = 1';
 
     const events = await this.database
-      .createQueryBuilder(BotEventsEntity)
+      .createQueryBuilder(BotEventsEntity, 'events')
       .select('*')
       .where({ type })
       .andWhere(`${queryMax} or ${queryDistinct}`, [
