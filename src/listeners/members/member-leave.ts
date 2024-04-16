@@ -35,7 +35,7 @@ export class MemberLeave extends Listener<typeof Events.GuildMemberRemove> {
       member.guild.id,
       BotEvents.MEMBER_LEAVE,
       {
-        user: `[<@${user.id}>] **${member.displayName}**`,
+        user: `[<@${member.id}>] **${member.displayName}**`,
       },
     );
 
