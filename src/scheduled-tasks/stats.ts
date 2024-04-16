@@ -116,7 +116,9 @@ export class StatsTask extends ScheduledTask {
     embed.addFields({
       name: 'стата по чату',
       value: this.buildTop(
-        this.sort(stats, 'chat').slice(0, 15),
+        this.sort(stats, 'chat')
+          .slice(0, 15)
+          .filter((stat) => stat.value > 0),
         ({ user, value }, position) => this.buildLine(user, value, position),
         'никто не писал :(',
       ),
@@ -125,7 +127,9 @@ export class StatsTask extends ScheduledTask {
     embed.addFields({
       name: 'стата по войсу',
       value: this.buildTop(
-        this.sort(stats, 'voice').slice(0, 15),
+        this.sort(stats, 'voice')
+          .slice(0, 15)
+          .filter((stat) => stat.value > 0),
         ({ user, value }, position) => {
           return this.buildLine(user, formatTime(value), position);
         },
@@ -137,7 +141,9 @@ export class StatsTask extends ScheduledTask {
     const reactionsRaw = this.sort(stats, 'reactions');
 
     const lastReaction = reactionsRaw.at(-1);
-    const reactions = reactionsRaw.slice(0, 15);
+    const reactions = reactionsRaw
+      .slice(0, 15)
+      .filter((stat) => stat.value !== 0);
 
     if (
       lastReaction.value < 0 ||
@@ -171,7 +177,7 @@ export class StatsTask extends ScheduledTask {
       name: 'новореги',
       value: this.buildTop(
         newRegs,
-        (user, i) => `${i}. <@${user.id}>\n`,
+        (user, i) => `${i}. <@${user.user_id}>\n`,
         'никто не пришел к нам :(',
       ),
       inline: true,
