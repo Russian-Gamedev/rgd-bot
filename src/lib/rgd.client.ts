@@ -10,6 +10,8 @@ import {
 import { join } from 'path';
 import { createClient } from 'redis';
 
+import { setupLogFile } from './sapphire';
+
 import MikroOrmConfig from '#base/mikro-orm.config';
 import { IS_DEV } from '#config/constants';
 
@@ -68,7 +70,17 @@ export class RgdClient<
           transformers: [],
         },
       },
+      sentry: {
+        loadSentryErrorListeners: true,
+        options: {
+          enabled: true,
+        },
+      },
     });
+
+    ///
+
+    setupLogFile();
   }
   override async login(token?: string): Promise<string> {
     const orm = await MikroORM.init<PostgreSqlDriver>(MikroOrmConfig);

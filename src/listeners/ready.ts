@@ -1,5 +1,11 @@
 import { ApplyOptions } from '@sapphire/decorators';
-import { Events, Listener, Piece, Store } from '@sapphire/framework';
+import {
+  Events,
+  Listener,
+  Piece,
+  SapphireClient,
+  Store,
+} from '@sapphire/framework';
 
 import { GuildService } from '#base/services/guild.service';
 import { InviteService } from '#base/services/invite.service';
@@ -9,6 +15,7 @@ export class Ready extends Listener {
   async run() {
     this.printStores();
     this.printApiInfo();
+    this.printPlugins();
 
     this.container.logger.info(
       '-> Bot successfully started! Listening to commands...',
@@ -70,6 +77,18 @@ export class Ready extends Listener {
       );
     }
   }
+
+  private printPlugins() {
+    const plugins = SapphireClient.plugins.registry;
+
+    let i = 0;
+    this.container.logger.info('Plugins list...');
+    for (const plugin of plugins) {
+      const line = ++i === plugins.size ? '└─' : '├─';
+      this.container.logger.info(`${line} ${plugin.name}`);
+    }
+  }
+
   private styleStore(store: Store<Piece>, last: boolean) {
     return `${last ? '└─' : '├─'} Loaded ${store.size
       .toString()

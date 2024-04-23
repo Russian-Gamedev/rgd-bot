@@ -1,3 +1,4 @@
+import { SentryOptions } from '@kaname-png/plugin-sentry';
 import { MikroORM } from '@mikro-orm/postgresql';
 import { RedisClientType } from 'redis';
 
@@ -13,5 +14,11 @@ declare module '@sapphire/pieces' {
 
   export interface StoreRegistryEntries {
     shop: RgdShopStore;
+  }
+}
+
+declare module '@sapphire.js' {
+  export interface SapphireClient {
+    sentry?: SentryOptions;
   }
 }
