@@ -70,7 +70,7 @@ export class RenameCommand extends Command {
       nickname,
     );
 
-    await message.reply({ content: text });
+    await message.reply({ content: text, allowedMentions: { parse: [] } });
   }
 
   public override async chatInputRun(
