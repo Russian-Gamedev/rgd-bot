@@ -13,6 +13,7 @@ export enum GuildSettings {
   EventsMessage = 'events_message',
   StatsMessage = 'stats_message',
   SystemChannel = 'system_channel',
+  RoleActive = 'role_active',
 }
 
 export enum BotEvents {
@@ -21,4 +22,5 @@ export enum BotEvents {
   MEMBER_LEAVE = 'member_leave',
   MEMBER_BAN = 'member_ban',
   MEMBER_KICK = 'member_kick',
+  MEMBER_SET_NAME = 'member_set_name',
 }

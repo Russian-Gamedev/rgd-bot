@@ -14,6 +14,7 @@ import { formatTime, getTimeInfo, pickRandom } from '#lib/utils';
 @ApplyOptions<ScheduledTask.Options>({
   pattern: '0 15 * * *',
   name: 'post-stats-task',
+  timezone: 'Europe/Moscow',
 })
 export class StatsTask extends ScheduledTask {
   get statsService() {
@@ -70,8 +71,8 @@ export class StatsTask extends ScheduledTask {
       const channel = (await guild.channels.fetch(channel_id)) as TextChannel;
 
       const newRegs = await this.statsService.getNewRegs(guild.id, period);
-      newRegs.length = 15;
-      const embed = this.buildEmbed(stats, newRegs);
+
+      const embed = this.buildEmbed(stats, newRegs.slice(0, 15));
 
       const title = {
         [StatsPeriod.Day]: 'Ежедневная статистика',
@@ -107,6 +108,8 @@ export class StatsTask extends ScheduledTask {
     await this.statsService.database.nativeDelete(StatsEntity, {
       period,
     });
+
+    await this.statsService.database.flush();
   }
 
   private buildEmbed(stats: StatsEntity[], newRegs: UserEntity[]) {
