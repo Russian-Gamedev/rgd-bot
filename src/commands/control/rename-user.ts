@@ -61,7 +61,8 @@ export class RenameCommand extends Command {
 
     const nickname = message.content
       .replace('!rn ', '')
-      .replaceAll(/<@(.*?)>/g, '');
+      .replaceAll(/<@(.*?)>/g, '')
+      .trim();
 
     const { text } = await this.renameUser(
       message.guild,
