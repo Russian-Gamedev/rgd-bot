@@ -1,10 +1,9 @@
-import { Entity, Index, PrimaryKey, Property } from '@mikro-orm/core';
+import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
 
 import { BotEvents } from '#config/constants';
 import { BaseEntity } from '#lib/orm/BaseEntity';
 
 @Entity({ tableName: 'bot_events' })
-@Index({ properties: ['guild_id', 'type'] })
 export class BotEventsEntity extends BaseEntity {
   @PrimaryKey()
   id: number;

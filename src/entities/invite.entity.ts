@@ -1,9 +1,8 @@
-import { Entity, Index, PrimaryKey, Property } from '@mikro-orm/core';
+import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
 
 import { BaseEntity } from '#lib/orm/BaseEntity';
 
 @Entity({ tableName: 'guild_invites' })
-@Index({ properties: ['guild_id'] })
 export class InviteEntity extends BaseEntity {
   @PrimaryKey()
   id: string;
