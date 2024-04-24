@@ -1,8 +1,9 @@
-import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
+import { Entity, Index, PrimaryKey, Property } from '@mikro-orm/core';
 
 import { BaseEntity } from '#base/lib/orm/BaseEntity';
 
 @Entity({ tableName: 'role_reactions' })
+@Index({ properties: ['guild_id', 'role_id'] })
 export class RoleReactionEntity extends BaseEntity {
   @PrimaryKey()
   id: number;

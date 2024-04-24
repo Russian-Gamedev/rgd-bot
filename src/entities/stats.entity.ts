@@ -1,4 +1,4 @@
-import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
+import { Entity, Index, PrimaryKey, Property } from '@mikro-orm/core';
 
 import { BaseEntity } from '#lib/orm/BaseEntity';
 
@@ -9,6 +9,7 @@ export const enum StatsPeriod {
 }
 
 @Entity({ tableName: 'stats' })
+@Index({ properties: ['guild_id', 'user_id'] })
 export class StatsEntity extends BaseEntity {
   @PrimaryKey()
   id: number;

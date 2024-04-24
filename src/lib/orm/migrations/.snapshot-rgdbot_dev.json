@@ -89,6 +89,17 @@
       "schema": "public",
       "indexes": [
         {
+          "keyName": "bot_events_guild_id_type_index",
+          "columnNames": [
+            "guild_id",
+            "type"
+          ],
+          "composite": true,
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
           "keyName": "bot_events_pkey",
           "columnNames": [
             "id"
@@ -238,6 +249,17 @@
       "schema": "public",
       "indexes": [
         {
+          "keyName": "guild_settings_guild_id_key_index",
+          "columnNames": [
+            "guild_id",
+            "key"
+          ],
+          "composite": true,
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
           "keyName": "guild_settings_pkey",
           "columnNames": [
             "id"
@@ -328,6 +350,16 @@
       "schema": "public",
       "indexes": [
         {
+          "keyName": "guild_invites_guild_id_index",
+          "columnNames": [
+            "guild_id"
+          ],
+          "composite": false,
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
           "keyName": "guild_invites_pkey",
           "columnNames": [
             "id"
@@ -406,6 +438,17 @@
       "name": "emoji_weight",
       "schema": "public",
       "indexes": [
+        {
+          "keyName": "emoji_weight_guild_id_emoji_index",
+          "columnNames": [
+            "guild_id",
+            "emoji"
+          ],
+          "composite": true,
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
         {
           "keyName": "emoji_weight_pkey",
           "columnNames": [
@@ -504,6 +547,17 @@
       "schema": "public",
       "indexes": [
         {
+          "keyName": "guild_roles_guild_id_role_id_index",
+          "columnNames": [
+            "guild_id",
+            "role_id"
+          ],
+          "composite": true,
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
           "keyName": "guild_roles_pkey",
           "columnNames": [
             "id"
@@ -600,6 +654,17 @@
       "name": "role_reactions",
       "schema": "public",
       "indexes": [
+        {
+          "keyName": "role_reactions_guild_id_role_id_index",
+          "columnNames": [
+            "guild_id",
+            "role_id"
+          ],
+          "composite": true,
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
         {
           "keyName": "role_reactions_pkey",
           "columnNames": [
@@ -709,6 +774,17 @@
       "name": "stats",
       "schema": "public",
       "indexes": [
+        {
+          "keyName": "stats_guild_id_user_id_index",
+          "columnNames": [
+            "guild_id",
+            "user_id"
+          ],
+          "composite": true,
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
         {
           "keyName": "stats_pkey",
           "columnNames": [
@@ -929,6 +1005,17 @@
       "schema": "public",
       "indexes": [
         {
+          "keyName": "users_guild_id_user_id_index",
+          "columnNames": [
+            "guild_id",
+            "user_id"
+          ],
+          "composite": true,
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
+        {
           "keyName": "users_pkey",
           "columnNames": [
             "id"
@@ -1007,6 +1094,17 @@
       "name": "user_roles",
       "schema": "public",
       "indexes": [
+        {
+          "keyName": "user_roles_guild_id_user_id_index",
+          "columnNames": [
+            "guild_id",
+            "user_id"
+          ],
+          "composite": true,
+          "constraint": false,
+          "primary": false,
+          "unique": false
+        },
         {
           "keyName": "user_roles_pkey",
           "columnNames": [

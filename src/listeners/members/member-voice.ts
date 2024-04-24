@@ -51,28 +51,26 @@ export class MemberVoice extends Listener<typeof Events.VoiceStateUpdate> {
 
     const key = 'guild:' + guild.id;
     const hasTime = await this.redis.hGet(key, member.id);
+    if (!hasTime) return;
 
-    if (newState.channel) {
-      if (hasTime) {
-        if (newState.selfDeaf) {
-          await this.saveTime(member);
-        }
-        return;
-      }
-      await this.redis.hSet(key, member.id, Date.now());
-    } else {
-      /// left voice
-      if (!hasTime) return;
+    if (!newState.channel) {
+      /// left
       await this.saveTime(member);
+      return;
     }
+
+    if (newState.selfDeaf) {
+      await this.saveTime(member);
+      return;
+    }
+
+    await this.redis.hSet(key, member.id, Date.now());
   }
 
   private async saveTime(member: GuildMember) {
     const key = 'guild:' + member.guild.id;
     const enteredTime = await this.redis.hGet(key, member.id).then(Number);
-    const elapsedTime = Math.floor(
-      Math.min(Date.now() - enteredTime, Time.Minute * 10) / 1_000,
-    );
+    const elapsedTime = Math.floor((Date.now() - enteredTime) / 1_000);
 
     const user = await UserService.Instance.get(member.guild.id, member.id);
     user.voice_time += elapsedTime ?? 0;
