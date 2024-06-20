@@ -135,6 +135,12 @@ export class RenameCommand extends Command {
 
       await UserService.Instance.database.persistAndFlush(user);
     }
+    if (target.id === target.guild.ownerId) {
+      return {
+        error: true,
+        text: `Нету власти для переименования создателя`,
+      };
+    }
 
     const message = await BotEventsService.Instance.getRandom(
       guild.id,
