@@ -1,6 +1,6 @@
-import './config';
-
 import { RgdClient } from '#lib/rgd.client';
+
+import './config';
 
 async function bootstrap() {
   const client = new RgdClient();

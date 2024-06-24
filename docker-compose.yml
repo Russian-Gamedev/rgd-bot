@@ -7,6 +7,6 @@ services:
     container_name: 'rgd-bot'
     image: rgd-bot:latest
     env_file:
-      - .production.env
+      - .env.production
     restart: always
     network_mode: host

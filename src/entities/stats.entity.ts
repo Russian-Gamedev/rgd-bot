@@ -20,13 +20,13 @@ export class StatsEntity extends BaseEntity {
   user_id: string;
 
   @Property()
-  voice: number = 0;
+  voice = 0;
 
   @Property()
-  chat: number = 0;
+  chat = 0;
 
   @Property()
-  reactions: number = 0;
+  reactions = 0;
 
   @Property()
   period: StatsPeriod;

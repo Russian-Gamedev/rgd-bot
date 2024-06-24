@@ -2,9 +2,9 @@ import { Migrator } from '@mikro-orm/migrations';
 import { defineConfig } from '@mikro-orm/postgresql';
 import { resolve } from 'path';
 
-import './config';
-
 import { IS_DEV } from '#config/constants';
+
+import './config';
 
 const migrationsPath = './src/lib/orm/migrations';
 

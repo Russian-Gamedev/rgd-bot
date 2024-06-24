@@ -42,7 +42,7 @@ export class MemberLeave extends Listener<typeof Events.GuildMemberRemove> {
     const channel = await this.settingsService.getSystemChannel(
       member.guild.id,
     );
-    channel.send(message);
+    await channel.send(message);
 
     this.container.logger.info(member.displayName, 'leave server');
   }

@@ -65,7 +65,7 @@ export class MemberJoin extends Listener<typeof Events.GuildMemberAdd> {
     const channel = await this.settingsService.getSystemChannel(
       member.guild.id,
     );
-    channel.send(message);
+    await channel.send(message);
 
     await this.userService.database.persistAndFlush(user);
   }

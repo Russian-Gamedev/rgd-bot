@@ -18,7 +18,7 @@ export class MemberUpdate extends Listener<typeof Events.GuildMemberUpdate> {
   }
 
   async processUserInfo(oldMember: GuildMember, newMember: GuildMember) {
-    const watch_field: Array<keyof User> = [
+    const watch_field: (keyof User)[] = [
       'username',
       'avatar',
       'banner',

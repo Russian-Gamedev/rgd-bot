@@ -10,10 +10,10 @@ import {
 import { join } from 'path';
 import { createClient } from 'redis';
 
-import { setupLogFile } from './sapphire';
-
 import MikroOrmConfig from '#base/mikro-orm.config';
 import { IS_DEV } from '#config/constants';
+
+import { setupLogFile } from './sapphire';
 
 export class RgdClient<
   Ready extends boolean = boolean,

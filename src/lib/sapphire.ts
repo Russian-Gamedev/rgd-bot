@@ -43,9 +43,19 @@ export function replyJson(
     ephemeral: true,
   });
 }
+declare module '@sapphire/framework' {
+  interface Formatter {
+    run: (value: string) => string;
+  }
+
+  interface ILogger {
+    formats: Map<LogLevel, Formatter>;
+    preprocess: (message: unknown[]) => string;
+  }
+}
 
 export function setupLogFile() {
-  const write = container.logger.write;
+  const write = container.logger.write.bind(container.logger);
   const log_file = fs.createWriteStream('./debug.log', {
     flags: 'w',
   });
@@ -54,17 +64,17 @@ export function setupLogFile() {
     const [level, ...message] = args;
 
     const formatter =
-      container.logger['formats'].get(level) ??
-      container.logger['formats'].get(LogLevel.None);
+      container.logger.formats.get(level) ??
+      container.logger.formats.get(LogLevel.None);
 
     const output = formatter
-      .run(container.logger['preprocess'](message))
+      .run(container.logger.preprocess(message))
       .replace(
         /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g,
         '',
       );
 
     log_file.write(output + '\n');
-    write.call(container.logger, ...args);
+    write(...args);
   };
 }

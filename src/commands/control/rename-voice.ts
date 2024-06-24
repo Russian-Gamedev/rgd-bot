@@ -81,7 +81,7 @@ export class RenameVoiceCommand extends Command {
       }
 
       try {
-        await voiceChannel.setName(newName, `${channel}`);
+        await voiceChannel.setName(newName, `${channel.name}`);
       } catch (e) {
         this.container.logger.error(e);
 
