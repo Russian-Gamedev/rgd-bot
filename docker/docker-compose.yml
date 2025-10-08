@@ -4,7 +4,7 @@ services:
   app:
     build:
       context: ../
-      dockerfile: ./Dockerfile
+      dockerfile: ./docker/Dockerfile
       target: production
     container_name: "${COMPOSE_PROJECT_NAME}_app"
     restart: unless-stopped
