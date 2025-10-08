@@ -9,6 +9,7 @@ import {
   PartialMessageReaction,
   PartialUser,
   User,
+  VoiceBasedChannel,
 } from 'discord.js';
 import { Redis } from 'ioredis';
 import { Context, type ContextOf, On, Once } from 'necord';
@@ -33,6 +34,28 @@ export class ActivityWatchService {
     this.logger.log(`Ready`);
 
     await this.saveAllVoiceActivities();
+
+    const guilds = this.discord.guilds.cache.values();
+    for (const guild of guilds) {
+      const channels = await guild.channels.fetch();
+      const voiceChannels = channels.filter((ch) => ch?.isVoiceBased());
+
+      for (const channel of voiceChannels.values()) {
+        const members = (channel as VoiceBasedChannel).members;
+        if (members.size === 0) continue;
+        const key = `activity:voice:${guild.id}`;
+        const now = Date.now();
+        for (const member of members.values()) {
+          if (member.user.bot) continue;
+          const enteredAt = await this.redis.hget(key, member.id);
+          if (enteredAt) continue;
+          await this.redis.hset(key, member.id, now);
+          this.logger.log(
+            `Member ${member.user.username} is in voice channel ${channel?.name} on startup`,
+          );
+        }
+      }
+    }
   }
 
   @On('messageCreate')
@@ -195,10 +218,6 @@ export class ActivityWatchService {
     );
 
     activity.voice += elapsed ?? 0;
-
-    this.logger.log(
-      `Adding ${elapsed} seconds of voice activity for member ${member.user.username}`,
-    );
 
     await this.em.persistAndFlush(activity);
 
