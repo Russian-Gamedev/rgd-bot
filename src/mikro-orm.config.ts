@@ -1,9 +1,11 @@
 import { Migrator } from '@mikro-orm/migrations';
 import { defineConfig, PostgreSqlDriver } from '@mikro-orm/postgresql';
+import path from 'path';
 
 import { Environment } from '#config/env';
 
-const migrationPath = './src/migrations';
+const migrationPath = path.join(__dirname, './migrations');
+console.log(migrationPath);
 
 export default defineConfig({
   clientUrl: process.env.POSTGRES_URL,
