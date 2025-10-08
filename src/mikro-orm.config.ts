@@ -3,7 +3,7 @@ import { defineConfig, PostgreSqlDriver } from '@mikro-orm/postgresql';
 
 import { Environment } from '#config/env';
 
-const migrationPath = './migrations';
+const migrationPath = './src/migrations';
 
 export default defineConfig({
   clientUrl: process.env.POSTGRES_URL,

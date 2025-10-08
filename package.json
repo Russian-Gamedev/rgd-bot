@@ -16,7 +16,10 @@
   "homepage": "https://github.com/Russian-Gamedev/rgd-bot#readme",
   "scripts": {
     "start:dev": "bunx --bun nest start --env-file .env.development --watch",
-    "compose:dev": "docker compose -f ./docker/docker-compose.dev.yml up"
+    "build": "bunx --bun nest build",
+    "compose:dev": "docker compose -f ./docker/docker-compose.dev.yml up",
+    "compose:prod": "docker compose -f ./docker/docker-compose.yml up",
+    "migration:up": "bunx --bun mikro-orm migration:up"
   },
   "lint-staged": {
     "*.ts": [
@@ -32,6 +35,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.37.0",
+    "@mikro-orm/cli": "^6.5.7",
+    "@nestjs/cli": "^11.0.10",
     "@types/bun": "^1.2.23",
     "@types/express": "^5.0.3",
     "eslint-config-prettier": "^10.1.8",

@@ -1,0 +1,59 @@
+name: rgd_chat
+
+services:
+  app:
+    build:
+      context: ../
+      dockerfile: Docker/Dockerfile
+      target: production
+    container_name: "${COMPOSE_PROJECT_NAME}_app"
+    restart: unless-stopped
+    env_file:
+      - ../.env.production
+    ports:
+      - 1984":3000"
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app_network
+  database:
+    image: postgres:18-alpine
+    container_name: "${COMPOSE_PROJECT_NAME}_database"
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    env_file:
+      - ../.env.production
+    ports:
+      - ":5432"
+    volumes:
+      - $PWD/docker/postgresql:/var/lib/postgresql/18/docker
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+  redis:
+    image: "redis:alpine"
+    container_name: "${COMPOSE_PROJECT_NAME}_redis"
+    command: "redis-server --appendonly yes"
+    restart: unless-stopped
+    ports:
+      - ":6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+networks:
+  app_network:
