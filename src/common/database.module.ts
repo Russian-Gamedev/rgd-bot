@@ -19,7 +19,7 @@ export class DatabaseModule {
       await this.orm.schema.updateSchema();
     } else {
       const migrationNeeded = await this.orm.migrator.checkMigrationNeeded();
-
+      this.logger.log(`Migration needed: ${migrationNeeded}`);
       if (!migrationNeeded) return;
 
       const pendingMigrations = await this.orm.migrator.getPendingMigrations();
