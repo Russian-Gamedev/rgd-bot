@@ -1,0 +1,24 @@
+name: rgd.chat
+
+services:
+  database:
+    image: postgres:18-alpine
+    container_name: "${COMPOSE_PROJECT_NAME}_database"
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    env_file:
+      - ../.env.development
+    ports:
+      - "5432:5432"
+    volumes:
+      - $PWD/docker/postgresql:/var/lib/postgresql/18/docker
+  redis:
+    image: "redis:alpine"
+    container_name: "${COMPOSE_PROJECT_NAME}_redis"
+    command: "redis-server --appendonly yes"
+    restart: unless-stopped
+    ports:
+      - "6379:6379"

@@ -35,11 +35,12 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 
-*.env
-*.sqlite
+.env.*
+!.env.example
 
-/build
+dist
 
-.local-storage.json
+docker/postgresql
+
 # Sentry Config File
 .sentryclirc
