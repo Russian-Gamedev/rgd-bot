@@ -1,9 +1,10 @@
+import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 import { Injectable, Logger } from '@nestjs/common';
 import { Client, Guild } from 'discord.js';
-import { GuildEntity } from './entities/guild.entity';
-import { InjectRepository } from '@mikro-orm/nestjs';
 import { Once } from 'necord';
+
+import { GuildEntity } from './entities/guild.entity';
 import { RoleEntity } from './entities/role.entity';
 
 @Injectable()
@@ -44,7 +45,7 @@ export class GuildService {
       }
       existing.name = guild.name;
       existing.owner_id = BigInt(guildData.ownerId);
-      existing.icon_url = guild.iconURL() || undefined;
+      existing.icon_url = guild.iconURL() ?? undefined;
       await this.guildRepository.upsert(existing);
 
       await this.syncRoles(guildData);
@@ -60,7 +61,7 @@ export class GuildService {
     /// delete if not exists
     for (const roleEntity of roleEntities) {
       if (!roles.has(roleEntity.role_id.toString())) {
-        this.roleRepository.nativeDelete({ id: roleEntity.id });
+        void this.roleRepository.nativeDelete({ id: roleEntity.id });
       }
     }
 
@@ -79,7 +80,7 @@ export class GuildService {
       roleEntity.name = role.name;
       roleEntity.color = role.hexColor;
       roleEntity.position = role.position;
-      this.roleRepository.upsert(roleEntity);
+      void this.roleRepository.upsert(roleEntity);
     }
 
     await this.entityManager.flush();

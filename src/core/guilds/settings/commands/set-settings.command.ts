@@ -1,10 +1,13 @@
-import { GuildSettings } from '#core/guilds/entities/guild-settings.entity';
 import { Injectable, UseInterceptors } from '@nestjs/common';
 import { MessageFlags } from 'discord.js';
-import { Context, type SlashCommandContext, Options, Subcommand } from 'necord';
+import { Context, Options, type SlashCommandContext, Subcommand } from 'necord';
+
+import { GuildSettings } from '#core/guilds/entities/guild-settings.entity';
+
 import { SetSettingDto } from '../dto/set-setting.dto';
-import { SettingsAutoCompleteInterceptor } from '../SettingsAutoComplete.interceptor';
 import { GuildSettingsService } from '../guild-settings.service';
+import { SettingsAutoCompleteInterceptor } from '../SettingsAutoComplete.interceptor';
+
 import { SettingsCommandDecorator } from './group.decorator';
 
 @SettingsCommandDecorator()
@@ -24,7 +27,7 @@ export class SetGuildSettingsCommand {
     const { key, value } = dto;
 
     const validSettingKey = Object.values(GuildSettings).some(
-      (setting) => setting === key,
+      (setting) => setting === (key as GuildSettings),
     );
     if (!validSettingKey) {
       return await interaction.reply({

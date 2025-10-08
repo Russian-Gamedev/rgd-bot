@@ -1,6 +1,7 @@
 import { EntityRepository } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { Injectable } from '@nestjs/common';
+
 import { GuildSettingsEntity } from '../entities/guild-settings.entity';
 
 @Injectable()
@@ -8,7 +9,7 @@ export class GuildSettingsService {
   constructor(
     @InjectRepository(GuildSettingsEntity)
     private readonly guildSettingsRepository: EntityRepository<
-      GuildSettingsEntity<any>
+      GuildSettingsEntity<unknown>
     >,
   ) {}
 
