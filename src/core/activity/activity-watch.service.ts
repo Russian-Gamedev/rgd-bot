@@ -70,6 +70,8 @@ export class ActivityWatchService {
     const key = `activity:voice:${newState.guild.id}`;
     const member = newState.member!;
 
+    const recordTime = () => this.redis.hset(key, member.id, Date.now());
+
     if (!newState.channel) {
       /// left
       await this.saveVoiceActivity(member);
@@ -80,6 +82,7 @@ export class ActivityWatchService {
     if (oldState.channelId !== newState.channelId) {
       // switched
       await this.saveVoiceActivity(member);
+      await recordTime();
       this.logger.log(`Member ${member.user.username} switched voice channel`);
       return;
     }
@@ -91,13 +94,13 @@ export class ActivityWatchService {
     }
 
     if (oldState.selfDeaf && !newState.selfDeaf) {
-      await this.redis.hset(key, member.id, Date.now());
+      await recordTime();
       this.logger.log(`Member ${member.user.username} undeafened themself`);
       return;
     }
 
     this.logger.log(`Member ${member.user.username} joined voice channel`);
-    await this.redis.hset(key, member.id, Date.now());
+    await recordTime();
   }
 
   @On('messageReactionAdd')
@@ -181,8 +184,9 @@ export class ActivityWatchService {
   private async saveVoiceActivity(member: GuildMember) {
     const key = `activity:voice:${member.guild.id}`;
     const enteredAt = await this.redis.hget(key, member.id).then(Number);
+    const now = Date.now();
     if (!enteredAt) return;
-    const elapsed = Math.floor((Date.now() - enteredAt) / 1_000);
+    const elapsed = Math.floor((now - enteredAt) / 1_000);
 
     const activity = await this.getOrCreateActivity(
       BigInt(member.guild.id),
@@ -215,6 +219,9 @@ export class ActivityWatchService {
         const member = await guild.members.fetch(memberId);
         if (!member) continue;
         await this.saveVoiceActivity(member);
+        if (member.voice.channel) {
+          await this.redis.hset(key, member.id, Date.now());
+        }
       }
     }
   }
