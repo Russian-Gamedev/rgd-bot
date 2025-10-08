@@ -3,7 +3,7 @@ name: Deploy bot
 on:
   push:
     branches:
-      - main
+      - dev
 
 jobs:
   lint:
