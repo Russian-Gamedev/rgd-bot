@@ -11,7 +11,7 @@ services:
     env_file:
       - ../.env.production
     ports:
-      - 1984":3000"
+      - "1984:3000"
     depends_on:
       database:
         condition: service_healthy
