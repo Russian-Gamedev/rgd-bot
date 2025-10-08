@@ -105,7 +105,7 @@
             "guild_id"
           ],
           "composite": false,
-          "keyName": "activity_guild_user_period_idx",
+          "keyName": "activities_guild_id_index",
           "constraint": false,
           "primary": false,
           "unique": false
@@ -115,7 +115,7 @@
             "user_id"
           ],
           "composite": false,
-          "keyName": "activity_guild_user_period_idx",
+          "keyName": "activities_user_id_index",
           "constraint": false,
           "primary": false,
           "unique": false
@@ -125,7 +125,7 @@
             "period"
           ],
           "composite": false,
-          "keyName": "activity_guild_user_period_idx",
+          "keyName": "activities_period_index",
           "constraint": false,
           "primary": false,
           "unique": false

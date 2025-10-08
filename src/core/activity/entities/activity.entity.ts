@@ -13,13 +13,13 @@ export class ActivityEntity extends BaseEntity {
   @PrimaryKey({ type: 'uuid', defaultRaw: 'uuidv7()' })
   id: string;
 
-  @Property({ type: 'bigint', index: 'activity_guild_user_period_idx' })
+  @Property({ type: 'bigint', index: true })
   guild_id: bigint;
 
-  @Property({ type: 'bigint', index: 'activity_guild_user_period_idx' })
+  @Property({ type: 'bigint', index: true })
   user_id: bigint;
 
-  @Property({ type: 'varchar', index: 'activity_guild_user_period_idx' })
+  @Property({ type: 'varchar', index: true })
   period: ActivityPeriod;
 
   @Property({ type: 'integer', defaultRaw: '0' })

@@ -1,12 +1,12 @@
 import { Migration } from '@mikro-orm/migrations';
 
-export class Migration20251008112208 extends Migration {
+export class Migration20251008124356 extends Migration {
 
   override async up(): Promise<void> {
     this.addSql(`create table "activities" ("id" uuid not null default uuidv7(), "created_at" timestamptz not null default now(), "updated_at" timestamptz not null default now(), "guild_id" bigint not null, "user_id" bigint not null, "period" varchar(255) not null, "message" int not null default 0, "voice" int not null default 0, "reactions" int not null default 0, constraint "activities_pkey" primary key ("id"));`);
-    this.addSql(`create index "activity_guild_user_period_idx" on "activities" ("guild_id");`);
-    this.addSql(`create index "activity_guild_user_period_idx" on "activities" ("user_id");`);
-    this.addSql(`create index "activity_guild_user_period_idx" on "activities" ("period");`);
+    this.addSql(`create index "activities_guild_id_index" on "activities" ("guild_id");`);
+    this.addSql(`create index "activities_user_id_index" on "activities" ("user_id");`);
+    this.addSql(`create index "activities_period_index" on "activities" ("period");`);
 
     this.addSql(`create table "guilds" ("id" bigserial primary key, "created_at" timestamptz not null default now(), "updated_at" timestamptz not null default now(), "name" varchar(255) not null, "owner_id" bigint not null, "icon_url" varchar(255) null);`);
 
