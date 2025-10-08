@@ -2,14 +2,11 @@ name: rgd_chat
 
 services:
   app:
-    build:
-      context: ../
-      dockerfile: ./docker/Dockerfile
-      target: production
+    image: rgd-bot:latest
     container_name: "${COMPOSE_PROJECT_NAME}_app"
     restart: unless-stopped
     env_file:
-      - ../.env.production
+      - .env.production
     ports:
       - "1984:3000"
     depends_on:
