@@ -14,6 +14,7 @@ export class DatabaseModule {
   constructor(private readonly orm: MikroORM) {}
 
   async onModuleInit(): Promise<void> {
+    this.logger.log('Environment: ' + process.env.NODE_ENV);
     if (process.env.NODE_ENV === Environment.Development) {
       await this.orm.schema.updateSchema();
     } else {
