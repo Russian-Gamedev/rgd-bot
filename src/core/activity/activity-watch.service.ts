@@ -14,6 +14,8 @@ import {
 import { Redis } from 'ioredis';
 import { Context, type ContextOf, On, Once } from 'necord';
 
+import { UserService } from '#core/users/users.service';
+
 import { ActivityEntity, ActivityPeriod } from './entities/activity.entity';
 
 @Injectable()
@@ -27,6 +29,7 @@ export class ActivityWatchService {
     private readonly discord: Client,
     @Inject(Redis)
     private readonly redis: Redis,
+    private readonly userService: UserService,
   ) {}
 
   @Once('clientReady')
@@ -79,6 +82,13 @@ export class ActivityWatchService {
     );
 
     activity.message += words.length;
+
+    const user = await this.userService.findOrCreate(
+      BigInt(message.guildId!),
+      BigInt(message.author.id),
+    );
+
+    await this.userService.addExperience(user, words.length);
 
     await this.em.persistAndFlush(activity);
   }
@@ -209,7 +219,7 @@ export class ActivityWatchService {
     const enteredAt = await this.redis.hget(key, member.id).then(Number);
     const now = Date.now();
     if (!enteredAt) return;
-    const elapsed = Math.floor((now - enteredAt) / 1_000);
+    const elapsed = Math.floor((now - enteredAt) / 1_000) ?? 0;
 
     const activity = await this.getOrCreateActivity(
       BigInt(member.guild.id),
@@ -217,7 +227,14 @@ export class ActivityWatchService {
       ActivityPeriod.Day,
     );
 
-    activity.voice += elapsed ?? 0;
+    activity.voice += elapsed;
+
+    const user = await this.userService.findOrCreate(
+      BigInt(member.guild.id),
+      BigInt(member.id),
+    );
+
+    await this.userService.addVoiceTime(user, elapsed);
 
     await this.em.persistAndFlush(activity);
 

@@ -77,7 +77,31 @@ export class ActivityJobService {
       }
     }
 
+    await this.giveAwayDailyCoins();
+
     await this.moveToNextPeriod(ActivityPeriod.Day);
+  }
+
+  private async giveAwayDailyCoins() {
+    const guilds = this.discord.guilds.cache.values();
+
+    for (const guild of guilds) {
+      const activities = await this.activityRepository.find({
+        guild_id: BigInt(guild.id),
+        period: ActivityPeriod.Day,
+      });
+
+      for (const activity of activities) {
+        const coinsPerMinute = Math.floor(activity.voice / 60);
+        const coins = activity.message + coinsPerMinute;
+        if (coins === 0) continue;
+        const user = await this.userService.findOrCreate(
+          BigInt(guild.id),
+          activity.user_id,
+        );
+        await this.userService.addCoins(user, coins);
+      }
+    }
   }
 
   private async postActivitySummary(guild: Guild, period: ActivityPeriod) {
@@ -118,7 +142,8 @@ export class ActivityJobService {
     if (period === ActivityPeriod.Month) days = 30;
     date.setTime(date.getTime() - days * 1_000 * 60 * 60 * 24);
 
-    const newRegs = await this.userService.getNewUsers(date);
+    const guildId = activities[0]?.guild_id;
+    const newRegs = await this.userService.getNewUsers(date, guildId);
 
     const embed = new EmbedBuilder();
 
