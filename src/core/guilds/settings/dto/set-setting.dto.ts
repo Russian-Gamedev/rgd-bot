@@ -1,11 +1,16 @@
 import { StringOption } from 'necord';
 
+import { GuildSettings } from '#config/guilds';
+
 export class SetSettingDto<T> {
   @StringOption({
     name: 'key',
     description: 'The setting key to set',
     required: true,
-    autocomplete: true,
+    choices: Object.values(GuildSettings).map((value) => ({
+      name: value,
+      value,
+    })),
   })
   key: string;
 

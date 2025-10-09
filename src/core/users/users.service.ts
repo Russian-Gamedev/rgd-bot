@@ -6,17 +6,26 @@ import { Client } from 'discord.js';
 import { getDisplayAvatar } from '#root/lib/utils';
 
 import { UserEntity } from './entities/user.entity';
+import { UserRoleEntity } from './entities/user-roles.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: EntityRepository<UserEntity>,
+    @InjectRepository(UserRoleEntity)
+    private readonly userRoleRepository: EntityRepository<UserRoleEntity>,
     private readonly em: EntityManager,
     private readonly client: Client,
   ) {}
 
-  async findOrCreate(guildId: bigint, userId: bigint): Promise<UserEntity> {
+  async findOrCreate(
+    guildId: bigint | number | string,
+    userId: bigint | number | string,
+  ): Promise<UserEntity> {
+    guildId = BigInt(guildId);
+    userId = BigInt(userId);
+
     let user = await this.userRepository.findOne({
       id: userId,
       guild_id: guildId,
@@ -68,5 +77,54 @@ export class UserService {
   async addVoiceTime(user: UserEntity, amount: number): Promise<void> {
     user.voice_time += amount;
     await this.em.persistAndFlush(user);
+  }
+
+  async leaveGuild(user: UserEntity): Promise<void> {
+    user.left_at = new Date();
+    user.is_left_guild = true;
+    user.left_count += 1;
+    await this.em.persistAndFlush(user);
+  }
+
+  async rejoinGuild(user: UserEntity): Promise<void> {
+    user.left_at = null;
+    user.is_left_guild = false;
+    await this.em.persistAndFlush(user);
+  }
+
+  async saveRoles(user: UserEntity) {
+    const guild = await this.client.guilds.fetch(user.guild_id.toString());
+    if (!guild) return;
+    const discordUser = await guild.members.fetch(user.id.toString());
+    if (!discordUser) return;
+
+    const discordRoles = discordUser.roles.cache;
+
+    const savedRoles = await this.userRoleRepository.find({
+      user_id: user.id,
+      guild_id: user.guild_id,
+    });
+
+    for (const role of savedRoles) {
+      if (!discordRoles.has(role.role_id.toString())) {
+        this.em.remove(role);
+      }
+    }
+
+    for (const role of discordRoles.values()) {
+      if (role.name === '@everyone') continue;
+      if (role.tags) continue; /// Skip bot roles
+
+      const existing = savedRoles.find((r) => r.role_id === BigInt(role.id));
+      if (existing) continue;
+
+      const newRole = new UserRoleEntity();
+      newRole.user_id = user.id;
+      newRole.guild_id = user.guild_id;
+      newRole.role_id = BigInt(role.id);
+      this.em.persist(newRole);
+    }
+
+    await this.em.flush();
   }
 }

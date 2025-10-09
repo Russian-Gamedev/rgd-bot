@@ -10,14 +10,18 @@ import {
   type TextCommandContext,
 } from 'necord';
 
-import { GuildSettings } from '#config/guild-settings';
+import { GuildEvents, GuildSettings } from '#config/guilds';
+import { GuildEventService } from '#core/guilds/events/guild-events.service';
 import { GuildSettingsService } from '#core/guilds/settings/guild-settings.service';
 
 import { RenameUserDto } from '../dto/rename.dto';
 
 @Injectable()
 export class RenameCommands {
-  constructor(private readonly guildSettingsService: GuildSettingsService) {}
+  constructor(
+    private readonly guildSettingsService: GuildSettingsService,
+    private readonly guildEventService: GuildEventService,
+  ) {}
 
   @SlashCommand({
     name: 'rn',
@@ -105,9 +109,6 @@ export class RenameCommands {
       };
     }
 
-    const previous_nickname =
-      target_member.nickname ?? target_member.user.username;
-
     if (target_member.id === guild.client.user.id) {
       /// TODO rename bot by coins
     }
@@ -119,10 +120,24 @@ export class RenameCommands {
       };
     }
 
+    const previous_nickname =
+      target_member.nickname ?? target_member.user.username;
+
+    let message = await this.guildEventService.getRandom(
+      BigInt(guild.id),
+      GuildEvents.MEMBER_SET_NAME,
+      {
+        user: `**${previous_nickname}**`,
+        nickname: `**${new_nickname}**`,
+      },
+    );
+
+    message ??= `Пользователь ${previous_nickname} теперь ${new_nickname}`;
+
     try {
       await target_member.setNickname(
         new_nickname,
-        `Renamed by ${executor_member.user.username}`,
+        `${message}. By ${executor_member.user.username}`,
       );
     } catch (error) {
       return {
@@ -133,7 +148,7 @@ export class RenameCommands {
 
     return {
       error: false,
-      message: `Пользователь <@${target_member.id}> был переименован с **${previous_nickname}** на **${new_nickname}**`,
+      message,
     };
   }
 }
