@@ -23,9 +23,9 @@ export class GuildEventService {
     /// Получаем список, которые меньше максимального в таблице ИЛИ все равны
 
     const queryMax =
-      '("events"."triggered_count" < (SELECT MAX("triggered_count") FROM "guild_events" WHERE "type" = ? AND "guild_id" = ? ))';
+      '("events"."triggered_count" < (SELECT MAX("triggered_count") FROM "guild_events" WHERE "event" = ? AND "guild_id" = ? ))';
     const queryDistinct =
-      '(SELECT COUNT(DISTINCT triggered_count) FROM guild_events WHERE "type" = ? AND "guild_id" = ?) = 1';
+      '(SELECT COUNT(DISTINCT triggered_count) FROM guild_events WHERE "event" = ? AND "guild_id" = ?) = 1';
 
     const events = await this.guildEventRepository
       .createQueryBuilder('events')
