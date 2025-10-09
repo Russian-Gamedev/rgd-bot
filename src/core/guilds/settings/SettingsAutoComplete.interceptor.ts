@@ -1,7 +1,7 @@
 import { AutocompleteInteraction } from 'discord.js';
 import { AutocompleteInterceptor } from 'necord';
 
-import { GuildSettings } from '../entities/guild-settings.entity';
+import { GuildSettings } from '#config/guild-settings';
 
 export class SettingsAutoCompleteInterceptor extends AutocompleteInterceptor {
   override async transformOptions(interaction: AutocompleteInteraction) {

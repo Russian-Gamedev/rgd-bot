@@ -2,7 +2,7 @@ import { Injectable, UseInterceptors } from '@nestjs/common';
 import { MessageFlags } from 'discord.js';
 import { Context, Options, type SlashCommandContext, Subcommand } from 'necord';
 
-import { GuildSettings } from '#core/guilds/entities/guild-settings.entity';
+import { GuildSettings } from '#config/guild-settings';
 
 import { SetSettingDto } from '../dto/set-setting.dto';
 import { GuildSettingsService } from '../guild-settings.service';

@@ -11,7 +11,7 @@ import {
 import { Context, SlashCommand, type SlashCommandContext } from 'necord';
 
 import { Colors } from '#config/constants';
-import { GuildSettings } from '#core/guilds/entities/guild-settings.entity';
+import { GuildSettings } from '#config/guild-settings';
 import { GuildSettingsService } from '#core/guilds/settings/guild-settings.service';
 import { UserService } from '#core/users/users.service';
 import { formatTime, pickRandom } from '#root/lib/utils';
