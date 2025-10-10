@@ -18,7 +18,7 @@ export class GuildEventService {
   async getRandom(
     guild_id: bigint | number | string,
     event: GuildEvents,
-    params: Record<string, string>,
+    params: Record<string, string> = {},
   ) {
     /// Получаем список, которые меньше максимального в таблице ИЛИ все равны
 
@@ -40,6 +40,7 @@ export class GuildEventService {
       .orderBy({ triggered_count: 'ASC' })
       .execute();
 
+    if (!events.length) return null;
     const template = this.guildEventRepository.map(pickRandom(events));
     if (!template) return null;
 
