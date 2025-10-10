@@ -530,12 +530,12 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "bigserial",
+          "type": "serial",
           "unsigned": false,
           "autoincrement": true,
           "primary": true,
           "nullable": false,
-          "mappedType": "bigint"
+          "mappedType": "integer"
         },
         "created_at": {
           "name": "created_at",
@@ -558,6 +558,15 @@
           "length": 6,
           "default": "now()",
           "mappedType": "datetime"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "bigint",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "bigint"
         },
         "guild_id": {
           "name": "guild_id",
