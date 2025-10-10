@@ -27,12 +27,12 @@ export class UserService {
     userId = BigInt(userId);
 
     let user = await this.userRepository.findOne({
-      id: userId,
+      user_id: userId,
       guild_id: guildId,
     });
     if (!user) {
       user = new UserEntity();
-      user.id = userId;
+      user.user_id = userId;
       user.guild_id = guildId;
       await this.updateUserData(user);
     }
@@ -49,7 +49,7 @@ export class UserService {
   async updateUserData(user: UserEntity): Promise<void> {
     const guild = await this.client.guilds.fetch(user.guild_id.toString());
     if (!guild) return;
-    const discordUser = await guild.members.fetch(user.id.toString());
+    const discordUser = await guild.members.fetch(user.user_id.toString());
     if (!discordUser) return;
     user.username = discordUser.displayName;
     user.avatar = getDisplayAvatar(discordUser);
@@ -95,13 +95,13 @@ export class UserService {
   async saveRoles(user: UserEntity) {
     const guild = await this.client.guilds.fetch(user.guild_id.toString());
     if (!guild) return;
-    const discordUser = await guild.members.fetch(user.id.toString());
+    const discordUser = await guild.members.fetch(user.user_id.toString());
     if (!discordUser) return;
 
     const discordRoles = discordUser.roles.cache;
 
     const savedRoles = await this.userRoleRepository.find({
-      user_id: user.id,
+      user_id: user.user_id,
       guild_id: user.guild_id,
     });
 
@@ -119,7 +119,7 @@ export class UserService {
       if (existing) continue;
 
       const newRole = new UserRoleEntity();
-      newRole.user_id = user.id;
+      newRole.user_id = user.user_id;
       newRole.guild_id = user.guild_id;
       newRole.role_id = BigInt(role.id);
       this.em.persist(newRole);

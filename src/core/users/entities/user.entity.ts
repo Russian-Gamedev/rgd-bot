@@ -4,8 +4,11 @@ import { BaseEntity } from '#common/entities/base.entity';
 
 @Entity({ tableName: 'users' })
 export class UserEntity extends BaseEntity {
-  @PrimaryKey({ type: 'bigint' })
-  id: bigint;
+  @PrimaryKey()
+  id: number;
+
+  @Property({ type: 'bigint' })
+  user_id: bigint;
 
   @Property({ type: 'bigint', index: true })
   guild_id: bigint;
