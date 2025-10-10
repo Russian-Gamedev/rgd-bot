@@ -51,7 +51,7 @@ export class UserService {
     if (!guild) return;
     const discordUser = await guild.members.fetch(user.user_id.toString());
     if (!discordUser) return;
-    user.username = discordUser.displayName;
+    user.username = discordUser.user.username;
     user.avatar = getDisplayAvatar(discordUser);
     user.banner = discordUser.bannerURL() ?? null;
     user.banner_color = discordUser.displayHexColor ?? '#fff';
