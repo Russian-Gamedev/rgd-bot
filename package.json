@@ -57,6 +57,7 @@
     "@nestjs/core": "^11.1.6",
     "@nestjs/platform-express": "^11.1.6",
     "@nestjs/schedule": "^6.0.1",
+    "@nestjs/swagger": "^11.2.0",
     "ajv": "^8.17.1",
     "class-transform": "^0.7.1",
     "class-transformer": "^0.5.1",
