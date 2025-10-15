@@ -234,7 +234,7 @@ export class ActivityJobService {
 
     const topNewRegs = buildTop(
       newRegs,
-      (item, rank) => `${rank}. <@${item.id}>\n`,
+      (item, rank) => `${rank}. <@${item.user_id}>\n`,
       'никто не пришел к нам :(',
     );
 

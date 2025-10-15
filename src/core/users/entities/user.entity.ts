@@ -13,7 +13,7 @@ export class UserEntity extends BaseEntity {
   @Property({ type: 'bigint', index: true })
   guild_id: bigint;
 
-  @Property({ type: 'text', unique: true })
+  @Property({ type: 'text' })
   username: string;
 
   @Property({ type: 'text' })

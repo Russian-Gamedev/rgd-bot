@@ -5,7 +5,6 @@ import path from 'path';
 import { Environment } from '#config/env';
 
 const migrationPath = path.join(__dirname, './migrations');
-console.log(migrationPath);
 
 export default defineConfig({
   clientUrl: process.env.POSTGRES_URL,

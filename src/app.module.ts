@@ -5,6 +5,7 @@ import { AppConfigModule } from '#common/config/config.module';
 import { DatabaseModule } from '#common/database.module';
 import { RedisModule } from '#common/redis.module';
 import { ActivityModule } from '#core/activity/activity.module';
+import { BotsModule } from '#core/bots/bots.module';
 import { DiscordModule } from '#core/discord/discord.module';
 import { GuildModule } from '#core/guilds/guild.module';
 import { UserModule } from '#core/users/users.module';
@@ -21,6 +22,7 @@ import { AppController } from './app.controller';
     UserModule,
     GuildModule,
     ActivityModule,
+    BotsModule,
   ],
   controllers: [AppController],
 })
