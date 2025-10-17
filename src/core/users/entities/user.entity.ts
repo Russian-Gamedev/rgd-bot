@@ -1,8 +1,10 @@
-import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
+import { Entity, Index, PrimaryKey, Property, Unique } from '@mikro-orm/core';
 
 import { BaseEntity } from '#common/entities/base.entity';
 
 @Entity({ tableName: 'users' })
+@Unique({ properties: ['user_id', 'guild_id'] })
+@Index({ properties: ['user_id', 'guild_id'] })
 export class UserEntity extends BaseEntity {
   @PrimaryKey()
   id: number;
@@ -10,7 +12,7 @@ export class UserEntity extends BaseEntity {
   @Property({ type: 'bigint' })
   user_id: bigint;
 
-  @Property({ type: 'bigint', index: true })
+  @Property({ type: 'bigint' })
   guild_id: bigint;
 
   @Property({ type: 'text' })
@@ -55,6 +57,9 @@ export class UserEntity extends BaseEntity {
   @Property({ type: 'integer', default: 0 })
   experience: number;
 
-  @Property({ type: 'integer', default: 0 })
+  @Property({ type: 'bigint', default: 0 })
   voice_time: number;
+
+  @Property({ default: null })
+  invitedBy: string | null;
 }

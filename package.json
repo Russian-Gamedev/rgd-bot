@@ -57,7 +57,7 @@
     "@nestjs/core": "^11.1.6",
     "@nestjs/platform-express": "^11.1.6",
     "@nestjs/schedule": "^6.0.1",
-    "@nestjs/swagger": "^11.2.0",
+    "@nestjs/swagger": "^11.2.1",
     "ajv": "^8.17.1",
     "class-transform": "^0.7.1",
     "class-transformer": "^0.5.1",
@@ -65,6 +65,11 @@
     "discord.js": "^14.23.2",
     "ioredis": "^5.8.1",
     "necord": "^6.11.1",
-    "reflect-metadata": "^0.2.2"
-  }
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "trustedDependencies": [
+    "@nestjs/core",
+    "necord"
+  ]
 }
