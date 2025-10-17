@@ -4,7 +4,7 @@ WORKDIR /app
 
 FROM base AS builder
 
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 
 RUN bun install
 
