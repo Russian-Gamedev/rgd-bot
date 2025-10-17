@@ -21,5 +21,6 @@ export default defineConfig({
     disableForeignKeys: true,
     allOrNothing: true,
     emit: 'ts',
+    snapshotName: 'snapshot',
   },
 });

@@ -1,11 +1,11 @@
 import { Migration } from '@mikro-orm/migrations';
 
-export class Migration20251017101047 extends Migration {
+export class Migration20251017102658 extends Migration {
 
   override async up(): Promise<void> {
     this.addSql(`drop index "users_guild_id_index";`);
 
-    this.addSql(`alter table "users" add column "invited_by" varchar(255) not null;`);
+    this.addSql(`alter table "users" add column "invited_by" varchar(255) null;`);
     this.addSql(`alter table "users" alter column "voice_time" type bigint using ("voice_time"::bigint);`);
     this.addSql(`create index "users_user_id_guild_id_index" on "users" ("user_id", "guild_id");`);
     this.addSql(`alter table "users" add constraint "users_user_id_guild_id_unique" unique ("user_id", "guild_id");`);
