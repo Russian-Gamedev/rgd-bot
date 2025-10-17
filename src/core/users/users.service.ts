@@ -46,7 +46,7 @@ export class UserService {
 
   async getNewUsers(since: Date, guildId: DiscordID): Promise<UserEntity[]> {
     return this.userRepository.find({
-      createdAt: { $gte: since },
+      first_joined_at: { $gte: since },
       guild_id: guildId,
     });
   }
