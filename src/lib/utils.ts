@@ -47,11 +47,16 @@ export function messageLinkRaw(
 }
 
 export function getTimeInfo(t: number) {
+  const days = Math.floor(t / 86400);
+  t -= days * 86400;
   const hours = Math.floor(t / 3600);
-  const minutes = Math.floor((t - hours * 3600) / 60);
-  const seconds = Math.floor(t - (hours * 3600 + minutes * 60));
+  t -= hours * 3600;
+  const minutes = Math.floor(t / 60);
+  t -= minutes * 60;
+  const seconds = t;
 
   return {
+    days,
     hours,
     minutes,
     seconds,
@@ -64,8 +69,18 @@ export function getTimeInfo(t: number) {
 
 export function formatTime(t: number) {
   const time = getTimeInfo(t);
-  if (time.hours > 0) {
-    return `${time.hours} ч ${time.minutes.toString().padStart(2, '0')} мин`;
+  let result = '';
+  if (time.days > 0) {
+    result += `${time.days} д `;
   }
-  return `${time.minutes} мин ${time.seconds.toString().padStart(2, '0')} сек`;
+  if (time.hours > 0) {
+    result += `${time.hours} ч `;
+  }
+  if (time.minutes > 0) {
+    result += `${time.minutes} мин `;
+  }
+  if (time.seconds > 0 || result === '') {
+    result += `${time.seconds} сек`;
+  }
+  return result.trim();
 }

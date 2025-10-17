@@ -3,6 +3,7 @@ import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 import { Injectable } from '@nestjs/common';
 import { Client } from 'discord.js';
 
+import { DiscordID } from '#root/lib/types';
 import { getDisplayAvatar } from '#root/lib/utils';
 
 import { UserEntity } from './entities/user.entity';
@@ -20,8 +21,8 @@ export class UserService {
   ) {}
 
   async findOrCreate(
-    guildId: bigint | number | string,
-    userId: bigint | number | string,
+    guildId: DiscordID,
+    userId: DiscordID,
   ): Promise<UserEntity> {
     guildId = BigInt(guildId);
     userId = BigInt(userId);
@@ -39,7 +40,11 @@ export class UserService {
     return user;
   }
 
-  async getNewUsers(since: Date, guildId: bigint): Promise<UserEntity[]> {
+  async getUserFromGuilds(user_id: DiscordID) {
+    return this.userRepository.find({ user_id });
+  }
+
+  async getNewUsers(since: Date, guildId: DiscordID): Promise<UserEntity[]> {
     return this.userRepository.find({
       createdAt: { $gte: since },
       guild_id: guildId,

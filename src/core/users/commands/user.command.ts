@@ -9,8 +9,13 @@ import {
   type SlashCommandContext,
 } from 'necord';
 
-import { getDisplayAvatar, getRelativeFormat } from '#root/lib/utils';
+import {
+  formatTime,
+  getDisplayAvatar,
+  getRelativeFormat,
+} from '#root/lib/utils';
 
+import { UserEntity } from '../entities/user.entity';
 import { UserService } from '../users.service';
 
 class GetUserDto {
@@ -40,9 +45,21 @@ export class UserCommands {
     const targetId = BigInt(member?.id ?? interaction.user.id);
     const target = await guild.members.fetch(targetId.toString());
     if (!target) return;
-    const user = await this.userService.findOrCreate(guildId, targetId);
+    const guildUser = await this.userService.findOrCreate(guildId, targetId);
+    const allUser = await this.userService.getUserFromGuilds(targetId);
+    if (!allUser) return;
 
     const embed = new EmbedBuilder();
+
+    const getTotal = (key: keyof UserEntity) =>
+      allUser.reduce((acc, user) => acc + (user[key] as number), 0);
+
+    const getMin = (key: keyof UserEntity) =>
+      allUser.reduce(
+        (min, user) =>
+          (user[key] as number) < min ? (user[key] as number) : min,
+        Infinity,
+      );
 
     embed.setColor(target.displayColor);
     embed.setThumbnail(getDisplayAvatar(target.user));
@@ -60,27 +77,40 @@ export class UserCommands {
         inline: true,
       },
       {
-        name: 'Первый вход',
-        value: getRelativeFormat(user.first_joined_at.getTime()),
+        name: 'Первый вход / на ргд',
+        value: getRelativeFormat(getMin('first_joined_at')),
+        inline: true,
+      },
+      {
+        name: 'Первый вход / на этом сервере',
+        value: getRelativeFormat(guildUser.first_joined_at.getTime()),
         inline: true,
       },
       {
         name: 'Уровень уважения',
-        value: user.reputation.toLocaleString('ru'),
+        value: getTotal('reputation').toLocaleString('ru'),
         inline: true,
       },
-      { name: 'Баланс', value: user.coins.toLocaleString('ru'), inline: true },
+      {
+        name: 'Баланс',
+        value: getTotal('coins').toLocaleString('ru'),
+        inline: true,
+      },
       {
         name: 'Понаписал',
-        value: user.experience.toLocaleString('ru'),
+        value: getTotal('experience').toLocaleString('ru'),
         inline: true,
       },
       {
         name: 'Наговорил',
-        value: user.voice_time.toLocaleString('ru'),
+        value: formatTime(getTotal('voice_time')),
         inline: true,
       },
-      { name: 'Ливал раз', value: `${user.left_count}`, inline: true },
+      {
+        name: 'Ливал раз',
+        value: `${getTotal('left_count')}`,
+        inline: true,
+      },
     ]);
 
     return interaction.reply({ embeds: [embed] });

@@ -1,6 +1,6 @@
-import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { NestFactory, Reflector } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as path from 'path';
 
@@ -22,12 +22,10 @@ async function main() {
   const app = await NestFactory.create(AppModule);
 
   const config = app.get(ConfigService<EnvironmentVariables>);
-  const reflector = app.get(Reflector);
 
   app.enableShutdownHooks();
   app.enableCors();
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(reflector));
 
   const PackageJSON = await Bun.file('./package.json').json();
 

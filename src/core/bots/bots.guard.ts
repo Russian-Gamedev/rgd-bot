@@ -1,6 +1,7 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   SetMetadata,
 } from '@nestjs/common';
@@ -31,7 +32,7 @@ export class BotApiGuard implements CanActivate {
 
     const bot = await this.botsService.verifyToken(token);
 
-    if (!bot) throw new Error('Invalid bot token');
+    if (!bot) throw new ForbiddenException('Invalid bot token');
     request.bot = bot;
 
     const requiredScopes = this.reflector.get<BotScope[]>(
