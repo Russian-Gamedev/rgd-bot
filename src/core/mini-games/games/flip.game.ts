@@ -71,6 +71,8 @@ export class FlipGame {
       });
     }
 
+    const oldBalance = user.coins;
+
     this.flipping.add(interaction.user.id);
 
     const description = `**ПОДБРАСЫВАЕМ...**\n__Ставка:__ ${coins} ${EmojiCoin.Top}\n__Баланс:__ ${user.coins} ${EmojiCoin.Bottom}`;
@@ -97,13 +99,14 @@ export class FlipGame {
     this.flipping.delete(interaction.user.id);
 
     embed.setDescription(
-      `**${isWin ? 'ПОБЕДА' : 'ПОСАСАКА'}**\n_Ставка:_ ${coins} ${EmojiCoin.Top}\n_Баланс:_ ${user.coins} ${EmojiCoin.Bottom}`,
+      `**${isWin ? 'ПОБЕДА' : 'ПОСАСАКА'}**\n__Ставка:__ ${coins} ${EmojiCoin.Top}\n__Баланс:__ ~~${oldBalance}~~ -> ${user.coins} ${EmojiCoin.Bottom}`,
     );
     embed.setThumbnail(
       isWin
         ? `https://cdn.discordapp.com/emojis/${EmojiCoinId.Bottom}.webp?size=64&animated=true`
         : `https://cdn.discordapp.com/emojis/${EmojiCoinId.Top}.webp?size=64&animated=true`,
     );
+    embed.setColor(isWin ? '#5fdb00' : '#ff2f00');
 
     await interaction.editReply({ embeds: [embed] });
   }
