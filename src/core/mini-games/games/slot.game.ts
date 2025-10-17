@@ -8,6 +8,7 @@ import {
   StringOption,
 } from 'necord';
 
+import { EmojiCoin } from '#config/emojies';
 import { UserService } from '#core/users/users.service';
 import { DiscordID } from '#root/lib/types';
 
@@ -83,6 +84,7 @@ export class SlotGame {
         ephemeral: true,
       });
     }
+    const oldBalance = user.coins;
 
     const embed = new EmbedBuilder()
       .setTitle('🎰 Слот машина 🎰')
@@ -160,6 +162,8 @@ export class SlotGame {
       user.coins -= coins;
       outputMessage += `К сожалению, вы проиграли.`;
     }
+
+    outputMessage += `\n__Ставка:__ ${coins} ${EmojiCoin.Top}\n__Баланс:__ ~~${oldBalance}~~ -> ${user.coins} ${EmojiCoin.Bottom}`;
 
     embed.setDescription(outputMessage);
     await interaction.editReply({ embeds: [embed] });
