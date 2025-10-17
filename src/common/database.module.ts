@@ -18,11 +18,11 @@ export class DatabaseModule {
     if (process.env.NODE_ENV === Environment.Development) {
       await this.orm.schema.updateSchema();
     } else {
-      const migrationNeeded = await this.orm.migrator.checkMigrationNeeded();
-      this.logger.log(`Migration needed: ${migrationNeeded}`);
-      if (!migrationNeeded) return;
-
       const pendingMigrations = await this.orm.migrator.getPendingMigrations();
+      if (pendingMigrations.length === 0) {
+        this.logger.log('No pending migrations');
+        return;
+      }
       this.logger.log(`Pending migrations: `);
       this.logger.log(
         pendingMigrations.map((migration) => migration.name).join('\n'),
