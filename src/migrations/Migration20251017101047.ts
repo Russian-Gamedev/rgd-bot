@@ -1,6 +1,6 @@
 import { Migration } from '@mikro-orm/migrations';
 
-export class Migration20251017100306 extends Migration {
+export class Migration20251017101047 extends Migration {
 
   override async up(): Promise<void> {
     this.addSql(`drop index "users_guild_id_index";`);
