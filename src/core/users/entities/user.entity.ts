@@ -60,6 +60,6 @@ export class UserEntity extends BaseEntity {
   @Property({ type: 'bigint', default: 0 })
   voice_time: number;
 
-  @Property({ default: null })
+  @Property({ default: null, nullable: true })
   invitedBy: string | null;
 }
