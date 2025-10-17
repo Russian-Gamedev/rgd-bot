@@ -62,4 +62,21 @@ export class UserEntity extends BaseEntity {
 
   @Property({ default: null, nullable: true })
   invitedBy: string | null;
+
+  @Property({ type: 'timestamptz', defaultRaw: 'now()' })
+  lastActiveAt: Date;
+
+  @Property({ type: 'integer', default: 0 })
+  activeStreak: number;
+
+  @Property({
+    type: 'integer',
+    default: 0,
+    onUpdate(entity: UserEntity) {
+      if (entity.activeStreak > entity.maxActiveStreak) {
+        entity.maxActiveStreak = entity.activeStreak;
+      }
+    },
+  })
+  maxActiveStreak: number;
 }

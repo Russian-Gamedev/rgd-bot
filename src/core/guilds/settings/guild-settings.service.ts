@@ -71,4 +71,20 @@ export class GuildSettingsService {
     if (!channel?.isSendable()) return null;
     return channel as SendableChannels;
   }
+  async getActiveRole(guildId: DiscordID) {
+    const roleId = await this.getSetting<string>(
+      guildId,
+      GuildSettings.ActiveRoleId,
+      null,
+    );
+    if (!roleId) return null;
+    const guild = await this.discord.guilds
+      .fetch(String(guildId))
+      .catch(() => null);
+    if (!guild) return null;
+
+    const role = await guild.roles.fetch(roleId).catch(() => null);
+    if (!role) return null;
+    return role;
+  }
 }

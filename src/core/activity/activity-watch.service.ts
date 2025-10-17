@@ -89,6 +89,7 @@ export class ActivityWatchService {
     );
 
     await this.userService.addExperience(user, words.length);
+    await this.userService.updateLastActiveAt(user);
 
     await this.em.persistAndFlush(activity);
   }
@@ -235,6 +236,7 @@ export class ActivityWatchService {
     );
 
     await this.userService.addVoiceTime(user, elapsed);
+    await this.userService.updateLastActiveAt(user);
 
     await this.em.persistAndFlush(activity);
 

@@ -13,6 +13,7 @@ import { Context, SlashCommand, type SlashCommandContext } from 'necord';
 import { Colors } from '#config/constants';
 import { GuildSettings } from '#config/guilds';
 import { GuildSettingsService } from '#core/guilds/settings/guild-settings.service';
+import { UserEntity } from '#core/users/entities/user.entity';
 import { UserService } from '#core/users/users.service';
 import { formatTime, pickRandom } from '#root/lib/utils';
 
@@ -78,6 +79,7 @@ export class ActivityJobService {
     }
 
     await this.giveAwayDailyCoins();
+    await this.calculateDailyActivity();
 
     await this.moveToNextPeriod(ActivityPeriod.Day);
   }
@@ -100,6 +102,88 @@ export class ActivityJobService {
           activity.user_id,
         );
         await this.userService.addCoins(user, coins);
+      }
+    }
+  }
+
+  private async calculateDailyActivity() {
+    const guilds = this.discord.guilds.cache.values();
+
+    for (const guild of guilds) {
+      const activeRole = await this.guildSettings.getActiveRole(guild.id);
+      const enabledAutoRole = await this.guildSettings.getSetting<boolean>(
+        BigInt(guild.id),
+        GuildSettings.ActiveAutoGiveRole,
+      );
+      const activeRoleThreshold = await this.guildSettings.getSetting<number>(
+        BigInt(guild.id),
+        GuildSettings.ActiveAutoGiveRoleThreshold,
+        7,
+      );
+      const activeRemoveThreshold = await this.guildSettings.getSetting<number>(
+        BigInt(guild.id),
+        GuildSettings.ActiveAutoRemoveRoleThreshold,
+        30,
+      );
+
+      const activities = await this.activityRepository.find({
+        guild_id: BigInt(guild.id),
+        period: ActivityPeriod.Day,
+      });
+
+      const activeUsers: bigint[] = [];
+
+      for (const activity of activities) {
+        const MESSAGE_THRESHOLD = 25;
+        const VOICE_THRESHOLD = 60 * 30; // in seconds
+        if (
+          activity.message > MESSAGE_THRESHOLD ||
+          activity.voice > VOICE_THRESHOLD
+        ) {
+          activeUsers.push(activity.user_id);
+        }
+      }
+
+      if (!enabledAutoRole) continue;
+      if (!activeRole) continue;
+
+      /// reset streaks for inactive users
+      await this.em.nativeUpdate(
+        UserEntity,
+        {
+          id: { $nin: activeUsers as unknown as number[] },
+          guild_id: BigInt(guild.id),
+        },
+        {
+          activeStreak: 0,
+        },
+      );
+      // increase streaks for active users
+      for (const userId of activeUsers) {
+        const user = await this.userService.findOrCreate(guild.id, userId);
+        await this.userService.increaseActiveStreak(user);
+
+        if (user.activeStreak >= activeRoleThreshold!) {
+          this.logger.log(
+            `User ${user.user_id} in guild ${guild.id} has an active streak of ${user.activeStreak} days!`,
+          );
+
+          await this.userService.giveRoleToUser(user, activeRole.id);
+        }
+      }
+
+      for (const member of activeRole?.members ?? []) {
+        const userId = BigInt(member[0]);
+        const user = await this.userService.findOrCreate(guild.id, userId);
+        if (
+          Date.now() - user.lastActiveAt?.getTime() >
+          activeRemoveThreshold! * 24 * 60 * 60 * 1000
+        ) {
+          this.logger.log(
+            `Removing active role from user ${user.user_id} in guild ${guild.id} due to inactivity`,
+          );
+          await this.userService.removeRoleFromUser(user, activeRole.id);
+        }
       }
     }
   }
@@ -144,6 +228,7 @@ export class ActivityJobService {
 
     const guildId = activities[0]?.guild_id;
     const newRegs = await this.userService.getNewUsers(date, guildId);
+    const usersStreak = await this.userService.getTopStreakUsers(guildId, 15);
 
     const embed = new EmbedBuilder();
 
@@ -233,12 +318,19 @@ export class ActivityJobService {
     );
 
     const topNewRegs = buildTop(
-      newRegs,
+      newRegs.slice(0, 15),
       (item, rank) => `${rank}. <@${item.user_id}>\n`,
       'никто не пришел к нам :(',
     );
 
     const totalActives = activities.length.toLocaleString('ru-RU');
+
+    const topStreaks = buildTop(
+      usersStreak,
+      (item, rank) =>
+        buildLine(item.user_id, `${item.activeStreak} дней`, rank),
+      'никто не держит активную серию :(',
+    );
 
     embed.addFields(
       { name: 'Стата по войсу', value: topVoice, inline: true },
@@ -246,6 +338,7 @@ export class ActivityJobService {
       { name: '\u200b', value: '\u200b' },
       { name: 'Подсчёт неплохих цифр', value: topReactions, inline: true },
       { name: 'Новореги', value: topNewRegs, inline: true },
+      { name: 'Активные пользователи', value: topStreaks, inline: true },
       { name: 'Писало в чате', value: totalActives, inline: false },
     );
 

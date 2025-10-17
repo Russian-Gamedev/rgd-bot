@@ -132,4 +132,55 @@ export class UserService {
 
     await this.em.flush();
   }
+
+  async updateLastActiveAt(user: UserEntity): Promise<void> {
+    user.lastActiveAt = new Date();
+    await this.em.persistAndFlush(user);
+  }
+
+  async increaseActiveStreak(user: UserEntity): Promise<void> {
+    user.activeStreak += 1;
+    await this.em.persistAndFlush(user);
+  }
+
+  async giveRoleToUser(user: UserEntity, roleId: DiscordID): Promise<void> {
+    const guild = await this.client.guilds.fetch(user.guild_id.toString());
+    if (!guild) return;
+    const discordUser = await guild.members.fetch(user.user_id.toString());
+    if (!discordUser) return;
+
+    const role = await guild.roles.fetch(roleId.toString());
+    if (!role) return;
+
+    if (!discordUser.roles.cache.has(role.id)) {
+      await discordUser.roles.add(role);
+    }
+  }
+
+  async removeRoleFromUser(user: UserEntity, roleId: DiscordID): Promise<void> {
+    const guild = await this.client.guilds.fetch(user.guild_id.toString());
+    if (!guild) return;
+    const discordUser = await guild.members.fetch(user.user_id.toString());
+    if (!discordUser) return;
+
+    const role = await guild.roles.fetch(roleId.toString());
+    if (!role) return;
+
+    if (discordUser.roles.cache.has(role.id)) {
+      await discordUser.roles.remove(role);
+    }
+  }
+
+  async getTopStreakUsers(
+    guildId: DiscordID,
+    limit: number,
+  ): Promise<UserEntity[]> {
+    return this.userRepository.find(
+      { guild_id: BigInt(guildId) },
+      {
+        orderBy: { activeStreak: 'DESC' },
+        limit,
+      },
+    );
+  }
 }

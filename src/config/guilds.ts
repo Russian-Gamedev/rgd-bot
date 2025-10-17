@@ -2,6 +2,9 @@ export enum GuildSettings {
   AuditLogChannel = 'audit_log_channel',
   EventMessageChannel = 'event_message_channel',
   ActiveRoleId = 'active_role_id',
+  ActiveAutoGiveRole = 'active_auto_role',
+  ActiveAutoGiveRoleThreshold = 'active_auto_role_threshold',
+  ActiveAutoRemoveRoleThreshold = 'active_auto_remove_role_threshold',
 }
 
 export const enum GuildEvents {
