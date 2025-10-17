@@ -18,8 +18,14 @@ export const EmojiNumber: Record<string, string> = {
   '0': '0️⃣',
 };
 
+export const enum EmojiCoinId {
+  Top = '1428759054402191482',
+  Bottom = '1428759056486502496',
+  Animated = '1428758842602426560',
+}
+
 export const enum EmojiCoin {
-  Top = '<:coin:1128595913007435887>',
-  Bottom = '<:coin_flipped:1128595915742117992>',
-  Animated = '<a:coin_flip:1128595911577174086>',
+  Top = `<:coin:${EmojiCoinId.Top}>`,
+  Bottom = `<:coin_flipped:${EmojiCoinId.Bottom}>`,
+  Animated = `<a:coin_flip:${EmojiCoinId.Animated}>`,
 }

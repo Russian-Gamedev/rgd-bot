@@ -8,6 +8,7 @@ import { ActivityModule } from '#core/activity/activity.module';
 import { BotsModule } from '#core/bots/bots.module';
 import { DiscordModule } from '#core/discord/discord.module';
 import { GuildModule } from '#core/guilds/guild.module';
+import { MiniGamesModule } from '#core/mini-games/mini-games.module';
 import { UserModule } from '#core/users/users.module';
 
 import { AppController } from './app.controller';
@@ -23,6 +24,7 @@ import { AppController } from './app.controller';
     GuildModule,
     ActivityModule,
     BotsModule,
+    MiniGamesModule,
   ],
   controllers: [AppController],
 })
