@@ -8,6 +8,7 @@ import {
   StringOption,
 } from 'necord';
 
+import { Colors } from '#config/constants';
 import { EmojiCoin } from '#config/emojies';
 import { UserService } from '#core/users/users.service';
 import { DiscordID } from '#root/lib/types';
@@ -62,6 +63,11 @@ export class SlotGame {
     }
     this.spinning.add(userId);
 
+    setTimeout(() => {
+      /// safety to prevent stuck state
+      this.spinning.delete(userId);
+    }, 10_000);
+
     const member = await interaction.guild.members.fetch(interaction.user.id);
     if (member.user.bot) return;
 
@@ -88,7 +94,7 @@ export class SlotGame {
 
     const embed = new EmbedBuilder()
       .setTitle('🎰 Слот машина 🎰')
-      .setColor('#0099ff')
+      .setColor(Colors.Primary)
       .setAuthor({
         name: interaction.user.username,
         iconURL: interaction.user.displayAvatarURL(),
