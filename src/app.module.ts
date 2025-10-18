@@ -3,6 +3,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 
 import { AppConfigModule } from '#common/config/config.module';
 import { DatabaseModule } from '#common/database.module';
+import { GitInfoService } from '#common/git-info.service';
 import { RedisModule } from '#common/redis.module';
 import { ActivityModule } from '#core/activity/activity.module';
 import { BotsModule } from '#core/bots/bots.module';
@@ -27,5 +28,7 @@ import { AppController } from './app.controller';
     MiniGamesModule,
   ],
   controllers: [AppController],
+  providers: [GitInfoService],
+  exports: [GitInfoService],
 })
 export class AppModule {}
