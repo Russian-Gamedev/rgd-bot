@@ -56,4 +56,33 @@ export class GuildWatcherService {
 
     await channel.send(message);
   }
+
+  @On('guildMemberRemove')
+  async onMemberLeave(@Context() [member]: ContextOf<'guildMemberRemove'>) {
+    this.logger.log(
+      `Member ${member.displayName} left guild ${member.guild.name}`,
+    );
+    const guild = await member.guild.fetch();
+    if (!guild) return;
+
+    const user = await this.userService.findOrCreate(guild.id, member.id);
+    await this.userService.leaveGuild(user);
+
+    const channel = await this.guildSettingsService.getEventMessageChannel(
+      guild.id,
+    );
+    if (!channel) return;
+
+    let message = await this.guildEventsService.getRandom(
+      guild.id,
+      GuildEvents.MEMBER_LEAVE,
+      {
+        user: `<@${member.id}>`,
+      },
+    );
+
+    message ??= '<@' + member.id + '> покинул сервер.';
+
+    await channel.send(message);
+  }
 }

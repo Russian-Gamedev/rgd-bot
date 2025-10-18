@@ -1,6 +1,7 @@
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 import { Injectable } from '@nestjs/common';
+import { Client } from 'discord.js';
 
 import { GuildEvents } from '#config/guilds';
 import { pickRandom } from '#root/lib/utils';
@@ -13,6 +14,7 @@ export class GuildEventService {
     @InjectRepository(GuildEventEntity)
     private readonly guildEventRepository: EntityRepository<GuildEventEntity>,
     private readonly entityManager: EntityManager,
+    private readonly discord: Client,
   ) {}
 
   async getRandom(
@@ -51,7 +53,7 @@ export class GuildEventService {
     const names = Object.keys(params);
     const values = Object.values(params);
 
-    let message = template.message.replace(/\$\{\w+\}/g, (match, p1) => {
+    let message = template.message.replace(/\$\{(\w+)\}/g, (match, p1) => {
       const index = names.indexOf(p1);
       return index !== -1 ? values[index] : match;
     });
