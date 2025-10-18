@@ -54,6 +54,11 @@ export class GitInfoCommands {
           inline: true,
         },
         {
+          name: '💬 Message',
+          value: `\`${gitInfo.commitMessage}\``,
+          inline: false,
+        },
+        {
           name: '🔗 Repository',
           value: `[Russian-Gamedev/rgd-bot](https://github.com/Russian-Gamedev/rgd-bot)`,
           inline: false,

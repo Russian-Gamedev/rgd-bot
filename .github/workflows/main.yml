@@ -29,10 +29,12 @@ jobs:
         env:
           GIT_BRANCH: ${{ github.ref_name }}
           GIT_COMMIT: ${{ github.sha }}
+          GIT_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           docker build \
           --build-arg GIT_BRANCH="$GIT_BRANCH" \
           --build-arg GIT_COMMIT="$GIT_COMMIT" \
+          --build-arg GIT_COMMIT_MESSAGE="$GIT_COMMIT_MESSAGE" \
           -f docker/Dockerfile \
           -t rgd-bot:latest .
 
