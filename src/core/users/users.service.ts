@@ -48,6 +48,7 @@ export class UserService {
     return this.userRepository.find({
       first_joined_at: { $gte: since },
       guild_id: guildId,
+      is_left_guild: false,
     });
   }
 
@@ -176,7 +177,7 @@ export class UserService {
     limit: number,
   ): Promise<UserEntity[]> {
     return this.userRepository.find(
-      { guild_id: BigInt(guildId) },
+      { guild_id: BigInt(guildId), activeStreak: { $gt: 0 } },
       {
         orderBy: { activeStreak: 'DESC' },
         limit,

@@ -61,13 +61,18 @@ export class ActivityJobService {
     for (const { id } of guilds.values()) {
       const guild = await this.discord.guilds.fetch(id);
 
+      await this.calculateDailyActivity(guild);
+      await this.giveAwayDailyCoins(guild);
+
       await this.postActivitySummary(guild, ActivityPeriod.Day);
+      await this.moveToNextPeriod(guild, ActivityPeriod.Day);
       const today = new Date();
 
       const isSaturday = today.getDay() === 6;
 
       if (isSaturday) {
         await this.postActivitySummary(guild, ActivityPeriod.Week);
+        await this.moveToNextPeriod(guild, ActivityPeriod.Week);
       }
 
       const isLastDayOfMonth =
@@ -75,115 +80,103 @@ export class ActivityJobService {
 
       if (isLastDayOfMonth) {
         await this.postActivitySummary(guild, ActivityPeriod.Month);
+        await this.moveToNextPeriod(guild, ActivityPeriod.Month);
+      }
+    }
+  }
+
+  private async giveAwayDailyCoins(guild: Guild) {
+    const activities = await this.activityRepository.find({
+      guild_id: BigInt(guild.id),
+      period: ActivityPeriod.Day,
+    });
+
+    for (const activity of activities) {
+      const coinsPerMinute = Math.floor(activity.voice / 60);
+      const coins = activity.message + coinsPerMinute;
+      if (coins === 0) continue;
+      const user = await this.userService.findOrCreate(
+        BigInt(guild.id),
+        activity.user_id,
+      );
+      await this.userService.addCoins(user, coins);
+    }
+  }
+
+  private async calculateDailyActivity(guild: Guild) {
+    const activeRole = await this.guildSettings.getActiveRole(guild.id);
+    const enabledAutoRole = await this.guildSettings.getSetting<boolean>(
+      BigInt(guild.id),
+      GuildSettings.ActiveAutoGiveRole,
+    );
+    const activeRoleThreshold = await this.guildSettings.getSetting<number>(
+      BigInt(guild.id),
+      GuildSettings.ActiveAutoGiveRoleThreshold,
+      7,
+    );
+    const activeRemoveThreshold = await this.guildSettings.getSetting<number>(
+      BigInt(guild.id),
+      GuildSettings.ActiveAutoRemoveRoleThreshold,
+      30,
+    );
+
+    const activities = await this.activityRepository.find({
+      guild_id: BigInt(guild.id),
+      period: ActivityPeriod.Day,
+    });
+
+    const activeUsers: bigint[] = [];
+
+    for (const activity of activities) {
+      const MESSAGE_THRESHOLD = 25;
+      const VOICE_THRESHOLD = 60 * 30; // in seconds
+      if (
+        activity.message > MESSAGE_THRESHOLD ||
+        activity.voice > VOICE_THRESHOLD
+      ) {
+        activeUsers.push(activity.user_id);
       }
     }
 
-    await this.giveAwayDailyCoins();
-    await this.calculateDailyActivity();
+    if (!enabledAutoRole) return;
+    if (!activeRole) return;
 
-    await this.moveToNextPeriod(ActivityPeriod.Day);
-  }
-
-  private async giveAwayDailyCoins() {
-    const guilds = this.discord.guilds.cache.values();
-
-    for (const guild of guilds) {
-      const activities = await this.activityRepository.find({
+    /// reset streaks for inactive users
+    await this.em.nativeUpdate(
+      UserEntity,
+      {
+        id: { $nin: activeUsers as unknown as number[] },
         guild_id: BigInt(guild.id),
-        period: ActivityPeriod.Day,
-      });
+      },
+      {
+        activeStreak: 0,
+      },
+    );
+    // increase streaks for active users
+    for (const userId of activeUsers) {
+      const user = await this.userService.findOrCreate(guild.id, userId);
+      await this.userService.increaseActiveStreak(user);
 
-      for (const activity of activities) {
-        const coinsPerMinute = Math.floor(activity.voice / 60);
-        const coins = activity.message + coinsPerMinute;
-        if (coins === 0) continue;
-        const user = await this.userService.findOrCreate(
-          BigInt(guild.id),
-          activity.user_id,
+      if (user.activeStreak >= activeRoleThreshold!) {
+        this.logger.log(
+          `User ${user.user_id} in guild ${guild.id} has an active streak of ${user.activeStreak} days!`,
         );
-        await this.userService.addCoins(user, coins);
+
+        await this.userService.giveRoleToUser(user, activeRole.id);
       }
     }
-  }
 
-  private async calculateDailyActivity() {
-    const guilds = this.discord.guilds.cache.values();
-
-    for (const guild of guilds) {
-      const activeRole = await this.guildSettings.getActiveRole(guild.id);
-      const enabledAutoRole = await this.guildSettings.getSetting<boolean>(
-        BigInt(guild.id),
-        GuildSettings.ActiveAutoGiveRole,
-      );
-      const activeRoleThreshold = await this.guildSettings.getSetting<number>(
-        BigInt(guild.id),
-        GuildSettings.ActiveAutoGiveRoleThreshold,
-        7,
-      );
-      const activeRemoveThreshold = await this.guildSettings.getSetting<number>(
-        BigInt(guild.id),
-        GuildSettings.ActiveAutoRemoveRoleThreshold,
-        30,
-      );
-
-      const activities = await this.activityRepository.find({
-        guild_id: BigInt(guild.id),
-        period: ActivityPeriod.Day,
-      });
-
-      const activeUsers: bigint[] = [];
-
-      for (const activity of activities) {
-        const MESSAGE_THRESHOLD = 25;
-        const VOICE_THRESHOLD = 60 * 30; // in seconds
-        if (
-          activity.message > MESSAGE_THRESHOLD ||
-          activity.voice > VOICE_THRESHOLD
-        ) {
-          activeUsers.push(activity.user_id);
-        }
-      }
-
-      if (!enabledAutoRole) continue;
-      if (!activeRole) continue;
-
-      /// reset streaks for inactive users
-      await this.em.nativeUpdate(
-        UserEntity,
-        {
-          id: { $nin: activeUsers as unknown as number[] },
-          guild_id: BigInt(guild.id),
-        },
-        {
-          activeStreak: 0,
-        },
-      );
-      // increase streaks for active users
-      for (const userId of activeUsers) {
-        const user = await this.userService.findOrCreate(guild.id, userId);
-        await this.userService.increaseActiveStreak(user);
-
-        if (user.activeStreak >= activeRoleThreshold!) {
-          this.logger.log(
-            `User ${user.user_id} in guild ${guild.id} has an active streak of ${user.activeStreak} days!`,
-          );
-
-          await this.userService.giveRoleToUser(user, activeRole.id);
-        }
-      }
-
-      for (const member of activeRole?.members ?? []) {
-        const userId = BigInt(member[0]);
-        const user = await this.userService.findOrCreate(guild.id, userId);
-        if (
-          Date.now() - user.lastActiveAt?.getTime() >
-          activeRemoveThreshold! * 24 * 60 * 60 * 1000
-        ) {
-          this.logger.log(
-            `Removing active role from user ${user.user_id} in guild ${guild.id} due to inactivity`,
-          );
-          await this.userService.removeRoleFromUser(user, activeRole.id);
-        }
+    for (const member of activeRole?.members ?? []) {
+      const userId = BigInt(member[0]);
+      const user = await this.userService.findOrCreate(guild.id, userId);
+      if (
+        Date.now() - user.lastActiveAt?.getTime() >
+        activeRemoveThreshold! * 24 * 60 * 60 * 1000
+      ) {
+        this.logger.log(
+          `Removing active role from user ${user.user_id} in guild ${guild.id} due to inactivity`,
+        );
+        await this.userService.removeRoleFromUser(user, activeRole.id);
       }
     }
   }
@@ -338,6 +331,7 @@ export class ActivityJobService {
       { name: '\u200b', value: '\u200b' },
       { name: 'Подсчёт неплохих цифр', value: topReactions, inline: true },
       { name: 'Новореги', value: topNewRegs, inline: true },
+      { name: '\u200b', value: '\u200b' },
       { name: 'Активные пользователи', value: topStreaks, inline: true },
       { name: 'Писало в чате', value: totalActives, inline: false },
     );
@@ -347,12 +341,15 @@ export class ActivityJobService {
     return embed;
   }
 
-  private async moveToNextPeriod(period: ActivityPeriod) {
+  private async moveToNextPeriod(guild: Guild, period: ActivityPeriod) {
     const nextPeriod = this.getNextPeriod(period);
 
     this.logger.log(`Moving activity from ${period} to ${nextPeriod}`);
 
-    const activities = await this.activityRepository.find({ period });
+    const activities = await this.activityRepository.find({
+      period,
+      guild_id: BigInt(guild.id),
+    });
 
     if (nextPeriod) {
       for (const activity of activities) {
