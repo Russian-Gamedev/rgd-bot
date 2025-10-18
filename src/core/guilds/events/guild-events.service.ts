@@ -51,7 +51,7 @@ export class GuildEventService {
     const names = Object.keys(params);
     const values = Object.values(params);
 
-    let message = template.message.replace(/\$(\w+)/g, (match, p1) => {
+    let message = template.message.replace(/\$\{\w+\}/g, (match, p1) => {
       const index = names.indexOf(p1);
       return index !== -1 ? values[index] : match;
     });
