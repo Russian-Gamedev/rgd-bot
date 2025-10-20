@@ -56,6 +56,11 @@ export class RandomMuteGame {
     );
     if (!muteRoleId) return this.logger.debug('Mute role not found');
 
+    await interaction.reply({
+      content: 'Голосование началось!',
+      flags: MessageFlags.Ephemeral,
+    });
+
     const members = await guild.members.fetch();
     const activeMembers = members.filter((member) =>
       member.roles.cache.has(activeRole.id),
