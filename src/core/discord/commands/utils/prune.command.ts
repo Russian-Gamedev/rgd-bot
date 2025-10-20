@@ -15,6 +15,13 @@ class PruneDto {
     required: true,
   })
   count: number;
+
+  @StringOption({
+    name: 'before',
+    description: 'Message ID to prune before',
+    required: false,
+  })
+  before?: string;
 }
 
 @Injectable()
@@ -37,8 +44,11 @@ export class PruneCommand {
       });
     }
 
+    const before = dto.before;
+
     const messages = await interaction.channel?.messages.fetch({
       limit: count,
+      before,
     });
 
     if (!messages || messages.size === 0) {
@@ -57,7 +67,7 @@ export class PruneCommand {
     }
 
     return interaction.editReply({
-      content: `Successfully pruned ${messages.size} messages.`,
+      content: `Successfully pruned ${messages.size} messages. ${before ? `before message ID: ${before}` : ''}`,
     });
   }
 }
