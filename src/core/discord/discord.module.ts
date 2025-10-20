@@ -24,7 +24,6 @@ import { DiscordService } from './discord.service';
           IntentsBitField.Flags.GuildMessageReactions,
           IntentsBitField.Flags.GuildPresences,
           IntentsBitField.Flags.GuildVoiceStates,
-          IntentsBitField.Flags.GuildModeration,
           IntentsBitField.Flags.GuildInvites,
           IntentsBitField.Flags.MessageContent,
           IntentsBitField.Flags.GuildModeration,
