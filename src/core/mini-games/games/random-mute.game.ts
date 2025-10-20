@@ -21,7 +21,6 @@ export class RandomMuteGame {
   @SlashCommand({
     name: 'call-shiz-vote',
     description: 'Начать особую "игру"',
-    defaultMemberPermissions: ['Administrator'],
   })
   async cronJob(@Context() [interaction]: SlashCommandContext) {
     if (this.isWaitNext) {
@@ -57,7 +56,7 @@ export class RandomMuteGame {
     if (!muteRoleId) return this.logger.debug('Mute role not found');
 
     await interaction.reply({
-      content: 'Голосование началось!',
+      content: `Голосование началось! Проверьте канал <#${eventsChannel.id}>.`,
       flags: MessageFlags.Ephemeral,
     });
 
@@ -110,9 +109,10 @@ export class RandomMuteGame {
     await selectedMember.roles.add(muteRoleId);
     embed.setTitle('КТО СЕГОДНЯ ШИЗ? (УСПЕХ)');
     embed.setDescription(
-      `Большинство решило отправить <@${selectedMember.user.id}> в дурку!`,
+      `Большинство решило отправить <@${selectedMember.user.id}> в дурку! Он проведет там 1 час.`,
     );
     await msg.edit({ embeds: [embed] });
+    await msg.reactions.removeAll();
 
     this.isWaitNext = true;
     this.isVotting = false;
