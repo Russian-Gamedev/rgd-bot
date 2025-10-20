@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { Client } from 'discord.js';
 
 import { DiscordID } from '#root/lib/types';
-import { getDisplayAvatar } from '#root/lib/utils';
+import { getDisplayAvatar, noop } from '#root/lib/utils';
 
 import { UserEntity } from './entities/user.entity';
 import { UserRoleEntity } from './entities/user-roles.entity';
@@ -35,7 +35,7 @@ export class UserService {
       user = new UserEntity();
       user.user_id = userId;
       user.guild_id = guildId;
-      await this.updateUserData(user);
+      await this.updateUserData(user).catch(noop);
     }
     return user;
   }
@@ -55,7 +55,9 @@ export class UserService {
   async updateUserData(user: UserEntity): Promise<void> {
     const guild = await this.client.guilds.fetch(user.guild_id.toString());
     if (!guild) return;
-    const discordUser = await guild.members.fetch(user.user_id.toString());
+    const discordUser = await guild.members
+      .fetch(user.user_id.toString())
+      .catch(() => guild.members.cache.get(user.user_id.toString()));
     if (!discordUser) return;
     user.username = discordUser.user.username;
     user.avatar = getDisplayAvatar(discordUser);

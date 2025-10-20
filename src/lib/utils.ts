@@ -2,6 +2,10 @@ import { BaseImageURLOptions, GuildMember, Message, User } from 'discord.js';
 
 import { DISCORD_CDN } from '#config/constants';
 
+export function noop() {
+  // nothing, as how make game in rgd
+}
+
 export function cast<T>(value: unknown) {
   return value as T;
 }

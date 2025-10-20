@@ -77,7 +77,7 @@ export class GuildWatcherService {
       guild.id,
       GuildEvents.MEMBER_LEAVE,
       {
-        user: `<@${member.id}>`,
+        user: `[<@${member.id}>] **${member.displayName}**`,
       },
     );
 
