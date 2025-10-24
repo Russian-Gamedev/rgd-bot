@@ -1,4 +1,12 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request, Response } from 'express';
@@ -14,6 +22,12 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService<EnvironmentVariables>,
   ) {}
+
+  @Post('/discord/token')
+  async token(@Body() body: { code: string }) {
+    const { code } = body;
+    return this.authService.exchangeCodeForToken(code);
+  }
 
   @Get('/discord')
   @UseGuards(AuthGuard('discord'))
