@@ -366,7 +366,10 @@ export class ActivityJobService {
       }
     }
 
-    await this.activityRepository.nativeDelete({ period });
+    await this.activityRepository.nativeDelete({
+      period,
+      guild_id: BigInt(guild.id),
+    });
   }
 
   private async getOrCreateActivity(
