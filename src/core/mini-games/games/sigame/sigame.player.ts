@@ -159,8 +159,10 @@ export class SIGamePlayer {
 
       const isLoaded = this.packs.has(guildId);
       if (!isLoaded) {
-        const pack = await this.sigameService.parsePack(state.packId);
-        this.packs.set(guildId, pack);
+        const pack = await this.sigameService.getPackById(state.packId);
+        await this.sigameService.downloadPack(pack);
+        const parsed = await this.sigameService.parsePack(state.packId);
+        this.packs.set(guildId, parsed);
       }
 
       await this.askQuestion(guildId);
