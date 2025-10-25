@@ -60,7 +60,7 @@ export class TopCommand {
 
     const formattedUsers = users.map((user) => ({
       user_id: user.user_id,
-      value: formatTime(user.experience),
+      value: user.experience.toLocaleString('ru-RU'),
     }));
 
     const embed = this.buildEmbed('Топ по активности в чате', formattedUsers);
@@ -82,7 +82,7 @@ export class TopCommand {
 
     const formattedUsers = users.map((user) => ({
       user_id: user.user_id,
-      value: formatTime(user.coins),
+      value: user.coins.toLocaleString('ru-RU'),
     }));
 
     const embed = this.buildEmbed('Топ по монетам', formattedUsers);
