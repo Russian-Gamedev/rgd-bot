@@ -227,7 +227,11 @@ export class ActivityJobService {
 
     const guildId = activities[0]?.guild_id;
     const newRegs = await this.userService.getNewUsers(date, guildId);
-    const usersStreak = await this.userService.getTopStreakUsers(guildId, 15);
+    const usersStreak = await this.userService.getTopUsersByField(
+      guildId,
+      'activeStreak',
+      15,
+    );
 
     const embed = new EmbedBuilder();
 

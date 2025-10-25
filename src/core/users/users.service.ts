@@ -174,14 +174,15 @@ export class UserService {
     }
   }
 
-  async getTopStreakUsers(
+  async getTopUsersByField(
     guildId: DiscordID,
+    field: keyof UserEntity,
     limit: number,
   ): Promise<UserEntity[]> {
     return this.userRepository.find(
-      { guild_id: BigInt(guildId), activeStreak: { $gt: 0 } },
+      { guild_id: BigInt(guildId), [field]: { $gt: 0 } },
       {
-        orderBy: { activeStreak: 'DESC' },
+        orderBy: { [field]: 'DESC' },
         limit,
       },
     );
