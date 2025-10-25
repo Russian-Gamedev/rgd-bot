@@ -44,3 +44,4 @@ docker/postgresql
 
 # Sentry Config File
 .sentryclirc
+temp

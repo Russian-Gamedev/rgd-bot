@@ -6,6 +6,7 @@ export enum GuildSettings {
   ActiveAutoGiveRoleThreshold = 'active_auto_role_threshold',
   ActiveAutoRemoveRoleThreshold = 'active_auto_remove_role_threshold',
   ShizRoleId = 'shiz_role_id',
+  SIGameChannelId = 'sigame_channel_id',
 }
 
 export const enum GuildEvents {
