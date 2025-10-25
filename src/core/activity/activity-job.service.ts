@@ -138,8 +138,9 @@ export class ActivityJobService {
       }
     }
 
-    if (!enabledAutoRole) return;
-    if (!activeRole) return;
+    this.logger.log(
+      `Guild ${guild.id} - Active users today: ${activeUsers.length}`,
+    );
 
     /// reset streaks for inactive users
     await this.em.nativeUpdate(
@@ -152,10 +153,14 @@ export class ActivityJobService {
         activeStreak: 0,
       },
     );
+
+    const checkAutoRole = enabledAutoRole && activeRole;
+
     // increase streaks for active users
     for (const userId of activeUsers) {
       const user = await this.userService.findOrCreate(guild.id, userId);
       await this.userService.increaseActiveStreak(user);
+      if (!checkAutoRole) continue;
 
       if (user.activeStreak >= activeRoleThreshold!) {
         this.logger.log(
@@ -169,6 +174,7 @@ export class ActivityJobService {
     for (const member of activeRole?.members ?? []) {
       const userId = BigInt(member[0]);
       const user = await this.userService.findOrCreate(guild.id, userId);
+      if (!checkAutoRole) continue;
       if (
         Date.now() - user.lastActiveAt?.getTime() >
         activeRemoveThreshold! * 24 * 60 * 60 * 1000
