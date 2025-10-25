@@ -43,6 +43,7 @@ interface GameState {
   currentRoundIndex: number;
   currentThemeIndex: number;
   currentQuestionIndex: number;
+  playersScores: Record<string, number>;
 }
 
 @Injectable()
@@ -173,6 +174,7 @@ export class SIGamePlayer {
         currentRoundIndex: 0,
         currentThemeIndex: 0,
         currentQuestionIndex: 0,
+        playersScores: {},
       });
 
       const pack = await this.sigameService.parsePack(packId);
@@ -331,13 +333,10 @@ export class SIGamePlayer {
           {
             color: SIGameColor,
             description: `<@${message.author.id}>, не совсем, но засчитываю!`,
-            footer: { text: `Награда +${reward} монеток` },
+            footer: { text: `Награда +${reward}` },
           },
         ],
       });
-      await this.userService.addCoins(user, reward);
-      await this.askNextQuestion(guildId);
-      this.hints.set(guildId, '');
     } else {
       isCorrect = true;
       await message.reply({
@@ -345,7 +344,7 @@ export class SIGamePlayer {
           {
             color: SIGameColor,
             description: `<@${message.author.id}>, абсолютно верно!`,
-            footer: { text: `Награда +${reward} монеток` },
+            footer: { text: `Награда +${reward}` },
           },
         ],
       });
@@ -354,6 +353,9 @@ export class SIGamePlayer {
       await this.userService.addCoins(user, reward);
       await this.askNextQuestion(guildId);
       this.hints.set(guildId, '');
+      state.playersScores[message.author.id] =
+        (state.playersScores[message.author.id] ?? 0) + reward;
+      await this.setGameState(guildId, state);
     } else {
       await miss();
     }
@@ -398,7 +400,7 @@ export class SIGamePlayer {
       return;
     }
 
-    await this.clearGameState(guildId);
+    await this.endGame(guildId);
 
     await interaction.reply({
       content: 'Игра SIGame завершена.',
@@ -444,18 +446,7 @@ export class SIGamePlayer {
         state.currentThemeIndex = 0;
         state.currentRoundIndex += 1;
         if (state.currentRoundIndex >= pack.rounds.length) {
-          await this.clearGameState(guildId);
-
-          const channel = await this.getChannel(guildId);
-          await channel.send({
-            embeds: [
-              {
-                title: 'Игра окончена!',
-                description: 'Поздравляем! Вы прошли весь пакет!',
-                color: SIGameColor,
-              },
-            ],
-          });
+          await this.endGame(guildId);
           return;
         }
       }
@@ -463,6 +454,41 @@ export class SIGamePlayer {
 
     await this.setGameState(guildId, state);
     await this.askQuestion(guildId);
+  }
+
+  private async endGame(guildId: DiscordID) {
+    const state = await this.getGameState(guildId);
+    await this.clearGameState(guildId);
+
+    const channel = await this.getChannel(guildId);
+
+    const playersScores = state?.playersScores ?? {};
+    const sortedPlayers = Object.entries(playersScores).sort(
+      (a, b) => b[1] - a[1],
+    );
+
+    const scoreLines = sortedPlayers.map(
+      ([userId, score]) => `<@${userId}>: ${score} очков`,
+    );
+
+    await channel.send({
+      embeds: [
+        {
+          title: 'Игра окончена!',
+          description: 'Поздравляем! Вы прошли весь пакет!',
+          color: SIGameColor,
+          fields: [
+            {
+              name: 'Лидеры по очкам',
+              value:
+                scoreLines.length > 0
+                  ? scoreLines.join('\n')
+                  : 'Никто не набрал очков.',
+            },
+          ],
+        },
+      ],
+    });
   }
 
   private async askQuestion(guildId: DiscordID) {
@@ -497,7 +523,7 @@ export class SIGamePlayer {
           'https://github.com/VladimirKhil/SIOnline/blob/master/assets/images/sigame.png?raw=true',
       })
       .setFooter({
-        text: `Цена вопроса: ${question.price} монеток`,
+        text: `Цена вопроса: ${question.price}`,
       });
 
     if (question.scenario.text) {
