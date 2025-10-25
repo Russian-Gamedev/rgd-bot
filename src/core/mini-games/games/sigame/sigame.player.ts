@@ -17,7 +17,6 @@ import {
   Subcommand,
 } from 'necord';
 
-import { EmojiCoin } from '#config/emojies';
 import { GuildSettings } from '#config/guilds';
 import { GuildSettingsService } from '#core/guilds/settings/guild-settings.service';
 import { UserService } from '#core/users/users.service';
@@ -330,7 +329,7 @@ export class SIGamePlayer {
           {
             color: SIGameColor,
             description: `<@${message.author.id}>, не совсем, но засчитываю!`,
-            footer: { text: `Награда +${reward} ${EmojiCoin.Top}` },
+            footer: { text: `Награда +${reward} монеток` },
           },
         ],
       });
@@ -344,7 +343,7 @@ export class SIGamePlayer {
           {
             color: SIGameColor,
             description: `<@${message.author.id}>, абсолютно верно!`,
-            footer: { text: `Награда +${reward} ${EmojiCoin.Top}` },
+            footer: { text: `Награда +${reward} монеток` },
           },
         ],
       });
@@ -496,7 +495,7 @@ export class SIGamePlayer {
           'https://github.com/VladimirKhil/SIOnline/blob/master/assets/images/sigame.png?raw=true',
       })
       .setFooter({
-        text: `Цена вопроса: ${question.price} ${EmojiCoin.Top}`,
+        text: `Цена вопроса: ${question.price} монеток`,
       });
 
     if (question.scenario.text) {
