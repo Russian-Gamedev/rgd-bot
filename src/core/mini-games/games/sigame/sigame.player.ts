@@ -350,12 +350,12 @@ export class SIGamePlayer {
       });
     }
     if (isCorrect) {
-      await this.userService.addCoins(user, reward);
-      await this.askNextQuestion(guildId);
-      this.hints.set(guildId, '');
       state.playersScores[message.author.id] =
         (state.playersScores[message.author.id] ?? 0) + reward;
       await this.setGameState(guildId, state);
+      await this.userService.addCoins(user, reward);
+      await this.askNextQuestion(guildId);
+      this.hints.set(guildId, '');
     } else {
       await miss();
     }
