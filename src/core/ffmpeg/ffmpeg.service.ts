@@ -97,8 +97,8 @@ export class FFMpegService {
     const targetVideoBitrate =
       (targetSize * 8192) / (1.048576 * duration) - audioBitrate;
 
-    await $`echo y | ${this.binFFMpegPath} -i ${inputFile} -c:v libx264 -b:v ${targetVideoBitrate}k -pass 1 -an -f mp4 /dev/null`.quiet();
-    await $`${this.binFFMpegPath} -i ${inputFile} -c:v libx264 -b:v ${targetVideoBitrate}k -pass 2 -c:a aac -b:a ${audioBitrate}k ${outputFile}`.quiet();
+    await $`echo y | ${this.binFFMpegPath} -i ${inputFile} -c:v libx264 -b:v ${targetVideoBitrate}k -pass 1 -an -f mp4 /dev/null`;
+    await $`${this.binFFMpegPath} -i ${inputFile} -c:v libx264 -b:v ${targetVideoBitrate}k -pass 2 -c:a aac -b:a ${audioBitrate}k ${outputFile}`;
 
     return true;
   }
