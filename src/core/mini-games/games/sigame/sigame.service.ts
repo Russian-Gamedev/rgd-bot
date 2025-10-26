@@ -126,7 +126,10 @@ export class SIGameService {
     };
 
     for (const round of rounds) {
-      const themes = round.themes.theme;
+      let themes = round.themes.theme;
+      if (!Array.isArray(themes)) {
+        themes = [themes];
+      }
       const roundName =
         round['@_name'] ?? `${rounds.indexOf(round) + 1}-й раунд`;
       const parsedRound: SIGameRound = {
@@ -155,7 +158,13 @@ export class SIGameService {
         }
 
         for (const question of questions) {
-          const price = Number(question['@_price'] ?? 100);
+          let price = Number(question['@_price']);
+
+          if (price != price || price <= 0) {
+            price = 100;
+          }
+
+          price = Math.min(Math.max(price, 100), 10_000);
 
           const atom = question.scenario.atom;
           const atoms = Array.isArray(atom) ? atom : [atom];
@@ -167,6 +176,9 @@ export class SIGameService {
               text = atom;
             } else if ('@_type' in atom) {
               if (atom['@_type']) {
+                if (atom['@_type'] === 'marker') {
+                  continue;
+                }
                 embed = this.resolveAsset(
                   packId,
                   atom['#text'],
