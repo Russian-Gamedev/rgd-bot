@@ -258,13 +258,25 @@ export class SIGamePlayer {
     const percent = correct / wordsRight.length;
     console.log({ correct, percent, wordsRight, wordsUser });
 
-    if (percent < 0.75) {
+    if (percent < 0.5) {
       return;
     }
 
     let reward = question.price;
 
     let isCorrect = false;
+
+    if (percent < 0.7) {
+      await message.reply({
+        embeds: [
+          {
+            color: SIGameColor,
+            description: `<@${message.author.id}>, почти верно! Подумайте ещё немного.`,
+          },
+        ],
+      });
+      return;
+    }
 
     if (percent < 0.9) {
       isCorrect = true;
@@ -454,6 +466,10 @@ export class SIGamePlayer {
       throw new Error('No questions available');
     }
 
+    const isEnglish = question.right.answer
+      ? /^[A-Za-z0-9:. -]*$/.test(question.right.answer)
+      : false;
+
     const embed = new EmbedBuilder()
       .setColor(SIGameColor)
       .setAuthor({
@@ -465,11 +481,17 @@ export class SIGamePlayer {
         text: `Цена вопроса: ${question.price}`,
       });
 
+    let description = '';
+
     if (question.scenario.text) {
-      embed.setDescription(`❓ ${question.scenario.text}`);
+      description = `❓ ${question.scenario.text}`;
     } else if (question.scenario.embed) {
-      embed.setDescription(`❓ Вопрос представлен в виде медиафайла`);
+      description = `❓ Вопрос представлен в виде медиафайла`;
     }
+
+    description += `\n\nОтвет на: **${isEnglish ? 'английском' : 'русском'}** языке.`;
+
+    embed.setDescription(description);
 
     const files: { attachment: string; name: string }[] = [];
 
@@ -482,7 +504,14 @@ export class SIGamePlayer {
     }
 
     const channel = await this.getChannel(guildId);
-    await channel.send({ embeds: [embed], files });
+    try {
+      await channel.send({ embeds: [embed], files });
+    } catch (error) {
+      this.logger.error(
+        `Failed to send question in guild ${guildId}: ${error}`,
+      );
+      await this.askNextQuestion(guildId);
+    }
   }
 
   private async getCurrentPack(guildId: DiscordID) {

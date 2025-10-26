@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { $ } from 'bun';
 import { XMLParser } from 'fast-xml-parser';
 import fs from 'fs/promises';
+import JSZip from 'jszip';
 import path from 'path';
 
+import { FFMpegService } from './../../../ffmpeg/ffmpeg.service';
 import {
   SIGamePack,
   SIGameParsed,
@@ -21,7 +22,7 @@ export class SIGameService {
 
   private cachedTags: SIGameTag[] = [];
 
-  constructor() {
+  constructor(private readonly ffmpeg: FFMpegService) {
     ///
   }
 
@@ -86,8 +87,7 @@ export class SIGameService {
         const response = await fetch(pack.directContentUri);
         const buffer = await response.arrayBuffer();
         await Bun.write(packPathZip, Buffer.from(buffer));
-        await $`echo 'n' | unzip -o ${packPathZip} -d ${path.join(packsDir, pack.id.toString())}`;
-        await fs.rm(packPathZip);
+        await this.unzipPack(packPathZip);
       } catch (error) {
         this.logger.error(
           `Failed to download or extract pack ${pack.id}: ${error}`,
@@ -102,6 +102,9 @@ export class SIGameService {
   async parsePack(packId: number) {
     const packsDir = path.resolve('temp/packs');
     const packDir = path.join(packsDir, `${packId}`);
+    const fileMap: Record<string, string> = await Bun.file(
+      path.join(packDir, 'filemap.json'),
+    ).json();
     const contentXML = await Bun.file(packDir + '/content.xml').text();
     const content = new XMLParser({ ignoreAttributes: false }).parse(
       contentXML,
@@ -183,6 +186,7 @@ export class SIGameService {
                   packId,
                   atom['#text'],
                   atom['@_type'],
+                  fileMap,
                 );
               } else {
                 text = atom['#text'];
@@ -224,7 +228,12 @@ export class SIGameService {
     return true;
   }
 
-  private resolveAsset(packId: number, asset: string, type: string) {
+  private resolveAsset(
+    packId: number,
+    asset: string,
+    type: string,
+    fileMap: Record<string, string>,
+  ) {
     if (asset.startsWith('@')) {
       asset = asset.slice(1);
     }
@@ -238,11 +247,74 @@ export class SIGameService {
           : 'Video';
     const packDir = path.join(packsDir, `${packId}`);
 
-    /// if contain non ascii characters, encode
-    if (/[^a-zA-Z0-9/_\-.]/.test(asset)) {
-      asset = encodeURIComponent(asset);
+    if (fileMap[asset]) {
+      asset = fileMap[asset];
+    } else {
+      this.logger.warn(
+        `Asset ${asset} not found in file map for pack ${packId}`,
+      );
     }
 
     return path.join(packDir, assetDir, asset);
+  }
+
+  private async unzipPack(pathToZip: string) {
+    this.logger.log(`Extracting pack: ${pathToZip}`);
+    const zip = new JSZip();
+    const data = await Bun.file(pathToZip).arrayBuffer();
+    const contents = await zip.loadAsync(data);
+
+    let fileId = 0;
+    const ignoreFiles = ['content.xml'];
+    const queueToCompress: string[] = [];
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
+    const mapFiles = new Map<string, string>();
+    const packsDir = path.resolve('temp/packs');
+
+    for (const [filePath, file] of Object.entries(contents.files)) {
+      const ext = path.extname(filePath);
+      const filename = path.basename(filePath, ext);
+      let normalizedFileName = filePath;
+      if (!ignoreFiles.includes(filename + ext)) {
+        const newFileName = String(++fileId);
+        normalizedFileName = filePath.replace(filename, newFileName);
+        mapFiles.set(decodeURIComponent(filename) + ext, newFileName + ext);
+      }
+
+      const fullPath = path.join(
+        packsDir,
+        path.basename(pathToZip, '.zip'),
+        normalizedFileName,
+      );
+      if (file.dir) {
+        await fs.mkdir(fullPath, { recursive: true });
+      } else {
+        const content = await file.async('nodebuffer');
+        await fs.mkdir(path.dirname(fullPath), { recursive: true });
+        await fs.writeFile(fullPath, content);
+        const stat = await fs.stat(fullPath);
+        if (stat.size > MAX_FILE_SIZE) {
+          queueToCompress.push(fullPath);
+        }
+      }
+    }
+    await Bun.write(
+      path.join(packsDir, path.basename(pathToZip, '.zip'), 'filemap.json'),
+      JSON.stringify(Object.fromEntries(mapFiles), null, 2),
+    );
+
+    this.logger.log('Compressing large files...');
+    for (const filePath of queueToCompress) {
+      const ext = path.extname(filePath);
+      const newFile = filePath.replace(ext, `.min${ext}`);
+      await this.ffmpeg.compressFile(filePath, newFile, 10);
+      await fs.unlink(filePath);
+      await fs.rename(newFile, filePath);
+    }
+
+    this.logger.log(`Extraction complete: ${pathToZip}`);
+    await fs.unlink(pathToZip);
+    return true;
   }
 }

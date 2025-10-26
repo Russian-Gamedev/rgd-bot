@@ -9,6 +9,7 @@ import { ActivityModule } from '#core/activity/activity.module';
 import { AuthModule } from '#core/auth/auth.module';
 import { BotsModule } from '#core/bots/bots.module';
 import { DiscordModule } from '#core/discord/discord.module';
+import { FFMpegModule } from '#core/ffmpeg/ffmpeg.module';
 import { GuildModule } from '#core/guilds/guild.module';
 import { MiniGamesModule } from '#core/mini-games/mini-games.module';
 import { UserModule } from '#core/users/users.module';
@@ -28,6 +29,7 @@ import { AppController } from './app.controller';
     BotsModule,
     MiniGamesModule,
     AuthModule,
+    FFMpegModule,
   ],
   controllers: [AppController],
   providers: [GitInfoService],
