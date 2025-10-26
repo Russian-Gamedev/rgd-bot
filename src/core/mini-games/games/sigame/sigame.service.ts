@@ -194,12 +194,14 @@ export class SIGameService {
             }
           }
 
+          const answer = String(question.right.answer);
+          if (!answer) continue;
           if (!text && !embed) continue;
 
           const parsedQuestion: SIGameQuestion = {
             price,
             right: {
-              answer: String(question.right.answer),
+              answer,
             },
             scenario: {
               embed,
