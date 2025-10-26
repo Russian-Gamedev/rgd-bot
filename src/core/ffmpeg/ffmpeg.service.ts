@@ -19,6 +19,9 @@ export class FFMpegService {
 
   private async checkFFMpegExists() {
     this.logger.log('Checking FFMpeg binary...');
+
+    await fs.mkdir('./bin', { recursive: true });
+
     try {
       const version = await $`ffmpeg -version`.text().catch(() => null);
 
@@ -27,7 +30,6 @@ export class FFMpegService {
         const isLinked = await fs.stat('./bin/ffmpeg').catch(() => null);
         if (isLinked) return;
         const pathToFfmpeg = await $`which ffmpeg`.text();
-        await fs.mkdir('./bin', { recursive: true });
         await fs.symlink(pathToFfmpeg.trim(), './bin/ffmpeg');
         await fs.symlink(
           pathToFfmpeg.replace('ffmpeg', 'ffprobe').trim(),
