@@ -155,7 +155,7 @@ export class SIGameService {
         }
 
         for (const question of questions) {
-          const price = Number(question['@_price'] ?? 100) / 100;
+          const price = Number(question['@_price'] ?? 100);
 
           const atom = question.scenario.atom;
           const atoms = Array.isArray(atom) ? atom : [atom];
@@ -183,7 +183,7 @@ export class SIGameService {
           const parsedQuestion: SIGameQuestion = {
             price,
             right: {
-              answer: question.right.answer,
+              answer: String(question.right.answer),
             },
             scenario: {
               embed,

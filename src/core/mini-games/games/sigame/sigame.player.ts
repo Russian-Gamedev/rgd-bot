@@ -264,7 +264,7 @@ export class SIGamePlayer {
 
     const percent = correct / wordsRight.length;
 
-    const reward = Math.floor(question.price * percent);
+    const reward = Math.round(question.price * percent);
 
     const miss = async () => {
       let hints = this.hints.get(guildId) ?? '';
