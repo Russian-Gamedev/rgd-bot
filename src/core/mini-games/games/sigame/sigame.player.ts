@@ -212,13 +212,8 @@ export class SIGamePlayer {
     const guildId = message.guildId;
     const channelId = message.channelId;
 
-    if (!message.reference) return;
-    const referencedMessage = await message.channel.messages.fetch(
-      message.reference.messageId!,
-    );
-    if (!referencedMessage) return;
-    /// if reply is not to this bot
-    if (referencedMessage.author?.id !== this.discord.user?.id) return;
+    if (!message.guild || message.author.bot) return;
+
     if (!guildId) return;
     const channel = await this.getChannel(guildId);
     if (channel.id !== channelId) return;
@@ -241,9 +236,9 @@ export class SIGamePlayer {
 
     const userAnswer = message.content.trim().toLowerCase();
     const rightAnswer = question.right.answer.trim().toLowerCase();
-
-    const wordsUser = userAnswer.split(' ');
-    const wordsRight = rightAnswer.split(' ');
+    /// split answers by spaces and dashes
+    const wordsUser = userAnswer.split(/[\s-]+/);
+    const wordsRight = rightAnswer.split(/[\s-]+/);
 
     let correct = 0;
 
@@ -255,79 +250,25 @@ export class SIGamePlayer {
           const distance = levenshtein(word, rightWord);
           const similarity =
             1 - distance / Math.max(word.length, rightWord.length);
-          if (similarity >= 0.5) {
-            correct += 1;
-          }
+          correct += similarity;
         }
       }
     }
 
     const percent = correct / wordsRight.length;
+    console.log({ correct, percent, wordsRight, wordsUser });
 
-    const reward = Math.round(question.price * percent);
+    if (percent < 0.75) {
+      return;
+    }
 
-    const miss = async () => {
-      let hints = this.hints.get(guildId) ?? '';
-
-      if (hints.length < Math.min(5, rightAnswer.length)) {
-        while (true) {
-          const index = Math.floor(Math.random() * rightAnswer.length);
-          const char = rightAnswer[index];
-          if (char === ' ' || hints.includes(char)) {
-            continue;
-          }
-          hints += char;
-          break;
-        }
-
-        let hint = '';
-
-        for (const char of rightAnswer) {
-          if (char === ' ' || hints.includes(char)) {
-            hint += char;
-          } else {
-            hint += '*';
-          }
-        }
-
-        await message.reply({
-          embeds: [
-            {
-              color: SIGameColor,
-              description: `Подсказка: \`${hint}\``,
-            },
-          ],
-        });
-
-        this.hints.set(guildId, hints);
-      } else {
-        this.hints.set(guildId, '');
-        await this.askNextQuestion(guildId);
-      }
-    };
+    let reward = question.price;
 
     let isCorrect = false;
 
-    if (percent < 0.1) {
-      await message.reply({
-        embeds: [
-          {
-            color: SIGameColor,
-            description: `<@${message.author.id}>, абсолютно неверно.`,
-          },
-        ],
-      });
-    } else if (percent < 0.5) {
-      await message.reply({
-        embeds: [
-          {
-            color: SIGameColor,
-            description: `<@${message.author.id}>, кажется близок к ответу`,
-          },
-        ],
-      });
-    } else if (percent < 0.75) {
+    if (percent < 0.9) {
       isCorrect = true;
+      reward = Math.floor(reward / 2);
       await message.reply({
         embeds: [
           {
@@ -356,8 +297,6 @@ export class SIGamePlayer {
       await this.userService.addCoins(user, reward);
       await this.askNextQuestion(guildId);
       this.hints.set(guildId, '');
-    } else {
-      await miss();
     }
   }
 
