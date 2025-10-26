@@ -304,13 +304,15 @@ export class SIGameService {
       JSON.stringify(Object.fromEntries(mapFiles), null, 2),
     );
 
-    this.logger.log('Compressing large files...');
+    this.logger.log(`Compressing large files (${queueToCompress.length})...`);
     for (const filePath of queueToCompress) {
       const ext = path.extname(filePath);
       const newFile = filePath.replace(ext, `.min${ext}`);
+      this.logger.log(`Compressing file: ${filePath}`);
       await this.ffmpeg.compressFile(filePath, newFile, 10);
       await fs.unlink(filePath);
       await fs.rename(newFile, filePath);
+      this.logger.log(`Compressed and replaced: ${filePath}`);
     }
 
     this.logger.log(`Extraction complete: ${pathToZip}`);
