@@ -160,19 +160,22 @@ export class SlotGame {
     const finalSymbols = visible.map((col) => col[1]); // middle row across reels
 
     const resultKey = finalSymbols.join('');
+    let isWin = false;
     if (PAYOUTS[resultKey]) {
+      isWin = true;
       const winnings = coins * PAYOUTS[resultKey];
       user.coins += winnings;
-      outputMessage += `🎉 Вы выиграли ${winnings} монет! 🎉`;
+      outputMessage += `🎉 Вы выиграли ${winnings.toLocaleString('ru-RU')} монет! 🎉`;
     } else {
       user.coins -= coins;
       outputMessage += `К сожалению, вы проиграли.`;
     }
 
-    outputMessage += `\n__Ставка:__ ${coins} ${EmojiCoin.Top}\n__Баланс:__ ~~${oldBalance}~~ -> ${user.coins} ${EmojiCoin.Bottom}`;
+    outputMessage += `\n__Ставка:__ ${coins} ${EmojiCoin.Top}\n__Баланс:__ ~~${oldBalance}~~ -> ${user.coins.toLocaleString('ru-RU')} ${EmojiCoin.Bottom}`;
 
+    embed.setColor(isWin ? '#5fdb00' : '#ff2f00');
     embed.setDescription(outputMessage);
-    await interaction.editReply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed], content: `<@${userId}>` });
 
     this.spinning.delete(userId);
   }
