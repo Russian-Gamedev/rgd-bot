@@ -7,6 +7,8 @@ services:
     restart: unless-stopped
     env_file:
       - .env.production
+    volumes:
+      - $PWD/bin/:/app/bin
     ports:
       - "1984:3000"
     depends_on:
