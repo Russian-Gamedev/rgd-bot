@@ -45,7 +45,7 @@ export class UserEntity extends BaseEntity {
   @Property({ type: 'integer', default: 0 })
   left_count = 0;
 
-  @Property({ type: 'bigint', default: 0 })
+  @Property({ type: 'integer', default: 0 })
   coins = 0;
 
   @Property({ type: 'timestamptz', nullable: true })
