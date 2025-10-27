@@ -916,13 +916,13 @@
         },
         "coins": {
           "name": "coins",
-          "type": "int",
+          "type": "bigint",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
           "default": "0",
-          "mappedType": "integer"
+          "mappedType": "bigint"
         },
         "birth_date": {
           "name": "birth_date",
