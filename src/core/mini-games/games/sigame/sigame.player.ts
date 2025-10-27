@@ -84,12 +84,13 @@ export class SIGamePlayer {
       return;
     }
 
+    await interaction.deferReply();
+
     const packId = Number(dto.id);
     const pack = await this.sigameService.getPackById(packId).catch(() => null);
     if (!pack) {
-      await interaction.reply({
+      await interaction.editReply({
         content: `Пакет с ID ${packId} не найден.`,
-        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -97,7 +98,7 @@ export class SIGamePlayer {
     const embed = new EmbedBuilder()
       .setColor(SIGameColor)
       .setDescription(`Скачиваем пакет ${pack.name}...`);
-    await interaction.reply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed] });
     try {
       await this.sigameService.downloadPack(pack);
     } catch (error) {
@@ -142,9 +143,11 @@ export class SIGamePlayer {
       return;
     }
 
+    await interaction.deferReply();
+
     await this.startGame(guildId, state.packId);
 
-    await interaction.reply({
+    await interaction.editReply({
       content: 'Повторяю текущий вопрос...',
     });
   }
