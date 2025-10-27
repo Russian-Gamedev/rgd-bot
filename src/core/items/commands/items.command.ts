@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UseInterceptors } from '@nestjs/common';
 import { EmbedBuilder, InteractionContextType, MessageFlags } from 'discord.js';
 import {
   Context,
@@ -13,6 +13,10 @@ import { UserService } from '#core/users/users.service';
 import { ItemEntity, ItemRarity } from '../entities/item.entity';
 import { ItemsService } from '../items.service';
 
+import {
+  TransferItemAutocompleteInterceptor,
+  TransferItemDto,
+} from './items.autocomplete';
 import { CreateItemDto, ItemListDto } from './items.dto';
 
 const ItemGroupDecorator = createCommandGroupDecorator({
@@ -108,7 +112,6 @@ export class ItemsCommands {
   }
 
   private embedItem(item: ItemEntity): EmbedBuilder {
-    console.log(item);
     const embed = new EmbedBuilder()
       .setTitle(item.name)
       .setDescription(item.description || 'Нет описания')
@@ -127,5 +130,53 @@ export class ItemsCommands {
     }
 
     return embed;
+  }
+
+  @UseInterceptors(TransferItemAutocompleteInterceptor)
+  @Subcommand({
+    name: 'transfer',
+    description: 'Передать предмет другому пользователю',
+  })
+  async transferItem(
+    @Context() [interaction]: SlashCommandContext,
+    @Options() dto: TransferItemDto,
+  ) {
+    const guild_id = interaction.guildId;
+    if (!guild_id) return;
+    const user_id = interaction.user.id;
+
+    const item = await this.itemsService.getItemById(parseInt(dto.id, 10));
+
+    if (!item) {
+      return interaction.reply({
+        content: 'Предмет не найден.',
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    if (
+      String(item.guild_id) !== guild_id ||
+      String(item.user_id) !== user_id
+    ) {
+      return interaction.reply({
+        content: 'Предмет не найден в вашем инвентаре.',
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    if (item.transferable === false) {
+      return interaction.reply({
+        content: 'Этот предмет нельзя передавать.',
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    const target = dto.target.id;
+
+    await this.itemsService.transferItem(item, target);
+
+    return interaction.reply({
+      content: `Вы успешно передали предмет **${item.name}** <@${target}>!`,
+    });
   }
 }

@@ -18,10 +18,23 @@ export class ItemsService {
     return this.itemRepository.find({ guild_id, user_id });
   }
 
+  getItemById(id: number): Promise<ItemEntity | null> {
+    return this.itemRepository.findOne({ id });
+  }
+
   async createItem(item: Partial<ItemEntity>): Promise<ItemEntity> {
     const newItem = new ItemEntity();
     Object.assign(newItem, item);
     await this.entityManager.persistAndFlush(newItem);
     return newItem;
+  }
+
+  async transferItem(
+    item: ItemEntity,
+    targetUserID: DiscordID,
+  ): Promise<ItemEntity> {
+    item.user_id = targetUserID;
+    await this.entityManager.persistAndFlush(item);
+    return item;
   }
 }

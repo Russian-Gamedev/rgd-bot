@@ -25,7 +25,6 @@ export class AuthService {
   ) {}
 
   async logIn(profile: AuthProfile) {
-    console.log(profile);
     let auth = await this.authRepository.findOne(
       {
         guild_id: BigInt(profile.guild_id),

@@ -24,7 +24,6 @@ export class DiscordStrategy extends PassportStrategy(Strategy, 'discord') {
       username: string;
     },
   ) {
-    console.log(profile);
     return {
       user_id: profile.id,
       guild_id: '504617984594018325', // Temporary fix until we implement guild selection
