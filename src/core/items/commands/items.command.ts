@@ -17,7 +17,7 @@ import {
   TransferItemAutocompleteInterceptor,
   TransferItemDto,
 } from './items.autocomplete';
-import { CreateItemDto, ItemListDto } from './items.dto';
+import { CreateItemDto, ItemCostMap, ItemListDto } from './items.dto';
 
 const ItemGroupDecorator = createCommandGroupDecorator({
   name: 'item',
@@ -70,7 +70,7 @@ export class ItemsCommands {
     @Context() [interaction]: SlashCommandContext,
     @Options() dto: CreateItemDto,
   ) {
-    const cost = 50_000;
+    const cost = ItemCostMap[dto.rare ?? ItemRarity.COMMON];
 
     const guild_id = interaction.guildId;
     if (!guild_id) return null;
@@ -79,7 +79,7 @@ export class ItemsCommands {
     const user = await this.userService.findOrCreate(guild_id, user_id);
     if (user.coins < cost) {
       return interaction.reply({
-        content: `У вас недостаточно монет. Создание предмета стоит ${cost} монет.`,
+        content: `У вас недостаточно монет. Создание предмета стоит ${cost.toLocaleString('ru-RU')} монет.`,
         flags: MessageFlags.Ephemeral,
       });
     }

@@ -93,7 +93,7 @@ export class UserCommands {
       },
       {
         name: 'Баланс',
-        value: getTotal('coins').toLocaleString('ru'),
+        value: guildUser.coins.toLocaleString('ru'),
         inline: true,
       },
       {

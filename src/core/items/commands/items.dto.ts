@@ -3,6 +3,14 @@ import { BooleanOption, MemberOption, StringOption } from 'necord';
 
 import { ItemRarity } from '../entities/item.entity';
 
+export const ItemCostMap: Record<string, number> = {
+  [ItemRarity.COMMON]: 50_000,
+  [ItemRarity.UNCOMMON]: 100_000,
+  [ItemRarity.RARE]: 200_000,
+  [ItemRarity.EPIC]: 500_000,
+  [ItemRarity.LEGENDARY]: 1_000_000,
+};
+
 export class ItemListDto {
   @MemberOption({
     name: 'user',
@@ -46,7 +54,7 @@ export class CreateItemDto {
     description: 'Редкость предмета',
     required: false,
     choices: Object.values(ItemRarity).map((value) => ({
-      name: value,
+      name: `${value} - Стоимость: ${ItemCostMap[value].toLocaleString('ru-RU')} монет`,
       value: value,
     })),
   })
