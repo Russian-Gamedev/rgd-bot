@@ -146,7 +146,7 @@ export class ActivityJobService {
     await this.em.nativeUpdate(
       UserEntity,
       {
-        id: { $nin: activeUsers as unknown as number[] },
+        user_id: { $nin: activeUsers as unknown as number[] },
         guild_id: BigInt(guild.id),
       },
       {
