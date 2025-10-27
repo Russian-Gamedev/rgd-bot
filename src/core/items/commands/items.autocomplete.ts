@@ -38,7 +38,7 @@ export class TransferItemAutocompleteInterceptor extends AutocompleteInterceptor
     if (!guild_id) return;
 
     if (focused.name === 'item') {
-      const items = await this.itemsService.getItems(guild_id, user_id);
+      const items = await this.itemsService.getUserItems(user_id);
       for (const item of items) {
         if (!item.transferable) continue;
         choices.push({

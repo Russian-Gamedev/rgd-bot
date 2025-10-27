@@ -14,8 +14,8 @@ export class ItemsService {
     private readonly entityManager: EntityManager,
   ) {}
 
-  getItems(guild_id: DiscordID, user_id: DiscordID): Promise<ItemEntity[]> {
-    return this.itemRepository.find({ guild_id, user_id });
+  getUserItems(user_id: DiscordID): Promise<ItemEntity[]> {
+    return this.itemRepository.find({ user_id });
   }
 
   getItemById(id: number): Promise<ItemEntity | null> {
@@ -33,8 +33,17 @@ export class ItemsService {
     item: ItemEntity,
     targetUserID: DiscordID,
   ): Promise<ItemEntity> {
+    item.transferHistory.push({
+      from: item.user_id,
+      to: targetUserID,
+      date: new Date(),
+    });
     item.user_id = targetUserID;
     await this.entityManager.persistAndFlush(item);
     return item;
+  }
+
+  async getItems() {
+    return this.itemRepository.findAll();
   }
 }

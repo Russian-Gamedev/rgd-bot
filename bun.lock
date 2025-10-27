@@ -8,6 +8,7 @@
         "@mikro-orm/migrations": "^6.5.9",
         "@mikro-orm/nestjs": "^6.1.1",
         "@mikro-orm/postgresql": "^6.5.9",
+        "@necord/pagination": "^2.2.0",
         "@nestjs/common": "^11.1.7",
         "@nestjs/config": "^4.0.2",
         "@nestjs/core": "^11.1.7",
@@ -170,6 +171,8 @@
     "@mikro-orm/nestjs": ["@mikro-orm/nestjs@6.1.1", "", { "peerDependencies": { "@mikro-orm/core": "^6.0.0 || ^6.0.0-dev.0 || ^7.0.0-dev.0", "@nestjs/common": "^10.0.0 || ^11.0.5", "@nestjs/core": "^10.0.0 || ^11.0.5" } }, "sha512-aluD3eTeuCvIePDk5UBanHIhu1zAJQXqWAg47MZdHJmFkNuXn62DCXbD2c4X5TCpKW/m0zjba22ilyZ/AFG9qg=="],
 
     "@mikro-orm/postgresql": ["@mikro-orm/postgresql@6.5.9", "", { "dependencies": { "@mikro-orm/knex": "6.5.9", "pg": "8.16.3", "postgres-array": "3.0.4", "postgres-date": "2.1.0", "postgres-interval": "4.0.2" }, "peerDependencies": { "@mikro-orm/core": "^6.0.0" } }, "sha512-0pIWgHolYzAHa2/0fXjDNzGYK833XNHCuH079c65gScCl1s+YuByXPW7rJIYMqVXsgWtWpuS43G0VJ+jglXPQg=="],
+
+    "@necord/pagination": ["@necord/pagination@2.2.0", "", { "peerDependencies": { "@nestjs/common": "^10.2.0 || ^11.0.0", "@nestjs/core": "^10.2.0 || ^11.0.0", "discord.js": "^14.0.1", "necord": "^6.0.0", "reflect-metadata": "^0.2.1", "rxjs": "^7.2.0" } }, "sha512-snsOITbEUe7jwWSt1iW3ZRW3HKsRMZFwUB30nM3S3Ep/lIioORhTV5NsnpfMoCz4hx6vA36SlQ0eproWE3ny+w=="],
 
     "@nestjs/cli": ["@nestjs/cli@11.0.10", "", { "dependencies": { "@angular-devkit/core": "19.2.15", "@angular-devkit/schematics": "19.2.15", "@angular-devkit/schematics-cli": "19.2.15", "@inquirer/prompts": "7.8.0", "@nestjs/schematics": "^11.0.1", "ansis": "4.1.0", "chokidar": "4.0.3", "cli-table3": "0.6.5", "commander": "4.1.1", "fork-ts-checker-webpack-plugin": "9.1.0", "glob": "11.0.3", "node-emoji": "1.11.0", "ora": "5.4.1", "tree-kill": "1.2.2", "tsconfig-paths": "4.2.0", "tsconfig-paths-webpack-plugin": "4.2.0", "typescript": "5.8.3", "webpack": "5.100.2", "webpack-node-externals": "3.0.0" }, "peerDependencies": { "@swc/cli": "^0.1.62 || ^0.3.0 || ^0.4.0 || ^0.5.0 || ^0.6.0 || ^0.7.0", "@swc/core": "^1.3.62" }, "optionalPeers": ["@swc/cli", "@swc/core"], "bin": { "nest": "bin/nest.js" } }, "sha512-4waDT0yGWANg0pKz4E47+nUrqIJv/UqrZ5wLPkCqc7oMGRMWKAaw1NDZ9rKsaqhqvxb2LfI5+uXOWr4yi94DOQ=="],
 

@@ -10,9 +10,6 @@ export class ItemEntity extends BaseEntity {
   id: number;
 
   @Property({ type: 'bigint' })
-  guild_id: DiscordID;
-
-  @Property({ type: 'bigint' })
   user_id: DiscordID;
 
   @Property()
@@ -32,6 +29,9 @@ export class ItemEntity extends BaseEntity {
 
   @Property()
   transferable: boolean;
+
+  @Property({ type: 'jsonb', default: [], defaultRaw: "'[]'" })
+  transferHistory: { from: DiscordID; to: DiscordID; date: Date }[] = [];
 }
 
 export enum ItemRarity {

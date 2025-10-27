@@ -1,3 +1,4 @@
+import { NecordPaginationModule } from '@necord/pagination';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IntentsBitField, Partials } from 'discord.js';
@@ -42,6 +43,7 @@ import { DiscordService } from './discord.service';
             : false,
       }),
     }),
+    NecordPaginationModule.forRoot({}),
   ],
   providers: [DiscordService, ...commands],
   controllers: [DiscordController],

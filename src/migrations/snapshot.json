@@ -572,15 +572,6 @@
           "default": "now()",
           "mappedType": "datetime"
         },
-        "guild_id": {
-          "name": "guild_id",
-          "type": "bigint",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "bigint"
-        },
         "user_id": {
           "name": "user_id",
           "type": "bigint",
@@ -648,6 +639,16 @@
           "primary": false,
           "nullable": false,
           "mappedType": "boolean"
+        },
+        "transfer_history": {
+          "name": "transfer_history",
+          "type": "jsonb",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "default": "'[]'",
+          "mappedType": "json"
         }
       },
       "name": "items",

@@ -1,3 +1,4 @@
+import { NecordPaginationService, PageBuilder } from '@necord/pagination';
 import { Injectable, UseInterceptors } from '@nestjs/common';
 import { EmbedBuilder, InteractionContextType, MessageFlags } from 'discord.js';
 import {
@@ -31,6 +32,7 @@ export class ItemsCommands {
   constructor(
     private readonly itemsService: ItemsService,
     private readonly userService: UserService,
+    private readonly paginationService: NecordPaginationService,
   ) {}
 
   @Subcommand({
@@ -41,10 +43,9 @@ export class ItemsCommands {
     @Context() [interaction]: SlashCommandContext,
     @Options() dto: ItemListDto,
   ) {
-    const guildID = interaction.guildId!;
     const userID = dto.user ? dto.user.id : interaction.user.id;
 
-    const items = await this.itemsService.getItems(guildID, userID);
+    const items = await this.itemsService.getUserItems(userID);
 
     if (items.length === 0) {
       return interaction.reply({
@@ -94,7 +95,6 @@ export class ItemsCommands {
     const target_user = dto.user ? dto.user.id : interaction.user.id;
 
     const newItem = await this.itemsService.createItem({
-      guild_id,
       user_id: target_user,
       name: dto.name,
       description: dto.description,
@@ -115,8 +115,16 @@ export class ItemsCommands {
     const embed = new EmbedBuilder()
       .setTitle(item.name)
       .setDescription(item.description || 'Нет описания')
+      .setFooter({
+        text: `#${item.id} - создан ${item.createdAt.toLocaleDateString('ru-RU')}`,
+      })
       .setColor(item.color)
       .addFields(
+        {
+          name: 'Владелец',
+          value: `<@${item.user_id}>`,
+          inline: true,
+        },
         { name: 'Редкость', value: item.rare, inline: true },
         {
           name: 'Передаваемый',
@@ -127,6 +135,19 @@ export class ItemsCommands {
 
     if (item.image) {
       embed.setImage(item.image);
+    }
+
+    if (item.transferHistory.length > 0) {
+      const history = item.transferHistory
+        .map(
+          (transfer, i) =>
+            `#${i + 1}: <@${transfer.from}> ➔ <@${transfer.to}> (${new Date(transfer.date).toLocaleDateString('ru-RU')})`,
+        )
+        .join('\n');
+      embed.addFields({
+        name: 'История передач',
+        value: history,
+      });
     }
 
     return embed;
@@ -154,10 +175,7 @@ export class ItemsCommands {
       });
     }
 
-    if (
-      String(item.guild_id) !== guild_id ||
-      String(item.user_id) !== user_id
-    ) {
+    if (String(item.user_id) !== user_id) {
       return interaction.reply({
         content: 'Предмет не найден в вашем инвентаре.',
         flags: MessageFlags.Ephemeral,
@@ -178,5 +196,46 @@ export class ItemsCommands {
     return interaction.reply({
       content: `Вы успешно передали предмет **${item.name}** <@${target}>!`,
     });
+  }
+
+  @Subcommand({
+    name: 'all',
+    description: 'List all items',
+  })
+  async allItems(@Context() [interaction]: SlashCommandContext) {
+    const items = await this.itemsService.getItems();
+
+    if (!items.length) {
+      return interaction.reply({
+        content: 'Нет предметов.',
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+
+    await interaction.deferReply();
+
+    const embeds = items.map((item) => this.embedItem(item));
+
+    const embedsPerPage = 5;
+    const paginatedEmbeds: EmbedBuilder[][] = [];
+    for (let i = 0; i < embeds.length; i += embedsPerPage) {
+      paginatedEmbeds.push(embeds.slice(i, i + embedsPerPage));
+    }
+
+    const pagination = this.paginationService.create((builder) =>
+      builder
+        .setCustomId('all_items_pagination')
+        .setPages([
+          ...paginatedEmbeds.map((embeds) =>
+            new PageBuilder()
+              .setEmbeds(embeds)
+              .setContent('Список всех предметов'),
+          ),
+        ]),
+    );
+
+    const page = await pagination.build();
+
+    return interaction.reply(page);
   }
 }
