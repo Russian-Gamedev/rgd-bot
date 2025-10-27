@@ -236,6 +236,6 @@ export class ItemsCommands {
 
     const page = await pagination.build();
 
-    return interaction.reply(page);
+    return interaction.editReply(page);
   }
 }
