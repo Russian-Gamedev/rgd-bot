@@ -187,4 +187,19 @@ export class UserService {
       },
     );
   }
+
+  async transferCoins(
+    fromUser: UserEntity,
+    toUser: UserEntity,
+    amount: number,
+  ): Promise<void> {
+    if (fromUser.coins < amount) {
+      throw new Error('Недостаточно монет для перевода.');
+    }
+
+    fromUser.coins -= amount;
+    toUser.coins += amount;
+
+    await this.em.persistAndFlush([fromUser, toUser]);
+  }
 }
