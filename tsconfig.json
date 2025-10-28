@@ -1,40 +1,28 @@
 {
   "compilerOptions": {
-    "target": "es2022",
-    "module": "CommonJS",
-    "outDir": "build",
-    "rootDir": "src",
-    "verbatimModuleSyntax": false,
-    "typeRoots": ["./types/*.d.ts","./node_modules/@types"],
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "experimentalDecorators": true,
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
     "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true,
-    "importHelpers": true,
-    "noEmitHelpers": true,
-    "noImplicitOverride": false,
-    "strictPropertyInitialization": false,
-    "allowUnreachableCode": true,
-    "strictNullChecks": false,
-    "declaration": false,
-    "declarationMap": false,
-    "baseUrl": ".",
-    "paths": {
-      "#base/*": ["src/*"],
-      "#base": ["src"],
-      "#lib/*": ["src/lib/*"],
-      "#config/*": ["src/config/*"]
-    },
+    "resolveJsonModule": true,
+    "target": "es2024",
     "sourceMap": true,
-    "inlineSources": true
-  },
-  "ts-node": {
-    "files": true,
-    "require": ["tsconfig-paths/register"]
-  },
-  "tsc-alias": {
-    "resolveFullPaths": false
-  },
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "#common/*": ["./src/common/*"],
+      "#config/*": ["./src/config/*"],
+      "#core/*": ["./src/core/*"],
+      "#root/*": ["./src/*"]
+    }
+  }
 }

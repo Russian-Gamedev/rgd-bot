@@ -1,27 +1,32 @@
-import { exec } from 'child_process';
-import { Message, User } from 'discord.js';
+import { BaseImageURLOptions, GuildMember, Message, User } from 'discord.js';
 
 import { DISCORD_CDN } from '#config/constants';
 
-export const execAsync = (command: string) => {
-  return new Promise<string>((res) => {
-    exec(command, (_err, stdout) => {
-      res(stdout.trim());
-    });
-  });
-};
+export function noop() {
+  // nothing, as how make game in rgd
+}
 
-export function getDisplayAvatar(user: User) {
+export function cast<T>(value: unknown) {
+  return value as T;
+}
+
+export function getDisplayAvatar(
+  user: User | GuildMember,
+  extension: BaseImageURLOptions['extension'] = 'webp',
+) {
   if (user.avatar === null) {
     const id = (BigInt(user.id) >> 2n) % 6n;
     return DISCORD_CDN + `/embed/avatars/${id}.png`;
   }
 
-  return user.displayAvatarURL({ size: 1024, extension: 'webp' });
+  return user.displayAvatarURL({ size: 1024, extension });
 }
 
-export function getDisplayBanner(user: User) {
-  return user.bannerURL({ size: 1024, extension: 'webp' });
+export function getDisplayBanner(
+  user: User,
+  extension: BaseImageURLOptions['extension'] = 'webp',
+) {
+  return user.bannerURL({ size: 1024, extension });
 }
 
 export function pickRandom<T>(array: readonly T[]): T {
@@ -33,12 +38,29 @@ export function getRelativeFormat(timestamp: number) {
   return `<t:${Math.floor(timestamp / 1_000)}:R>`;
 }
 
+export function messageLink(message: Message<true>) {
+  return messageLinkRaw(message.guildId, message.channelId, message.id);
+}
+
+export function messageLinkRaw(
+  guildId: string,
+  channelId: string,
+  message: string,
+) {
+  return `https://discord.com/channels/${guildId}/${channelId}/${message}`;
+}
+
 export function getTimeInfo(t: number) {
+  const days = Math.floor(t / 86400);
+  t -= days * 86400;
   const hours = Math.floor(t / 3600);
-  const minutes = Math.floor((t - hours * 3600) / 60);
-  const seconds = Math.floor(t - (hours * 3600 + minutes * 60));
+  t -= hours * 3600;
+  const minutes = Math.floor(t / 60);
+  t -= minutes * 60;
+  const seconds = t;
 
   return {
+    days,
     hours,
     minutes,
     seconds,
@@ -51,31 +73,18 @@ export function getTimeInfo(t: number) {
 
 export function formatTime(t: number) {
   const time = getTimeInfo(t);
-  return `${time.hours} ч ${time.minutes.toString().padStart(2, '0')} мин`;
-}
-
-export function messageLink(message: Message) {
-  return messageLinkRaw(message.guildId, message.channelId, message.id);
-}
-
-export function messageLinkRaw(
-  guildId: string,
-  channelId: string,
-  message: string,
-) {
-  return `https://discord.com/channels/${guildId}/${channelId}/${message}`;
-}
-
-export async function getUserReactionsCount(
-  message: Message,
-  member_id: string,
-) {
-  let count = 0;
-
-  for (const react of message.reactions.cache.values()) {
-    const users = await react.users.fetch();
-    count += +users.has(member_id);
+  let result = '';
+  if (time.days > 0) {
+    result += `${time.days} д `;
   }
-
-  return count;
+  if (time.hours > 0) {
+    result += `${time.hours} ч `;
+  }
+  if (time.minutes > 0) {
+    result += `${time.minutes} мин `;
+  }
+  if (time.seconds > 0 || result === '') {
+    result += `${time.seconds} сек`;
+  }
+  return result.trim();
 }

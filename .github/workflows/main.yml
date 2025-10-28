@@ -7,32 +7,15 @@ on:
 
 jobs:
   lint:
-    env:
-      NODE_VERSION: 20.x
-      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8.3.1
-      - name: Use Node.js ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+      - uses: oven-sh/setup-bun@v2
 
       - name: install and lint
-        run: pnpm install --no-frozen-lockfile
+        run: bun install
       - name: run lint
-        run: pnpm run lint
-      - name: run ts-ts-check
-        run: pnpm run ts-check
-      - name: check ts
-        run: tsc
-      - name: sentry sourcemap upload
-        run: pnpm sentry:sourcemaps
+        run: bun lint
 
   deploy:
     needs: [lint]
@@ -43,7 +26,17 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build Docker image
-        run: docker build -t rgd-bot:latest .
+        env:
+          GIT_BRANCH: ${{ github.ref_name }}
+          GIT_COMMIT: ${{ github.sha }}
+          GIT_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          docker build \
+          --build-arg GIT_BRANCH="$GIT_BRANCH" \
+          --build-arg GIT_COMMIT="$GIT_COMMIT" \
+          --build-arg GIT_COMMIT_MESSAGE="$GIT_COMMIT_MESSAGE" \
+          -f docker/Dockerfile \
+          -t rgd-bot:latest .
 
       - name: Save Docker image as tar file
         run: docker save -o rgd-bot.tar rgd-bot:latest
@@ -60,10 +53,10 @@ jobs:
           ENDSSH
       - name: Transfer Docker Compose file to remote server
         run: |
-          scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_PATH }}
+          cd docker && scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_PATH }}
 
       - name: Deploy Docker containers using Docker Compose on remote server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
-          docker compose -f ${{ secrets.REMOTE_PATH }}/docker-compose.yml up -d
+          cd ${{ secrets.REMOTE_PATH }} && docker compose up --build -d
           ENDSSH
