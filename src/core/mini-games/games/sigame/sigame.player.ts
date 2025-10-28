@@ -249,7 +249,40 @@ export class SIGamePlayer {
       return this.askNextQuestion(guildId);
     }
 
-    const percent = this.checkAnswer(text, question.right.answer);
+    if (text.toLowerCase().includes('!logs')) {
+      const logs = await this.getAnswerLogs(guildId);
+      if (logs.length === 0) {
+        return;
+      }
+      const page = Number(text.split(' ')[1] ?? '1');
+      if (isNaN(page) || page < 1) {
+        return;
+      }
+      const logsPerPage = 3;
+      const start = (page - 1) * logsPerPage;
+      const end = start + logsPerPage;
+      const totalPages = Math.ceil(logs.length / logsPerPage);
+      if (page > totalPages) {
+        return;
+      }
+      await message.channel.send(
+        `Показаны логи ответов страницы ${page} из ${totalPages}:`,
+      );
+      const pagedLogs = logs.slice(start, end);
+      if (pagedLogs.length === 0) {
+        return;
+      }
+
+      const logMessages =
+        JSON.stringify(pagedLogs, null, 2).match(/[\s\S]{1,1900}/g) ?? [];
+
+      for (const logMessage of logMessages) {
+        await message.channel.send(`\`\`\`json\n${logMessage}\n\`\`\``);
+      }
+      return;
+    }
+
+    const percent = this.checkAnswer(text, question.right.answer, guildId);
 
     let isCorrect = false;
     let reward = question.price;
@@ -419,6 +452,8 @@ export class SIGamePlayer {
     const scoreLines = sortedPlayers.map(
       ([userId, score]) => `<@${userId}>: ${score} очков`,
     );
+
+    await this.clearAnswerLogs(guildId);
 
     await channel.send({
       embeds: [
@@ -640,7 +675,11 @@ export class SIGamePlayer {
     return 1 - distance / Math.max(a.length, b.length);
   }
 
-  private checkAnswer(userAnswer: string, rightAnswer: string) {
+  private checkAnswer(
+    userAnswer: string,
+    rightAnswer: string,
+    guildId: DiscordID,
+  ) {
     let wordsA: string[] = this.normalizeAnswer(userAnswer)
       .split(/\s+/)
       .map(this.normalizeWord.bind(this));
@@ -705,6 +744,29 @@ export class SIGamePlayer {
       score,
     });
 
+    void this.addAnswerLog(guildId, {
+      user_answer: userAnswer,
+      right_answer: rightAnswer,
+      words_user: uniqueWordsA,
+      words_answer: wordsB,
+      total,
+      repetition_penalty: repetitionPenalty,
+      score,
+    });
+
     return score;
+  }
+
+  private async addAnswerLog(guildId: DiscordID, log: object) {
+    await this.redis.lpush(`sigame:answerlogs:${guildId}`, JSON.stringify(log));
+  }
+
+  private async getAnswerLogs(guildId: DiscordID) {
+    const logs = await this.redis.lrange(`sigame:answerlogs:${guildId}`, 0, -1);
+    return logs.map((log) => JSON.parse(log));
+  }
+
+  private async clearAnswerLogs(guildId: DiscordID) {
+    await this.redis.del(`sigame:answerlogs:${guildId}`);
   }
 }
