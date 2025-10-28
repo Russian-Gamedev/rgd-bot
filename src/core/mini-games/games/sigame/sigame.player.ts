@@ -3,6 +3,7 @@ import {
   Client,
   EmbedBuilder,
   InteractionContextType,
+  Message,
   MessageFlags,
   SendableChannels,
 } from 'discord.js';
@@ -53,7 +54,7 @@ export class SIGamePlayer {
 
   /// Map of active game packs by guild ID
   private readonly packs = new Map<DiscordID, SIGameParsed>();
-  private readonly hints = new Map<DiscordID, string>();
+  private readonly hints = new Map<DiscordID, [number, string]>();
 
   private readonly _cachedChannels = new Map<DiscordID, SendableChannels>();
 
@@ -238,51 +239,33 @@ export class SIGamePlayer {
       message.author.id,
     );
 
-    const userAnswer = message.content.trim().toLowerCase();
-    const rightAnswer = question.right.answer.trim().toLowerCase();
-    /// split answers by spaces and dashes
-    const wordsUser = userAnswer.split(/[\s-]+/);
-    const wordsRight = rightAnswer.split(/[\s-]+/);
+    const text = message.content.trim();
+    if (text.length === 0) return;
 
-    let correct = 0;
-
-    for (const word of wordsUser) {
-      if (wordsRight.includes(word)) {
-        correct += 1;
-      } else {
-        for (const rightWord of wordsRight) {
-          const distance = levenshtein(word, rightWord);
-          const similarity =
-            1 - distance / Math.max(word.length, rightWord.length);
-          correct += similarity;
-        }
-      }
+    if (['скип', 'skip'].includes(text.toLowerCase())) {
+      await message.reply({
+        content: 'Пропускаем вопрос...',
+      });
+      return this.askNextQuestion(guildId);
     }
 
-    const percent = correct / wordsRight.length;
-    console.log({ correct, percent, wordsRight, wordsUser });
-
-    if (percent < 0.5) {
-      return;
-    }
-
-    let reward = question.price;
+    const percent = this.checkAnswer(text, question.right.answer);
 
     let isCorrect = false;
+    let reward = question.price;
 
-    if (percent < 0.7) {
+    if (percent > 0.9) {
+      isCorrect = true;
       await message.reply({
         embeds: [
           {
             color: SIGameColor,
-            description: `<@${message.author.id}>, почти верно! Подумайте ещё немного.`,
+            description: `<@${message.author.id}>, абсолютно верно!`,
+            footer: { text: `Награда +${reward}` },
           },
         ],
       });
-      return;
-    }
-
-    if (percent < 0.9) {
+    } else if (percent > 0.7) {
       isCorrect = true;
       reward = Math.floor(reward / 2);
       await message.reply({
@@ -294,25 +277,36 @@ export class SIGamePlayer {
           },
         ],
       });
-    } else {
-      isCorrect = true;
+    } else if (percent > 0.4) {
       await message.reply({
         embeds: [
           {
             color: SIGameColor,
-            description: `<@${message.author.id}>, абсолютно верно!`,
-            footer: { text: `Награда +${reward}` },
+            description: `<@${message.author.id}>, почти угадали! Попробуйте еще раз.`,
           },
         ],
       });
+    } else {
+      const hint = this.checkMiss(message, question.right.answer);
+      if (hint) {
+        await message.reply({
+          embeds: [
+            {
+              color: SIGameColor,
+              description: `Подсказка: \`${hint}\`.`,
+            },
+          ],
+        });
+      }
     }
+
     if (isCorrect) {
       state.playersScores[message.author.id] =
         (state.playersScores[message.author.id] ?? 0) + reward;
       await this.setGameState(guildId, state);
       await this.userService.addCoins(user, reward);
       await this.askNextQuestion(guildId);
-      this.hints.set(guildId, '');
+      this.hints.set(guildId, [0, '']);
     }
   }
 
@@ -335,7 +329,7 @@ export class SIGamePlayer {
     await interaction.reply({
       content: 'Пропускаем вопрос...',
     });
-    this.hints.set(guildId, '');
+    this.hints.set(guildId, [0, '']);
     await this.askNextQuestion(guildId);
   }
 
@@ -518,6 +512,47 @@ export class SIGamePlayer {
     }
   }
 
+  private checkMiss(message: Message, rightAnswer: string) {
+    const guildId = message.guildId;
+    if (!guildId) return false;
+
+    let [hintCount, hints] = this.hints.get(guildId) ?? [0, ''];
+
+    hintCount += 1;
+    this.hints.set(guildId, [hintCount, hints]);
+
+    if (hintCount < 5) {
+      return false;
+    }
+
+    if (hints.length < Math.min(5, rightAnswer.length)) {
+      while (true) {
+        const index = Math.floor(Math.random() * rightAnswer.length);
+        const char = rightAnswer[index];
+        if (char === ' ' || hints.includes(char)) {
+          continue;
+        }
+        hints += char;
+        break;
+      }
+
+      let hint = '';
+
+      for (const char of rightAnswer) {
+        if (char === ' ' || hints.includes(char)) {
+          hint += char;
+        } else {
+          hint += '*';
+        }
+      }
+      this.hints.set(guildId, [hintCount, hints]);
+
+      return hint;
+    }
+    this.hints.set(guildId, [0, '']);
+    return false;
+  }
+
   private async getCurrentPack(guildId: DiscordID) {
     let pack = this.packs.get(guildId);
     if (!pack) {
@@ -574,5 +609,102 @@ export class SIGamePlayer {
     this.packs.delete(guildId);
     this.hints.delete(guildId);
     await this.sigameService.deletePack(state.packId);
+  }
+
+  private normalizeWord(word: string) {
+    return word
+      .toLowerCase()
+      .replace(/[.,!?;:"'()\-–—]/g, '')
+      .replace(/([a-zа-я])(\d)/gi, '$1 $2') // вставляем пробел между буквами и цифрами
+      .replace(/(\d)([a-zа-я])/gi, '$1 $2')
+      .replace(/(.)\1{2,}/g, '$1') // убираем повторы букв
+      .trim();
+  }
+
+  private normalizeAnswer(answer: string) {
+    return answer
+      .toLowerCase()
+      .replace(/[.,!?;:"'()\-–—]/g, '')
+      .replace(/([a-zа-я])(\d)/gi, '$1 $2')
+      .replace(/(\d)([a-zа-я])/gi, '$1 $2')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  private similartiy(a: string, b: string) {
+    a = this.normalizeWord(a);
+    b = this.normalizeWord(b);
+    const maxLen = Math.max(a.length, b.length);
+    if (maxLen === 0) return 1;
+    const distance = levenshtein(a, b);
+    return 1 - distance / Math.max(a.length, b.length);
+  }
+
+  private checkAnswer(userAnswer: string, rightAnswer: string) {
+    let wordsA: string[] = this.normalizeAnswer(userAnswer)
+      .split(/\s+/)
+      .map(this.normalizeWord.bind(this));
+    const wordsB: string[] = this.normalizeAnswer(rightAnswer)
+      .split(/\s+/)
+      .map(this.normalizeWord.bind(this));
+
+    /// filter trash
+    wordsA = wordsA.filter((w) => w.length > 0);
+
+    const uniqueWordsA: string[] = [];
+
+    for (const w of wordsA) {
+      const isDuplicate = uniqueWordsA.some((u) => this.similartiy(w, u) > 0.9);
+      if (!isDuplicate) uniqueWordsA.push(w);
+    }
+
+    const repetitionPenalty = uniqueWordsA.length / Math.max(wordsA.length, 1);
+
+    const usedA = new Set<number>();
+
+    let total = 0;
+
+    for (const wordB of wordsB) {
+      let best = 0;
+      let bestIndex = -1;
+
+      for (let i = 0; i < uniqueWordsA.length; i++) {
+        if (usedA.has(i)) continue;
+        const sim = this.similartiy(uniqueWordsA[i], wordB);
+        if (sim > best) {
+          best = sim;
+          bestIndex = i;
+        }
+      }
+
+      if (bestIndex !== -1) usedA.add(bestIndex);
+      total += best;
+    }
+
+    let score = (total / wordsB.length) * repetitionPenalty;
+
+    // Дополнительная проверка для цифр
+    const numsA = (userAnswer.match(/\d+/g) ?? []).join(' ');
+    const numsB = (rightAnswer.match(/\d+/g) ?? []).join(' ');
+
+    if (numsA && numsB) {
+      if (numsA !== numsB) {
+        score *= 0.85; // штраф за неверную цифру
+      }
+    } else if (!numsA && numsB) {
+      score *= 0.9; // штраф за отсутствие числа
+    }
+
+    this.logger.debug({
+      userAnswer,
+      rightAnswer,
+      wordsA: uniqueWordsA,
+      wordsB,
+      total,
+      repetitionPenalty,
+      score,
+    });
+
+    return score;
   }
 }
