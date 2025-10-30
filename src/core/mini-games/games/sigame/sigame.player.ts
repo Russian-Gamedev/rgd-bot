@@ -635,6 +635,7 @@ export class SIGamePlayer {
       .replace(/(\d)([a-zа-я])/gi, '$1 $2')
       .replace(/(.)\1{2,}/g, '$1') // убираем повторы букв
       .replace(/\s+/g, '')
+      .replace(/ё/g, 'е')
       .trim();
   }
 
@@ -645,6 +646,7 @@ export class SIGamePlayer {
       .replace(/([a-zа-я])(\d)/gi, '$1 $2')
       .replace(/(\d)([a-zа-я])/gi, '$1 $2')
       .replace(/\s+/g, ' ')
+      .replace(/ё/g, 'е')
       .trim();
   }
 
