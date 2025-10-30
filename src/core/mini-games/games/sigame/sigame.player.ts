@@ -64,6 +64,8 @@ export class SIGamePlayer {
 
   private readonly _cachedChannels = new Map<DiscordID, SendableChannels>();
 
+  private readonly lockCheckAnswer = new Map<DiscordID, boolean>();
+
   constructor(
     private readonly sigameService: SIGameService,
     private readonly discord: Client,
@@ -71,6 +73,13 @@ export class SIGamePlayer {
     private readonly redis: Redis,
     private readonly userService: UserService,
   ) {}
+
+  private isLockedCheckAnswer(guildId: DiscordID) {
+    return this.lockCheckAnswer.get(guildId) ?? false;
+  }
+  private setLockedCheckAnswer(guildId: DiscordID, value: boolean) {
+    this.lockCheckAnswer.set(guildId, value);
+  }
 
   @UseInterceptors(SIGamePackAutocompleteInterceptor)
   @Subcommand({
@@ -222,6 +231,8 @@ export class SIGamePlayer {
     const guildId = message.guildId;
     const channelId = message.channelId;
 
+    if (this.isLockedCheckAnswer(guildId!)) return;
+
     if (!message.guild || message.author.bot) return;
 
     if (!guildId) return;
@@ -252,6 +263,7 @@ export class SIGamePlayer {
       await message.reply({
         content: 'Пропускаем вопрос...',
       });
+      this.setLockedCheckAnswer(guildId, true);
       return this.askNextQuestion(guildId);
     }
 
@@ -268,40 +280,14 @@ export class SIGamePlayer {
       return;
     }
 
-    if (text.toLowerCase().includes('!logs')) {
-      const logs = await this.getAnswerLogs(guildId);
-      if (logs.length === 0) {
-        return;
-      }
-      const page = Number(text.split(' ')[1] ?? '1');
-      if (isNaN(page) || page < 1) {
-        return;
-      }
-      const logsPerPage = 3;
-      const start = (page - 1) * logsPerPage;
-      const end = start + logsPerPage;
-      const totalPages = Math.ceil(logs.length / logsPerPage);
-      if (page > totalPages) {
-        return;
-      }
-      await message.channel.send(
-        `Показаны логи ответов страницы ${page} из ${totalPages}:`,
-      );
-      const pagedLogs = logs.slice(start, end);
-      if (pagedLogs.length === 0) {
-        return;
-      }
-
-      const logMessages =
-        JSON.stringify(pagedLogs, null, 2).match(/[\s\S]{1,1900}/g) ?? [];
-
-      for (const logMessage of logMessages) {
-        await message.channel.send(`\`\`\`json\n${logMessage}\n\`\`\``);
-      }
-      return;
-    }
-
     const answer = this.checkAnswer(text, question.right.answer);
+
+    this.logger.debug({
+      text,
+      answer: question.right.answer,
+      result: Answer[answer],
+    });
+
     if (answer == Answer.Incorrect) {
       if (text.startsWith('подска'))
         await message.reply({
@@ -326,6 +312,7 @@ export class SIGamePlayer {
       });
       return;
     }
+    this.setLockedCheckAnswer(guildId, true);
 
     const reward = question.price;
 
@@ -348,6 +335,7 @@ export class SIGamePlayer {
     await this.userService.addCoins(user, reward);
     await this.askNextQuestion(guildId);
     this.hints.set(guildId, 0);
+    this.setLockedCheckAnswer(guildId, false);
   }
 
   @Subcommand({
@@ -440,9 +428,10 @@ export class SIGamePlayer {
         }
       }
     }
-
+    this.hints.set(guildId, 0);
     await this.setGameState(guildId, state);
     await this.askQuestion(guildId);
+    this.setLockedCheckAnswer(guildId, false);
   }
 
   private async endGame(guildId: DiscordID) {
@@ -529,7 +518,7 @@ export class SIGamePlayer {
       description = `❓ Вопрос представлен в виде медиафайла`;
     }
 
-    description += `\n\nОтвет на: **${isEnglish ? 'английском' : 'русском'}** языке.`;
+    description += `\n\nОтвет на: **${isEnglish ? '🇺🇸 английском' : '🇷🇺 русском'}** языке.`;
 
     embed.setDescription(description);
 
@@ -563,7 +552,7 @@ export class SIGamePlayer {
       hintCount += 1;
       this.hints.set(guildId, hintCount);
 
-      let openLetters = '';
+      let openLetters = ' ';
       let hintMessage = '';
 
       for (let i = 0; i < rightAnswer.length; i++) {
