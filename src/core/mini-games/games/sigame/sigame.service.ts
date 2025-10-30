@@ -167,10 +167,28 @@ export class SIGameService {
             price = 100;
           }
 
-          price = Math.min(Math.max(price, 100), 10_000);
+          price = Math.min(Math.max(price, 100), 100_000);
 
-          const atom = question.scenario.atom;
-          const atoms = Array.isArray(atom) ? atom : [atom];
+          const atoms: (string | { '@_type'?: string; '#text': string })[] = [];
+          if ('scenario' in question) {
+            if (Array.isArray(question.scenario.atom)) {
+              atoms.push(...question.scenario.atom);
+            } else {
+              atoms.push(question.scenario.atom);
+            }
+          }
+          if ('params' in question) {
+            const param = question.params.param;
+            const params = Array.isArray(param) ? param : [param];
+            for (const param of params) {
+              if ('item' in param) {
+                atoms.push({
+                  '@_type': param.item['@_type'],
+                  '#text': param.item['#text'],
+                });
+              }
+            }
+          }
           let text = '';
           let embed: string | undefined;
 

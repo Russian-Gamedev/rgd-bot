@@ -20,7 +20,7 @@ import {
 import { GuildSettings } from '#config/guilds';
 import { GuildSettingsService } from '#core/guilds/settings/guild-settings.service';
 import { UserService } from '#core/users/users.service';
-import { levenshtein } from '#root/lib/levenshtein';
+import { calculateAdvancedSimilarity } from '#root/lib/levenshtein';
 import { DiscordID } from '#root/lib/types';
 
 import {
@@ -181,8 +181,23 @@ export class SIGamePlayer {
       if (!isLoaded) {
         const pack = await this.sigameService.getPackById(state.packId);
         await this.sigameService.downloadPack(pack);
-        const parsed = await this.sigameService.parsePack(state.packId);
-        this.packs.set(guildId, parsed);
+        try {
+          const parsed = await this.sigameService.parsePack(state.packId);
+          this.packs.set(guildId, parsed);
+        } catch (error) {
+          this.logger.error(`Failed to parse pack ${state.packId}: ${error}`);
+          await channel.send({
+            embeds: [
+              new EmbedBuilder()
+                .setColor(SIGameColor)
+                .setTitle(`Ошибка при загрузке пакета`)
+                .setDescription(
+                  `Не удалось загрузить пакет. Пожалуйста, попробуйте другой пакет.`,
+                ),
+            ],
+          });
+          return;
+        }
       }
 
       await this.askQuestion(guildId);
@@ -630,7 +645,7 @@ export class SIGamePlayer {
   private normalizeWord(word: string) {
     return word
       .toLowerCase()
-      .replace(/[.,!?;:"'()\-–—]/g, ' ')
+      .replace(/[.,!?;:"'()\-–—\\/]/g, ' ')
       .replace(/([a-zа-я])(\d)/gi, '$1 $2') // вставляем пробел между буквами и цифрами
       .replace(/(\d)([a-zа-я])/gi, '$1 $2')
       .replace(/(.)\1{2,}/g, '$1') // убираем повторы букв
@@ -655,8 +670,7 @@ export class SIGamePlayer {
     b = this.normalizeWord(b);
     const maxLen = Math.max(a.length, b.length);
     if (maxLen === 0) return 1;
-    const distance = levenshtein(a, b);
-    return 1 - distance / Math.max(a.length, b.length);
+    return calculateAdvancedSimilarity(a, b);
   }
 
   private checkAnswer(userAnswer: string, rightAnswer: string) {
