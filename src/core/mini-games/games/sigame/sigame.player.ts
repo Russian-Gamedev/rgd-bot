@@ -20,9 +20,9 @@ import {
 import { GuildSettings } from '#config/guilds';
 import { GuildSettingsService } from '#core/guilds/settings/guild-settings.service';
 import { UserService } from '#core/users/users.service';
-import { calculateAdvancedSimilarity } from '#root/lib/levenshtein';
 import { DiscordID } from '#root/lib/types';
 
+import { Answer, AnswerChecker } from './utils/answer-checker';
 import {
   SIGamePackAutocompleteInterceptor,
   SIGameSearchDTO,
@@ -46,13 +46,6 @@ interface GameState {
   playersScores: Record<string, number>;
 }
 
-enum Answer {
-  Incorrect,
-  Close,
-  Valid,
-  Correct,
-}
-
 @Injectable()
 @SICommandDecorator()
 export class SIGamePlayer {
@@ -72,6 +65,7 @@ export class SIGamePlayer {
     private readonly guildSettings: GuildSettingsService,
     private readonly redis: Redis,
     private readonly userService: UserService,
+    private readonly answerChecker: AnswerChecker,
   ) {}
 
   private isLockedCheckAnswer(guildId: DiscordID) {
@@ -295,7 +289,7 @@ export class SIGamePlayer {
       return;
     }
 
-    const answer = this.checkAnswer(text, question.right.answer);
+    const answer = this.answerChecker.check(text, question.right.answer);
 
     this.logger.debug({
       text,
@@ -316,7 +310,7 @@ export class SIGamePlayer {
       return;
     }
 
-    if (answer == Answer.Close) {
+    if (answer == Answer.Partial) {
       await message.reply({
         embeds: [
           {
@@ -640,104 +634,6 @@ export class SIGamePlayer {
     this.packs.delete(guildId);
     this.hints.delete(guildId);
     await this.sigameService.deletePack(state.packId);
-  }
-
-  private normalizeWord(word: string) {
-    return word
-      .toLowerCase()
-      .replace(/[.,!?;:"'()\-–—\\/]/g, ' ')
-      .replace(/([a-zа-я])(\d)/gi, '$1 $2') // вставляем пробел между буквами и цифрами
-      .replace(/(\d)([a-zа-я])/gi, '$1 $2')
-      .replace(/(.)\1{2,}/g, '$1') // убираем повторы букв
-      .replace(/\s+/g, '')
-      .replace(/ё/g, 'е')
-      .trim();
-  }
-
-  private normalizeAnswer(answer: string) {
-    return answer
-      .toLowerCase()
-      .replace(/[.,!?;:"'()\-–—]/g, ' ')
-      .replace(/([a-zа-я])(\d)/gi, '$1 $2')
-      .replace(/(\d)([a-zа-я])/gi, '$1 $2')
-      .replace(/\s+/g, ' ')
-      .replace(/ё/g, 'е')
-      .trim();
-  }
-
-  private similarity(a: string, b: string) {
-    a = this.normalizeWord(a);
-    b = this.normalizeWord(b);
-    const maxLen = Math.max(a.length, b.length);
-    if (maxLen === 0) return 1;
-    return calculateAdvancedSimilarity(a, b);
-  }
-
-  private checkAnswer(userAnswer: string, rightAnswer: string) {
-    const answer = this.normalizeAnswer(userAnswer);
-    const correctanswer = this.normalizeAnswer(rightAnswer);
-
-    // Если ответ это подстрока 85% ответа - верно
-    if (correctanswer.includes(answer)) {
-      const error =
-        (correctanswer.length - answer.length) / correctanswer.length;
-      if (error < 0.125) return Answer.Correct;
-    }
-
-    let wordsA: string[] = answer
-      .split(/\s+/)
-      .map(this.normalizeWord.bind(this));
-    let wordsB: string[] = correctanswer
-      .split(/\s+/)
-      .map(this.normalizeWord.bind(this));
-
-    wordsA = wordsA.filter((w) => w.length > 0);
-    wordsB = wordsB.filter((w) => w.length > 0);
-
-    wordsA = [...new Set(wordsA)];
-    wordsB = [...new Set(wordsB)];
-
-    // Если ответ это аббривеатура до четырёх букв
-    if (correctanswer.length <= 4) {
-      let abbreviation = '';
-      for (let i = 0; i < Math.min(wordsA.length, 4); i++) {
-        abbreviation += wordsA[i][0];
-        if (correctanswer == abbreviation) return Answer.Correct;
-      }
-    }
-
-    // Убираем 'feat' если это не ответ, а часть ответа про музыку
-    if (wordsB.includes('feat') && wordsB.length > 1)
-      wordsB.splice(wordsB.indexOf('feat'), 1);
-
-    // Если два слова из ответа полностью совпали с правильными то засчитано
-    for (let x = 0; x < wordsA.length; x++)
-      if (wordsB.includes(wordsA[x]))
-        for (let y = x + 1; y < wordsA.length; y++)
-          if (wordsB.includes(wordsA[y])) return Answer.Correct;
-
-    // Находим количество слишком похожих слов, если их больше двух то засчитываем сразу
-    const tempA = new Set();
-    const tempB = new Set();
-    let similarPairCount = 0;
-
-    for (let i = 0; i < wordsA.length; i++)
-      for (let j = 0; j < wordsB.length; j++)
-        if (!tempA.has(i) && !tempB.has(j)) {
-          const similarity = this.similarity(wordsA[i], wordsB[j]);
-          if (similarity < 0.85) continue;
-
-          tempA.add(i);
-          tempB.add(j);
-          similarPairCount++;
-          if (similarPairCount > 2) return Answer.Correct;
-        }
-
-    if (similarPairCount >= wordsB.length) return Answer.Correct;
-    else if (similarPairCount >= 2) return Answer.Valid;
-    else if (similarPairCount > 0) return Answer.Close;
-
-    return Answer.Incorrect;
   }
 
   private async addAnswerLog(guildId: DiscordID, log: object) {
