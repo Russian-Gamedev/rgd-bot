@@ -128,7 +128,7 @@ export class AnswerChecker {
     }
 
     // Check abbreviation (correct answer is 1 word)
-    if (wordsB.length === 1) {
+    if (wordsB.length === 1 && wordsA.length > 1) {
       let abb = '';
       for (const word of wordsA) {
         abb += word[0];
