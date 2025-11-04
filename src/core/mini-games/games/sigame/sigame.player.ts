@@ -277,7 +277,7 @@ export class SIGamePlayer {
     }
 
     if (['подсказка', 'hint'].includes(text.toLowerCase())) {
-      const hint = this.GetHint(guildId, question.right.answer);
+      const hint = this.getHint(guildId, question.right.answer);
       await message.reply({
         embeds: [
           {
@@ -303,7 +303,7 @@ export class SIGamePlayer {
           embeds: [
             {
               color: SIGameColor,
-              description: `Подсказка: \`${this.GetHint(guildId, question.right.answer)}\`.`,
+              description: `Подсказка: \`${this.getHint(guildId, question.right.answer)}\`.`,
             },
           ],
         });
@@ -458,8 +458,6 @@ export class SIGamePlayer {
       ([userId, score]) => `<@${userId}>: ${score} очков`,
     );
 
-    await this.clearAnswerLogs(guildId);
-
     await channel.send({
       embeds: [
         {
@@ -552,7 +550,7 @@ export class SIGamePlayer {
     }
   }
 
-  private GetHint(guildId: DiscordID, rightAnswer: string) {
+  private getHint(guildId: DiscordID, rightAnswer: string) {
     if (!guildId) return false;
 
     let hintCount = this.hints.get(guildId) ?? 0;
@@ -634,18 +632,5 @@ export class SIGamePlayer {
     this.packs.delete(guildId);
     this.hints.delete(guildId);
     await this.sigameService.deletePack(state.packId);
-  }
-
-  private async addAnswerLog(guildId: DiscordID, log: object) {
-    await this.redis.lpush(`sigame:answerlogs:${guildId}`, JSON.stringify(log));
-  }
-
-  private async getAnswerLogs(guildId: DiscordID) {
-    const logs = await this.redis.lrange(`sigame:answerlogs:${guildId}`, 0, -1);
-    return logs.map((log) => JSON.parse(log));
-  }
-
-  private async clearAnswerLogs(guildId: DiscordID) {
-    await this.redis.del(`sigame:answerlogs:${guildId}`);
   }
 }

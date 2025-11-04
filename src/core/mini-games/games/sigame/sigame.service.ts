@@ -4,7 +4,8 @@ import fs from 'fs/promises';
 import JSZip from 'jszip';
 import path from 'path';
 
-import { FFMpegService } from './../../../ffmpeg/ffmpeg.service';
+import { FFMpegService } from '#core/ffmpeg/ffmpeg.service';
+
 import {
   SIGamePack,
   SIGameParsed,
