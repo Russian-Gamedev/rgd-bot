@@ -13,6 +13,7 @@ import { FFMpegModule } from '#core/ffmpeg/ffmpeg.module';
 import { GuildModule } from '#core/guilds/guild.module';
 import { ItemsModule } from '#core/items/items.module';
 import { MiniGamesModule } from '#core/mini-games/mini-games.module';
+import { TelegramModule } from '#core/telegram/telegram.module';
 import { UserModule } from '#core/users/users.module';
 
 import { AppController } from './app.controller';
@@ -32,6 +33,7 @@ import { AppController } from './app.controller';
     AuthModule,
     FFMpegModule,
     ItemsModule,
+    TelegramModule,
   ],
   controllers: [AppController],
   providers: [GitInfoService],
