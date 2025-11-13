@@ -5,6 +5,7 @@ import { IntentsBitField, Partials } from 'discord.js';
 import { NecordModule } from 'necord';
 
 import { AppConfigModule } from '#common/config/config.module';
+import { RedisModule } from '#common/redis.module';
 import { Environment, EnvironmentVariables } from '#config/env';
 
 import { commands } from './commands';
@@ -44,6 +45,7 @@ import { DiscordService } from './discord.service';
       }),
     }),
     NecordPaginationModule.forRoot({}),
+    RedisModule,
   ],
   providers: [DiscordService, ...commands],
   controllers: [DiscordController],

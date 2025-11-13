@@ -17,4 +17,9 @@ export class DiscordController {
     if (!url) return res.sendStatus(404);
     return res.redirect(url);
   }
+
+  @Get('/members')
+  public async getMembersStats() {
+    return this.discordService.getMembersStats();
+  }
 }
