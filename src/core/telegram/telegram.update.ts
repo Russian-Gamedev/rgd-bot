@@ -9,6 +9,15 @@ import { EnvironmentVariables } from '#config/env';
 
 import { VideoEmbedEntity, VideoInfo } from './entities/video-embed.entity';
 
+export interface VideoStreamResult {
+  stream: ReadableStreamDefaultReader<Uint8Array>;
+  contentLength: number;
+  contentType: string;
+  start: number;
+  end: number;
+  isPartial: boolean;
+}
+
 @Update()
 export class TelegramUpdate {
   constructor(
@@ -68,7 +77,10 @@ export class TelegramUpdate {
     await ctx.reply(replyMessage);
   }
 
-  public async fetchVideoEmbed(fileId: string) {
+  public async fetchVideoEmbed(
+    fileId: string,
+    rangeHeader?: string,
+  ): Promise<VideoStreamResult | null> {
     const videoInfo = await this.ensureVideoEmbed(fileId);
     if (!videoInfo) {
       return null;
@@ -79,12 +91,43 @@ export class TelegramUpdate {
       this.telegramURL +
       link.pathname.replace('/var/lib/telegram-bot-api/', '/file/bot');
 
-    const upstream = await fetch(pathToFile);
-    if (!upstream.ok) {
+    const fileSize = videoInfo.size;
+    let start = 0;
+    let end = fileSize - 1;
+
+    // Parse range header
+    if (rangeHeader) {
+      const parts = rangeHeader.replace(/bytes=/, '').split('-');
+      start = parseInt(parts[0], 10);
+      end = parts[1] ? parseInt(parts[1], 10) : end;
+    }
+
+    // Fetch with range header
+    const headers: HeadersInit = {};
+    if (rangeHeader) {
+      headers.Range = `bytes=${start}-${end}`;
+    }
+
+    const upstream = await fetch(pathToFile, { headers });
+    if (!upstream.ok && upstream.status !== 206) {
       throw new Error('Failed to fetch video from Telegram');
     }
 
-    return upstream.body?.getReader();
+    const contentType = upstream.headers.get('content-type') ?? 'video/mp4';
+    const reader = upstream.body?.getReader();
+
+    if (!reader) {
+      throw new Error('Failed to get video stream');
+    }
+
+    return {
+      stream: reader,
+      contentLength: fileSize,
+      contentType,
+      start,
+      end,
+      isPartial: upstream.status === 206,
+    };
   }
 
   async ensureVideoEmbed(fileId: string) {

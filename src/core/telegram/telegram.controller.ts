@@ -1,4 +1,11 @@
-import { Controller, Get, NotFoundException, Param, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Headers,
+  NotFoundException,
+  Param,
+  Res,
+} from '@nestjs/common';
 import { type Response } from 'express';
 import path from 'path';
 
@@ -41,21 +48,54 @@ export class TelegramController {
     return html;
   }
 
-  @Get('/embed/:fileId/video')
-  async getVideo(@Param('fileId') fileId: string, @Res() res: Response) {
-    const response = await this.telegramUpdate.fetchVideoEmbed(fileId);
-    if (!response) {
+  @Get('/embed/:fileId/video.mp4')
+  async getVideo(
+    @Param('fileId') fileId: string,
+    @Headers('range') range: string | undefined,
+    @Res() res: Response,
+  ) {
+    const result = await this.telegramUpdate.fetchVideoEmbed(fileId, range);
+    if (!result) {
       throw new NotFoundException('Видео не найдено');
     }
 
-    /// stream the video response
-    while (true) {
-      const { done, value } = await response.read();
-      if (done) {
-        break;
-      }
-      res.write(value);
+    const { stream, contentLength, contentType, start, end, isPartial } =
+      result;
+
+    // Set appropriate headers for range requests
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Accept-Ranges', 'bytes');
+
+    if (isPartial) {
+      res.status(206); // Partial Content
+      res.setHeader('Content-Range', `bytes ${start}-${end}/${contentLength}`);
+      res.setHeader('Content-Length', end - start + 1);
+    } else {
+      res.status(200);
+      res.setHeader('Content-Length', contentLength);
     }
-    res.end();
+
+    // Allow caching
+    res.setHeader('Cache-Control', 'public, max-age=31536000');
+
+    // Stream the video
+    try {
+      while (true) {
+        const { done, value } = await stream.read();
+        if (done) {
+          break;
+        }
+        if (!res.write(value)) {
+          // Back-pressure: wait for drain event
+          await new Promise((resolve) => res.once('drain', resolve));
+        }
+      }
+      res.end();
+    } catch (error) {
+      console.error('Error streaming video:', error);
+      if (!res.headersSent) {
+        res.status(500).end();
+      }
+    }
   }
 }
