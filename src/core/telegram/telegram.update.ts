@@ -75,7 +75,11 @@ export class TelegramUpdate {
     }
 
     const link = await this.bot.telegram.getFileLink(fileId);
-    const upstream = await fetch(link.href);
+    const pathToFile =
+      this.telegramURL +
+      link.pathname.replace('/var/lib/telegram-bot-api/', '/file/bot');
+
+    const upstream = await fetch(pathToFile);
     if (!upstream.ok) {
       throw new Error('Failed to fetch video from Telegram');
     }
@@ -100,5 +104,9 @@ export class TelegramUpdate {
 
   private get baseUrl(): string {
     return this.configService.getOrThrow<string>('BASE_URL');
+  }
+
+  private get telegramURL(): string {
+    return this.bot.telegram.options.apiRoot;
   }
 }

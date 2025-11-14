@@ -17,7 +17,11 @@ import { TelegramUpdate } from './telegram.update';
       inject: [ConfigService],
       useFactory: (config: ConfigService<EnvironmentVariables>) => ({
         token: config.getOrThrow('TELEGRAM_BOT_TOKEN'),
-        botName: 'rgd_discord_bot',
+        options: {
+          telegram: {
+            apiRoot: config.get('TELEGRAM_API_ROOT'),
+          },
+        },
       }),
     }),
     MikroOrmModule.forFeature([VideoEmbedEntity]),

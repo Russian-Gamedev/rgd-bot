@@ -51,4 +51,8 @@ export class EnvironmentVariables {
   @IsString()
   @IsOptional()
   TELEGRAM_BOT_TOKEN?: string;
+
+  @IsString()
+  @IsOptional()
+  TELEGRAM_API_ROOT?: string;
 }
