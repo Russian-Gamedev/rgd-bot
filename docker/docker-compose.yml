@@ -18,6 +18,7 @@ services:
         condition: service_healthy
     networks:
       - app_network
+      - telegram-bot-api
   database:
     image: postgres:18-alpine
     container_name: "${COMPOSE_PROJECT_NAME}_database"
@@ -56,3 +57,5 @@ services:
 
 networks:
   app_network:
+  telegram-bot-api:
+    external: true
