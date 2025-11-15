@@ -1,4 +1,4 @@
-import { Logger, Module, Provider } from '@nestjs/common';
+import { Global, Logger, Module, Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
@@ -19,6 +19,7 @@ const redisProvider: Provider = {
   provide: Redis,
 };
 
+@Global()
 @Module({
   providers: [redisProvider],
   exports: [redisProvider],

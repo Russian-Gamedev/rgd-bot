@@ -15,4 +15,7 @@ export class GuildEntity extends BaseEntity {
 
   @Property({ nullable: true })
   icon_url?: string;
+
+  @Property({ nullable: true })
+  custom_banner_url?: string;
 }

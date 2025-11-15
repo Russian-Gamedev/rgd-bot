@@ -4,6 +4,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Client, Guild } from 'discord.js';
 import { Once } from 'necord';
 
+import { DiscordID } from '#root/lib/types';
+
 import { GuildEntity } from './entities/guild.entity';
 import { RoleEntity } from './entities/role.entity';
 
@@ -26,11 +28,15 @@ export class GuildService {
     this.logger.log('Fetched guilds from Discord');
   }
 
+  async getGuildById(id: DiscordID) {
+    return this.guildRepository.findOne({ id });
+  }
+
   async getGuilds() {
     return this.guildRepository.findAll();
   }
 
-  async getGuildRoles(guildId: bigint) {
+  async getGuildRoles(guildId: DiscordID) {
     return this.roleRepository.find({ guild_id: guildId });
   }
 

@@ -318,6 +318,16 @@
           "nullable": true,
           "length": 255,
           "mappedType": "string"
+        },
+        "custom_banner_url": {
+          "name": "custom_banner_url",
+          "type": "varchar(255)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "length": 255,
+          "mappedType": "string"
         }
       },
       "name": "guilds",

@@ -11,6 +11,7 @@ import { BotsModule } from '#core/bots/bots.module';
 import { DiscordModule } from '#core/discord/discord.module';
 import { FFMpegModule } from '#core/ffmpeg/ffmpeg.module';
 import { GuildModule } from '#core/guilds/guild.module';
+import { ImageGeneratorModule } from '#core/image-generator/image-generator.module';
 import { ItemsModule } from '#core/items/items.module';
 import { MiniGamesModule } from '#core/mini-games/mini-games.module';
 import { TelegramModule } from '#core/telegram/telegram.module';
@@ -34,6 +35,7 @@ import { AppController } from './app.controller';
     FFMpegModule,
     ItemsModule,
     TelegramModule,
+    ImageGeneratorModule,
   ],
   controllers: [AppController],
   providers: [GitInfoService],

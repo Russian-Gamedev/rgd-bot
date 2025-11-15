@@ -61,6 +61,8 @@
     "@nestjs/platform-express": "^11.1.8",
     "@nestjs/schedule": "^6.0.1",
     "@nestjs/swagger": "^11.2.1",
+    "@takumi-rs/core": "^0.51.0",
+    "@takumi-rs/helpers": "^0.51.0",
     "ajv": "^8.17.1",
     "class-transform": "^0.7.1",
     "class-transformer": "^0.5.1",
@@ -74,6 +76,7 @@
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",
     "passport-jwt": "^4.0.1",
+    "react": "^19.2.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "telegraf": "^4.16.3"
