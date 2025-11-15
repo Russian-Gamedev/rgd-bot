@@ -55,6 +55,10 @@ export class GuildWatcherService {
     }
 
     await channel.send(message);
+
+    if (isNewUser) return;
+
+    await this.userService.loadRoles(user);
   }
 
   @On('guildMemberRemove')
@@ -67,6 +71,15 @@ export class GuildWatcherService {
 
     const user = await this.userService.findOrCreate(guild.id, member.id);
     await this.userService.leaveGuild(user);
+
+    const roles = member.roles.cache;
+
+    if (roles.size === 0) return;
+
+    this.logger.log(
+      `Saving roles for user ${member.displayName} in guild ${guild.name}`,
+    );
+    await this.userService.saveRoles(user, roles);
 
     const channel = await this.guildSettingsService.getEventMessageChannel(
       guild.id,

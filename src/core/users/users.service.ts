@@ -1,7 +1,7 @@
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 import { Injectable } from '@nestjs/common';
-import { Client } from 'discord.js';
+import { Client, Collection, Role } from 'discord.js';
 
 import { DiscordID } from '#root/lib/types';
 import { getDisplayAvatar, noop } from '#root/lib/utils';
@@ -100,13 +100,9 @@ export class UserService {
     await this.em.persistAndFlush(user);
   }
 
-  async saveRoles(user: UserEntity) {
+  async saveRoles(user: UserEntity, discordRoles: Collection<string, Role>) {
     const guild = await this.client.guilds.fetch(user.guild_id.toString());
     if (!guild) return;
-    const discordUser = await guild.members.fetch(user.user_id.toString());
-    if (!discordUser) return;
-
-    const discordRoles = discordUser.roles.cache;
 
     const savedRoles = await this.userRoleRepository.find({
       user_id: user.user_id,
@@ -134,6 +130,28 @@ export class UserService {
     }
 
     await this.em.flush();
+  }
+
+  async loadRoles(user: UserEntity) {
+    const roles = await this.userRoleRepository.find({
+      user_id: user.user_id,
+      guild_id: user.guild_id,
+    });
+
+    const guild = await this.client.guilds.fetch(user.guild_id.toString());
+    if (!guild) return;
+
+    for (const role of roles) {
+      const discordRole = await guild.roles.fetch(role.role_id.toString());
+      if (!discordRole) continue;
+
+      const member = await guild.members.fetch(user.user_id.toString());
+      if (!member) continue;
+
+      if (!member.roles.cache.has(discordRole.id)) {
+        await member.roles.add(discordRole);
+      }
+    }
   }
 
   async updateLastActiveAt(user: UserEntity): Promise<void> {
