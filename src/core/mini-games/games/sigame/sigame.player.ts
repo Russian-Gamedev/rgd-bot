@@ -522,8 +522,15 @@ export class SIGamePlayer {
       hintCount += 1;
       this.hints.set(guildId, hintCount);
 
-      let openLetters = ' ';
+      let openLetters = '';
       let hintMessage = '';
+
+      /// add to open letter all non letter ru and en, numbers
+      for (const char of rightAnswer) {
+        if (!/[A-Za-zА-Яа-яЁё0-9]/.test(char)) {
+          openLetters += char;
+        }
+      }
 
       for (let i = 0; i < rightAnswer.length; i++) {
         const char = rightAnswer[i];
@@ -532,7 +539,7 @@ export class SIGamePlayer {
           hintMessage += char;
           openLetters += char;
         } else if (openLetters.includes(char)) hintMessage += char;
-        else hintMessage += '*';
+        else hintMessage += '■';
       }
 
       return hintMessage;
