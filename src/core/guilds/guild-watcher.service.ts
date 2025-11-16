@@ -6,6 +6,7 @@ import { GuildEvents } from '#config/guilds';
 import { UserService } from '#core/users/users.service';
 
 import { GuildEventService } from './events/guild-events.service';
+import { GuildInviteService } from './invite/invite.service';
 import { GuildSettingsService } from './settings/guild-settings.service';
 
 @Injectable()
@@ -17,6 +18,7 @@ export class GuildWatcherService {
     private readonly guildSettingsService: GuildSettingsService,
     private readonly guildEventsService: GuildEventService,
     private readonly userService: UserService,
+    private readonly guildInviteService: GuildInviteService,
   ) {}
 
   @On('guildMemberAdd')
@@ -34,6 +36,22 @@ export class GuildWatcherService {
     if (!isNewUser) {
       await this.userService.rejoinGuild(user);
     }
+
+    const invite = await this.guildInviteService.findRecentUpdated(guild.id);
+
+    if (!invite) {
+      this.logger.warn(
+        `No invite found for guild ${guild.id} when ${member.displayName} joined.`,
+      );
+    } else {
+      this.logger.log(
+        `Member ${member.displayName} joined using invite ${invite.id}.`,
+      );
+
+      await this.guildInviteService.trackJoin(user, invite.id);
+    }
+
+    /// Send welcome message
 
     const channel = await this.guildSettingsService.getEventMessageChannel(
       guild.id,
@@ -55,10 +73,6 @@ export class GuildWatcherService {
     }
 
     await channel.send(message);
-
-    if (isNewUser) return;
-
-    await this.userService.loadRoles(user);
   }
 
   @On('guildMemberRemove')
@@ -71,6 +85,7 @@ export class GuildWatcherService {
 
     const user = await this.userService.findOrCreate(guild.id, member.id);
     await this.userService.leaveGuild(user);
+    await this.guildInviteService.trackLeave(user);
 
     const roles = member.roles.cache;
 
@@ -80,6 +95,8 @@ export class GuildWatcherService {
       `Saving roles for user ${member.displayName} in guild ${guild.name}`,
     );
     await this.userService.saveRoles(user, roles);
+
+    /// Send leave message
 
     const channel = await this.guildSettingsService.getEventMessageChannel(
       guild.id,

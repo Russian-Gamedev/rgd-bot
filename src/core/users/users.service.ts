@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { Client, Collection, Role } from 'discord.js';
 
 import { DiscordID } from '#root/lib/types';
-import { getDisplayAvatar, noop } from '#root/lib/utils';
+import { getDefaultAvatar, getDisplayAvatar, noop } from '#root/lib/utils';
 
 import { UserEntity } from './entities/user.entity';
 import { UserRoleEntity } from './entities/user-roles.entity';
@@ -35,9 +35,14 @@ export class UserService {
       user = new UserEntity();
       user.user_id = userId;
       user.guild_id = guildId;
+      user.avatar = getDefaultAvatar(userId.toString());
       await this.updateUserData(user).catch(noop);
     }
     return user;
+  }
+
+  async save(user: UserEntity): Promise<void> {
+    await this.em.persistAndFlush(user);
   }
 
   async getUserFromGuilds(user_id: DiscordID) {
@@ -98,6 +103,7 @@ export class UserService {
     user.left_at = null;
     user.is_left_guild = false;
     await this.em.persistAndFlush(user);
+    await this.loadRoles(user);
   }
 
   async saveRoles(user: UserEntity, discordRoles: Collection<string, Role>) {

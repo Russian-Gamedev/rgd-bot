@@ -15,7 +15,7 @@ export class UserEntity extends BaseEntity {
   @Property({ type: 'bigint' })
   guild_id: bigint;
 
-  @Property({ type: 'text' })
+  @Property({ type: 'text', defaultRaw: "''" })
   username: string;
 
   @Property({ type: 'text' })
@@ -59,9 +59,6 @@ export class UserEntity extends BaseEntity {
 
   @Property({ type: 'bigint', default: 0 })
   voice_time: number;
-
-  @Property({ default: null, nullable: true })
-  invitedBy: string | null;
 
   @Property({ type: 'timestamptz', defaultRaw: 'now()' })
   lastActiveAt: Date;

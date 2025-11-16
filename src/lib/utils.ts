@@ -10,13 +10,17 @@ export function cast<T>(value: unknown) {
   return value as T;
 }
 
+export function getDefaultAvatar(userId: string) {
+  const id = (BigInt(userId) >> 2n) % 6n;
+  return DISCORD_CDN + `/embed/avatars/${id}.png`;
+}
+
 export function getDisplayAvatar(
   user: User | GuildMember,
   extension: BaseImageURLOptions['extension'] = 'webp',
 ) {
   if (user.avatar === null) {
-    const id = (BigInt(user.id) >> 2n) % 6n;
-    return DISCORD_CDN + `/embed/avatars/${id}.png`;
+    return getDefaultAvatar(user.id);
   }
 
   return user.displayAvatarURL({ size: 1024, extension });
