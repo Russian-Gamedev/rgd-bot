@@ -2,7 +2,7 @@
 
 # Russian GameDev Bot
 
-[![Discord Link](https://bot.rgd.chat/embed/invite/5kZhhWD/banner)](https://discord.gg/5kZhhWD)
+[![Discord Link](https://bot.rgd.chat/embed/invite/TGZ4CDxWRC/banner)](https://discord.gg/TGZ4CDxWRC)
 
 </div>
 
