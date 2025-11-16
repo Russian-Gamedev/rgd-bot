@@ -15,7 +15,7 @@ import { GuildSettings } from '#config/guilds';
 import { GuildSettingsService } from '#core/guilds/settings/guild-settings.service';
 import { UserEntity } from '#core/users/entities/user.entity';
 import { UserService } from '#core/users/users.service';
-import { formatTime, pickRandom } from '#root/lib/utils';
+import { formatTime, pickRandom, pluralize } from '#root/lib/utils';
 
 import { ActivityEntity, ActivityPeriod } from './entities/activity.entity';
 
@@ -331,7 +331,11 @@ export class ActivityJobService {
     const topStreaks = buildTop(
       usersStreak,
       (item, rank) =>
-        buildLine(item.user_id, `${item.activeStreak} дней`, rank),
+        buildLine(
+          item.user_id,
+          `${item.activeStreak} ${pluralize(item.activeStreak, ['день', 'дня', 'дней'])}`,
+          rank,
+        ),
       'никто не держит активную серию :(',
     );
 
