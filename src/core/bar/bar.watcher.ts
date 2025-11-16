@@ -46,7 +46,6 @@ export class BarWatcher {
     contexts: [InteractionContextType.Guild],
   })
   async joinToChannel(@Context() [interaction]: SlashCommandContext) {
-    // if (!this.checkGuildFeatureEnabled(interaction.guild)) return;
     const member = interaction.member as GuildMember;
     const channel = member.voice.channel;
 
@@ -66,7 +65,6 @@ export class BarWatcher {
     });
 
     connection.receiver.speaking.on('start', (userId) => {
-      this.logger.log(`User ${userId} started speaking in ${channel.name}`);
       const user = channel.guild.members.cache.get(userId)!;
       this.barGateway.broadcast('member_speaking', {
         guild_id: channel.guild.id,
@@ -77,7 +75,6 @@ export class BarWatcher {
     });
 
     connection.receiver.speaking.on('end', (userId) => {
-      this.logger.log(`User ${userId} stopped speaking in ${channel.name}`);
       const user = channel.guild.members.cache.get(userId)!;
       this.barGateway.broadcast('member_speaking', {
         guild_id: channel.guild.id,
