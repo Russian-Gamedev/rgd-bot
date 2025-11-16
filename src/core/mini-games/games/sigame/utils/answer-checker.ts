@@ -27,7 +27,16 @@ export class AnswerChecker {
     сто: '100',
   };
 
-  check(text: string, correct: string): Answer {
+  check(text: string, corrects: string[]): Answer {
+    let result = Answer.Incorrect;
+    for (const correct of corrects) {
+      result = this.max(result, this.checkSingle(text, correct));
+      if (result >= Answer.Acceptable) break;
+    }
+    return result;
+  }
+
+  checkSingle(text: string, correct: string): Answer {
     // Easter egg for "РОССИЯ"
     if (text === 'РОССИЯ' && Math.random() < 0.02) {
       return Answer.Correct;
@@ -36,6 +45,7 @@ export class AnswerChecker {
     text = this.normalize(text);
 
     const splitResult = this.split(correct);
+
     if (splitResult.length > 1) {
       let result = Answer.Incorrect;
       for (const variant of splitResult) {
@@ -45,6 +55,18 @@ export class AnswerChecker {
         );
       }
       return result;
+    } else {
+      const splitResult2 = this.split2(correct);
+      if (splitResult2.length > 1) {
+        let result = Answer.Incorrect;
+        for (const variant of splitResult2) {
+          result = this.max(
+            result,
+            this.checkNormalized(text, this.normalize(variant)),
+          );
+        }
+        return result;
+      }
     }
 
     return this.checkNormalized(text, this.normalize(correct));
@@ -60,6 +82,22 @@ export class AnswerChecker {
 
   private split(input: string): string[] {
     const matches = [...input.matchAll(/(.*?)(?:\((.*?)\)|$)/g)];
+    const result = matches
+      .flatMap((m) => [m[1], m[2]])
+      .filter((s) => s && s !== '');
+
+    if (result.some((s) => s !== input)) {
+      return result;
+    }
+    return [input];
+  }
+
+  private split2(input: string): string[] {
+    const matches = [...input.matchAll(/([^ -]*) - ([^\n]*)/g)];
+    if (matches.length !== 2) {
+      return [input];
+    }
+    console.log(input, matches);
     const result = matches
       .flatMap((m) => [m[1], m[2]])
       .filter((s) => s && s !== '');

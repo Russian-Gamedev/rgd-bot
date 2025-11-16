@@ -43,12 +43,13 @@ export interface SIGameTheme {
 }
 
 export interface SIGameQuestion {
-  scenario: {
+  scenarios: {
     text: string;
     embed?: string;
-  };
+  }[];
   right: {
-    answer: string;
+    answers: string[];
+    embeds?: string[];
   };
   price: number;
 }

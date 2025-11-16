@@ -28,9 +28,11 @@ import {
   SIGameSearchDTO,
 } from './sigame.autocomplete';
 import { SIGameService } from './sigame.service';
-import { SIGameParsed } from './sigame.type';
+import { SIGameParsed, SIGameQuestion } from './sigame.type';
 
 const SIGameColor = 0x030751;
+const SIGameAvatar =
+  'https://github.com/VladimirKhil/SIOnline/blob/master/assets/images/sigame.png?raw=true';
 
 const SICommandDecorator = createCommandGroupDecorator({
   name: 'sigame',
@@ -268,16 +270,21 @@ export class SIGamePlayer {
     const text = message.content.trim();
     if (text.length === 0) return;
 
-    if (['скип', 'skip'].includes(text.toLowerCase())) {
+    if (['скип', 'суип', 'skip'].includes(text.toLowerCase())) {
+      const { embed, files } = this.getAnswerEmbed(question);
+
+      embed.setDescription('Пропускаем вопрос...\n\n' + embed.data.description);
+
       await message.reply({
-        content: 'Пропускаем вопрос...',
+        embeds: [embed],
+        files,
       });
       this.setLockedCheckAnswer(guildId, true);
       return this.askNextQuestion(guildId);
     }
 
     if (['подсказка', 'hint'].includes(text.toLowerCase())) {
-      const hint = this.getHint(guildId, question.right.answer);
+      const hint = this.getHint(guildId, question.right.answers[0]);
       await message.reply({
         embeds: [
           {
@@ -289,11 +296,11 @@ export class SIGamePlayer {
       return;
     }
 
-    const answer = this.answerChecker.check(text, question.right.answer);
+    const answer = this.answerChecker.check(text, question.right.answers);
 
     this.logger.debug({
       text,
-      answer: question.right.answer,
+      answer: question.right.answers,
       result: Answer[answer],
     });
 
@@ -303,7 +310,7 @@ export class SIGamePlayer {
           embeds: [
             {
               color: SIGameColor,
-              description: `Подсказка: \`${this.getHint(guildId, question.right.answer)}\`.`,
+              description: `Подсказка: \`${this.getHint(guildId, question.right.answers[0])}\`.`,
             },
           ],
         });
@@ -325,17 +332,18 @@ export class SIGamePlayer {
 
     const reward = question.price;
 
+    const { embed, files } = this.getAnswerEmbed(question);
+
+    const description =
+      answer == Answer.Correct
+        ? `<@${message.author.id}>, верно!`
+        : `<@${message.author.id}>, засчитано!`;
+
+    embed.setDescription(description + '\n\n' + embed.data.description);
+    embed.setFooter({ text: `Награда +${reward}` });
     await message.reply({
-      embeds: [
-        {
-          color: SIGameColor,
-          description:
-            answer == Answer.Correct
-              ? `<@${message.author.id}>, абсолютно верно!`
-              : `<@${message.author.id}>, не совсем, но засчитываю!`,
-          footer: { text: `Награда +${reward}` },
-        },
-      ],
+      embeds: [embed],
+      files,
     });
 
     state.playersScores[message.author.id] =
@@ -345,29 +353,6 @@ export class SIGamePlayer {
     await this.askNextQuestion(guildId);
     this.hints.set(guildId, 0);
     this.setLockedCheckAnswer(guildId, false);
-  }
-
-  @Subcommand({
-    name: 'skip',
-    description: 'Пропустить текущий вопрос SIGame',
-  })
-  async commandSkip(@Context() [interaction]: SlashCommandContext) {
-    const guildId = interaction.guildId!;
-
-    const state = await this.getGameState(guildId);
-    if (!state) {
-      await interaction.reply({
-        content: 'Нет активной игры SIGame.',
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
-
-    await interaction.reply({
-      content: 'Пропускаем вопрос...',
-    });
-    this.hints.set(guildId, 0);
-    await this.askNextQuestion(guildId);
   }
 
   @Subcommand({
@@ -394,35 +379,8 @@ export class SIGamePlayer {
   }
 
   private async askNextQuestion(guildId: DiscordID) {
-    const state = await this.getGameState(guildId);
-    if (!state) {
-      throw new Error('No active SIGame for this guild');
-    }
-
-    const pack = await this.getCurrentPack(guildId);
-    if (!pack) {
-      throw new Error('Pack not found');
-    }
-
-    const round = pack.rounds[state.currentRoundIndex];
-    if (!round) {
-      throw new Error('No rounds available');
-    }
-    const theme = round.themes[state.currentThemeIndex];
-    if (!theme) {
-      throw new Error('No themes available');
-    }
-
-    const channel = await this.getChannel(guildId);
-
-    await channel.send({
-      embeds: [
-        {
-          color: SIGameColor,
-          description: `Следующий вопрос, а ответом на этот был \`${theme.questions[state.currentQuestionIndex].right.answer}\`.`,
-        },
-      ],
-    });
+    const { state, theme, round, pack } =
+      await this.getCurrentQuestion(guildId);
 
     state.currentQuestionIndex += 1;
     if (state.currentQuestionIndex >= theme.questions.length) {
@@ -479,64 +437,69 @@ export class SIGamePlayer {
   }
 
   private async askQuestion(guildId: DiscordID) {
-    const state = await this.getGameState(guildId);
-    if (!state) {
-      throw new Error('No active SIGame for this guild');
-    }
-    const pack = await this.getCurrentPack(guildId);
-    if (!pack) {
-      throw new Error('Pack not found');
-    }
+    const { question, state, theme, round, pack } =
+      await this.getCurrentQuestion(guildId);
 
-    const round = pack.rounds[state.currentRoundIndex];
-    if (!round) {
-      throw new Error('No rounds available');
-    }
-    const theme = round.themes[state.currentThemeIndex];
-    if (!theme) {
-      throw new Error('No themes available');
-    }
-
-    const question = theme.questions[state.currentQuestionIndex];
-    if (!question) {
-      throw new Error('No questions available');
-    }
-
-    const isEnglish = question.right.answer
-      ? /^[A-Za-z0-9:. -]*$/.test(question.right.answer)
+    const hasEnglish = question.right.answers
+      ? /[A-Za-z]/g.test(question.right.answers.join(''))
+      : false;
+    const hasRussian = question.right.answers
+      ? /[А-Яа-яЁё]/g.test(question.right.answers.join(''))
+      : false;
+    const hasNumbers = question.right.answers
+      ? /[0-9]/g.test(question.right.answers.join(''))
       : false;
 
     const embed = new EmbedBuilder()
       .setColor(SIGameColor)
       .setAuthor({
-        name: `Раунд: ${round.name} | Тема: ${theme.name} | Вопрос: ${state.currentQuestionIndex + 1}/${theme.questions.length}`,
-        iconURL:
-          'https://github.com/VladimirKhil/SIOnline/blob/master/assets/images/sigame.png?raw=true',
+        name: `Тема: ${theme.name} (${state.currentQuestionIndex + 1}/${theme.questions.length})`,
+        iconURL: SIGameAvatar,
       })
       .setFooter({
-        text: `Цена вопроса: ${question.price}`,
+        text: `${round.name} | ${question.price} | ${pack.name}`,
       });
 
     let description = '';
 
-    if (question.scenario.text) {
-      description = `❓ ${question.scenario.text}`;
-    } else if (question.scenario.embed) {
-      description = `❓ Вопрос представлен в виде медиафайла`;
+    if (question.scenarios.length > 0) {
+      /// add all scenarios text and embeds
+      for (const scenario of question.scenarios) {
+        if (scenario.text) {
+          description += `❓ ${scenario.text}\n\n`;
+        }
+      }
     }
-
-    description += `\n\nОтвет на: **${isEnglish ? '🇺🇸 английском' : '🇷🇺 русском'}** языке.`;
+    const languages: string[] = [];
+    if (hasEnglish) languages.push('🇺🇸');
+    if (hasRussian) languages.push('🇷🇺');
+    if (hasNumbers) languages.push('🔢');
+    description += `Язык: ${languages.join('/')}`;
 
     embed.setDescription(description);
 
     const files: { attachment: string; name: string }[] = [];
 
-    if (question.scenario.embed) {
-      const ext = question.scenario.embed.split('.').pop()!;
-      files.push({
-        attachment: question.scenario.embed,
-        name: `question.${ext}`,
-      });
+    if (question.scenarios.length === 1 && question.scenarios[0].embed) {
+      const ext = question.scenarios[0].embed.split('.').pop()!;
+      if (/(mp4|mov|webm)/i.exec(ext)) {
+        embed.data.video = {
+          url: `attachment://question.${ext}`,
+        };
+      } else {
+        embed.setImage(`attachment://question.${ext}`);
+      }
+    }
+
+    for (const scenario of question.scenarios) {
+      /// add all scenario embeds
+      if (scenario.embed) {
+        const ext = scenario.embed.split('.').pop()!;
+        files.push({
+          attachment: scenario.embed,
+          name: `question.${ext}`,
+        });
+      }
     }
 
     const channel = await this.getChannel(guildId);
@@ -632,5 +595,61 @@ export class SIGamePlayer {
     this.packs.delete(guildId);
     this.hints.delete(guildId);
     await this.sigameService.deletePack(state.packId);
+  }
+
+  private getAnswerEmbed(question: SIGameQuestion) {
+    const files: { attachment: string; name: string }[] = [];
+
+    for (const embed of question.right.embeds ?? []) {
+      const ext = embed.split('.').pop()?.toLowerCase();
+      files.push({
+        attachment: embed,
+        name: `question.${ext}`,
+      });
+    }
+
+    const embed = new EmbedBuilder()
+      .setColor(SIGameColor)
+      .setDescription(`Ответ: \`${question.right.answers.join(', ')}\`.`);
+
+    if (question.scenarios.length === 1 && question.scenarios[0].embed) {
+      const ext = question.scenarios[0].embed.split('.').pop()!;
+      if (/(mp4|mov|webm)/i.exec(ext)) {
+        embed.data.video = {
+          url: `attachment://question.${ext}`,
+        };
+      } else if (/jpg|jpeg|png|gif/i.exec(ext)) {
+        embed.setImage(`attachment://question.${ext}`);
+      }
+    }
+
+    return { embed, files };
+  }
+
+  private async getCurrentQuestion(guildId: DiscordID) {
+    const state = await this.getGameState(guildId);
+    if (!state) {
+      throw new Error('No active SIGame for this guild');
+    }
+    const pack = await this.getCurrentPack(guildId);
+    if (!pack) {
+      throw new Error('Pack not found');
+    }
+
+    const round = pack.rounds[state.currentRoundIndex];
+    if (!round) {
+      throw new Error('No rounds available');
+    }
+    const theme = round.themes[state.currentThemeIndex];
+    if (!theme) {
+      throw new Error('No themes available');
+    }
+
+    const question = theme.questions[state.currentQuestionIndex];
+    if (!question) {
+      throw new Error('No questions available');
+    }
+
+    return { question, pack, round, theme, state };
   }
 }

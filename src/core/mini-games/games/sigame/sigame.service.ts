@@ -190,17 +190,39 @@ export class SIGameService {
               }
             }
           }
-          let text = '';
-          let embed: string | undefined;
 
-          for (const atom of atoms) {
+          const answers: string[] = [];
+
+          if (Array.isArray(question.right.answer)) {
+            for (const ans of question.right.answer) {
+              answers.push(String(ans));
+            }
+          } else {
+            answers.push(String(question.right.answer));
+          }
+          if (answers.length === 0) continue;
+          const answerEmbed: string[] = [];
+
+          const scenarios: { text: string; embed?: string }[] = [];
+
+          const markerPosition = atoms.findIndex(
+            (atom) =>
+              typeof atom !== 'string' &&
+              '@_type' in atom &&
+              atom['@_type'] === 'marker',
+          );
+
+          for (let i = 0; i < atoms.length; i++) {
+            if (i === markerPosition) continue;
+            const atom = atoms[i];
+
+            let text = '';
+            let embed: string | undefined = undefined;
+
             if (typeof atom === 'string') {
               text = atom;
             } else if ('@_type' in atom) {
               if (atom['@_type']) {
-                if (atom['@_type'] === 'marker') {
-                  continue;
-                }
                 embed = this.resolveAsset(
                   packId,
                   atom['#text'],
@@ -211,21 +233,23 @@ export class SIGameService {
                 text = atom['#text'];
               }
             }
-          }
 
-          const answer = String(question.right.answer);
-          if (!answer) continue;
-          if (!text && !embed) continue;
+            const isQuestionPart = markerPosition === -1 || i <= markerPosition;
+
+            if (isQuestionPart) {
+              scenarios.push({ text, embed });
+            } else {
+              if (embed) answerEmbed.push(embed);
+            }
+          }
 
           const parsedQuestion: SIGameQuestion = {
             price,
             right: {
-              answer,
+              answers,
+              embeds: answerEmbed,
             },
-            scenario: {
-              embed,
-              text: text,
-            },
+            scenarios,
           };
           parsedTheme.questions.push(parsedQuestion);
           parsedGame.stats.questions += 1;
