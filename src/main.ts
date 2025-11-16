@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { WsAdapter } from '@nestjs/platform-ws';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as path from 'path';
 
@@ -26,6 +27,8 @@ async function main() {
   app.enableShutdownHooks();
   app.enableCors();
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+
+  app.useWebSocketAdapter(new WsAdapter(app));
 
   const PackageJSON = await Bun.file('./package.json').json();
 

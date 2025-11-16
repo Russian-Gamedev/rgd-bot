@@ -18,12 +18,11 @@ export function getDefaultAvatar(userId: string) {
 export function getDisplayAvatar(
   user: User | GuildMember,
   extension: BaseImageURLOptions['extension'] = 'webp',
+  size: BaseImageURLOptions['size'] = 1024,
 ) {
-  if (user.avatar === null) {
-    return getDefaultAvatar(user.id);
-  }
-
-  return user.displayAvatarURL({ size: 1024, extension });
+  const avatar = user.avatarURL({ extension, size });
+  if (avatar) return avatar;
+  return getDefaultAvatar(user.id);
 }
 
 export function getDisplayBanner(

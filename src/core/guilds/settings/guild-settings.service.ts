@@ -87,4 +87,14 @@ export class GuildSettingsService {
     if (!role) return null;
     return role;
   }
+
+  async getGuildsWithEnabledFeature<Key extends string>(
+    featureKey: Key,
+  ): Promise<string[]> {
+    const settings = await this.guildSettingsRepository.find({
+      key: featureKey,
+      value: true,
+    });
+    return settings.map((s) => String(s.guild_id));
+  }
 }
