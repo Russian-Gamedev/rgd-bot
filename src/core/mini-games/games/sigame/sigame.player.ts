@@ -1,12 +1,5 @@
 import { Injectable, Logger, UseInterceptors } from '@nestjs/common';
-import {
-  Client,
-  EmbedBuilder,
-  InteractionContextType,
-  MessageFlags,
-  SendableChannels,
-} from 'discord.js';
-import Redis from 'ioredis';
+import { EmbedBuilder, InteractionContextType, MessageFlags } from 'discord.js';
 import {
   Context,
   type ContextOf,
@@ -17,22 +10,16 @@ import {
   Subcommand,
 } from 'necord';
 
-import { GuildSettings } from '#config/guilds';
-import { GuildSettingsService } from '#core/guilds/settings/guild-settings.service';
 import { UserService } from '#core/users/users.service';
 import { DiscordID } from '#root/lib/types';
 
-import { Answer, AnswerChecker } from './utils/answer-checker';
 import {
   SIGamePackAutocompleteInterceptor,
   SIGameSearchDTO,
-} from './sigame.autocomplete';
-import { SIGameService } from './sigame.service';
-import { SIGameParsed, SIGameQuestion } from './sigame.type';
-
-const SIGameColor = 0x030751;
-const SIGameAvatar =
-  'https://github.com/VladimirKhil/SIOnline/blob/master/assets/images/sigame.png?raw=true';
+} from './commands/sigame.autocomplete';
+import { Answer, AnswerChecker } from './engine/utils/answer-checker';
+import { SIGameController } from './sigame.controller';
+import { SIGameColor, SIGameEmbedBuilder } from './sigame.embed';
 
 const SICommandDecorator = createCommandGroupDecorator({
   name: 'sigame',
@@ -40,42 +27,17 @@ const SICommandDecorator = createCommandGroupDecorator({
   contexts: [InteractionContextType.Guild],
 });
 
-interface GameState {
-  packId: number;
-  currentRoundIndex: number;
-  currentThemeIndex: number;
-  currentQuestionIndex: number;
-  playersScores: Record<string, number>;
-}
-
 @Injectable()
 @SICommandDecorator()
 export class SIGamePlayer {
   private readonly logger = new Logger(SIGamePlayer.name);
-
-  /// Map of active game packs by guild ID
-  private readonly packs = new Map<DiscordID, SIGameParsed>();
-  private readonly hints = new Map<DiscordID, number>();
-
-  private readonly _cachedChannels = new Map<DiscordID, SendableChannels>();
-
-  private readonly lockCheckAnswer = new Map<DiscordID, boolean>();
+  private readonly _answerLocks = new Map<string, boolean>();
 
   constructor(
-    private readonly sigameService: SIGameService,
-    private readonly discord: Client,
-    private readonly guildSettings: GuildSettingsService,
-    private readonly redis: Redis,
     private readonly userService: UserService,
+    private readonly sigameController: SIGameController,
     private readonly answerChecker: AnswerChecker,
   ) {}
-
-  private isLockedCheckAnswer(guildId: DiscordID) {
-    return this.lockCheckAnswer.get(guildId) ?? false;
-  }
-  private setLockedCheckAnswer(guildId: DiscordID, value: boolean) {
-    this.lockCheckAnswer.set(guildId, value);
-  }
 
   @UseInterceptors(SIGamePackAutocompleteInterceptor)
   @Subcommand({
@@ -86,7 +48,9 @@ export class SIGamePlayer {
     @Context() [interaction]: SlashCommandContext,
     @Options() dto: SIGameSearchDTO,
   ) {
-    const isRunning = await this.getGameState(interaction.guildId!);
+    const isRunning = await this.sigameController.isGameRunning(
+      interaction.guildId!,
+    );
     if (isRunning) {
       await interaction.reply({
         content:
@@ -96,47 +60,52 @@ export class SIGamePlayer {
       return;
     }
 
-    await interaction.deferReply();
+    const baseEmbed = new EmbedBuilder().setColor(SIGameColor);
 
-    const packId = Number(dto.id);
-    const pack = await this.sigameService.getPackById(packId).catch(() => null);
-    if (!pack) {
-      await interaction.editReply({
-        content: `Пакет с ID ${packId} не найден.`,
-      });
-      return;
-    }
+    await interaction.reply({
+      embeds: [baseEmbed.setDescription(`Скачиваем пакет ${dto.id}...`)],
+    });
 
-    const embed = new EmbedBuilder()
-      .setColor(SIGameColor)
-      .setDescription(`Скачиваем пакет ${pack.name}...`);
-    await interaction.editReply({ embeds: [embed] });
     try {
-      await this.sigameService.downloadPack(pack);
-    } catch (error) {
-      this.logger.error(`Failed to download pack ${packId}: ${error}`);
+      await this.sigameController.downloadPack(dto.id);
+
+      const { pack } = await this.sigameController.startPack(
+        interaction.guildId!,
+        dto.id,
+      );
+
       await interaction.editReply({
         embeds: [
-          new EmbedBuilder()
-            .setColor(SIGameColor)
-            .setTitle(`Ошибка при загрузке пакета ${pack.name}`)
+          baseEmbed
+            .setTitle(`Пакет ${pack.name} загружен!`)
+            .setDescription(`Начинаем разыгровку...`),
+        ],
+      });
+
+      await this.askQuestion(interaction.guildId!);
+    } catch (error) {
+      this.logger.error(`Failed to download pack ${dto.id}: ${error}`);
+      await interaction.editReply({
+        embeds: [
+          baseEmbed
+            .setTitle(`Ошибка при загрузке пакета`)
             .setDescription(
               `Не удалось загрузить пакет. Пожалуйста, попробуйте снова позже или другой пакет.`,
+            )
+            .addFields(
+              {
+                name: 'Ошибка',
+                value: String(error),
+              },
+              {
+                name: 'Пакет',
+                value: dto.id,
+              },
             ),
         ],
       });
       return;
     }
-
-    await interaction.editReply({
-      embeds: [
-        new EmbedBuilder()
-          .setColor(SIGameColor)
-          .setTitle(`Пакет ${pack.name} загружен!`)
-          .setDescription(`Начинаем разыгровку...`),
-      ],
-    });
-    await this.startGame(interaction.guildId!, packId);
   }
 
   @Subcommand({
@@ -146,8 +115,8 @@ export class SIGamePlayer {
   async repeatQuestion(@Context() [interaction]: SlashCommandContext) {
     const guildId = interaction.guildId!;
 
-    const state = await this.getGameState(guildId);
-    if (!state) {
+    const isRunning = await this.sigameController.isGameRunning(guildId);
+    if (!isRunning) {
       await interaction.reply({
         content: 'Нет активной игры SIGame.',
         flags: MessageFlags.Ephemeral,
@@ -157,84 +126,13 @@ export class SIGamePlayer {
 
     await interaction.deferReply();
 
-    await this.startGame(guildId, state.packId);
+    await this.sigameController.restartPack(guildId);
 
     await interaction.editReply({
       content: 'Повторяю текущий вопрос...',
     });
-  }
 
-  async startGame(guildId: DiscordID, packId: number) {
-    const channel = await this.getChannel(guildId);
-    const state = await this.getGameState(guildId);
-
-    if (state) {
-      this.logger.log(
-        `Resuming SIGame for guild ${guildId} at pack ${state.packId}, round ${state.currentRoundIndex}, theme ${state.currentThemeIndex}, question ${state.currentQuestionIndex}`,
-      );
-
-      const isLoaded = this.packs.has(guildId);
-      if (!isLoaded) {
-        const pack = await this.sigameService.getPackById(state.packId);
-        await this.sigameService.downloadPack(pack);
-        try {
-          const parsed = await this.sigameService.parsePack(state.packId);
-          this.packs.set(guildId, parsed);
-        } catch (error) {
-          this.logger.error(`Failed to parse pack ${state.packId}: ${error}`);
-          await channel.send({
-            embeds: [
-              new EmbedBuilder()
-                .setColor(SIGameColor)
-                .setTitle(`Ошибка при загрузке пакета`)
-                .setDescription(
-                  `Не удалось загрузить пакет. Пожалуйста, попробуйте другой пакет.`,
-                ),
-            ],
-          });
-          return;
-        }
-      }
-
-      await this.askQuestion(guildId);
-    } else {
-      this.logger.log(`Starting new SIGame for guild ${guildId}`);
-      await this.setGameState(guildId, {
-        packId,
-        currentRoundIndex: 0,
-        currentThemeIndex: 0,
-        currentQuestionIndex: 0,
-        playersScores: {},
-      });
-
-      const pack = await this.sigameService.parsePack(packId);
-      this.packs.set(guildId, pack);
-
-      const embed = new EmbedBuilder()
-        .setTitle(pack.name)
-        .setColor(SIGameColor)
-        .setDescription(pack.description);
-
-      embed.addFields(
-        {
-          name: 'Количество раундов',
-          value: `${pack.stats.rounds}`,
-          inline: true,
-        },
-        { name: 'Количество тем', value: `${pack.stats.themes}`, inline: true },
-        {
-          name: 'Количество вопросов',
-          value: `${pack.stats.questions}`,
-          inline: true,
-        },
-      );
-
-      await channel.send({
-        embeds: [embed],
-      });
-
-      await this.askQuestion(guildId);
-    }
+    await this.askQuestion(guildId);
   }
 
   @On('messageCreate')
@@ -242,36 +140,26 @@ export class SIGamePlayer {
     const guildId = message.guildId;
     const channelId = message.channelId;
 
-    if (this.isLockedCheckAnswer(guildId!)) return;
-
     if (!message.guild || message.author.bot) return;
+    if (!guildId || !channelId) return;
 
-    if (!guildId) return;
-    const channel = await this.getChannel(guildId).catch(() => null);
-    if (!channel) return;
-    if (channel.id !== channelId) return;
-    const state = await this.getGameState(guildId);
-    if (!state) return;
+    const game = await this.getGame(guildId, channelId);
+    if (!game) return;
 
-    const pack = await this.getCurrentPack(guildId);
+    if (this._answerLocks.get(guildId)) return;
+    this._answerLocks.set(guildId, true);
 
-    const round = pack.rounds[state.currentRoundIndex];
-    if (!round) return;
-    const theme = round.themes[state.currentThemeIndex];
-    if (!theme) return;
-    const question = theme.questions[state.currentQuestionIndex];
-    if (!question) return;
+    setTimeout(() => {
+      this._answerLocks.delete(guildId);
+    }, 10);
 
-    const user = await this.userService.findOrCreate(
-      guildId,
-      message.author.id,
-    );
+    const { question } = game.getCurrentState()!;
 
     const text = message.content.trim();
     if (text.length === 0) return;
 
     if (['скип', 'суип', 'skip'].includes(text.toLowerCase())) {
-      const { embed, files } = this.getAnswerEmbed(question);
+      const { embed, files } = SIGameEmbedBuilder.buildAnswer(question);
 
       embed.setDescription('Пропускаем вопрос...\n\n' + embed.data.description);
 
@@ -279,12 +167,12 @@ export class SIGamePlayer {
         embeds: [embed],
         files,
       });
-      this.setLockedCheckAnswer(guildId, true);
+
       return this.askNextQuestion(guildId);
     }
 
     if (['подсказка', 'hint'].includes(text.toLowerCase())) {
-      const hint = this.getHint(guildId, question.right.answers[0]);
+      const hint = game.getHint();
       await message.reply({
         embeds: [
           {
@@ -296,24 +184,12 @@ export class SIGamePlayer {
       return;
     }
 
-    const answer = this.answerChecker.check(text, question.right.answers);
-
-    this.logger.debug({
+    const answer = this.answerChecker.check(
       text,
-      answer: question.right.answers,
-      result: Answer[answer],
-    });
+      question.answer.flatMap((a) => String(a.text)),
+    );
 
     if (answer == Answer.Incorrect) {
-      if (text.startsWith('подска'))
-        await message.reply({
-          embeds: [
-            {
-              color: SIGameColor,
-              description: `Подсказка: \`${this.getHint(guildId, question.right.answers[0])}\`.`,
-            },
-          ],
-        });
       return;
     }
 
@@ -328,11 +204,10 @@ export class SIGamePlayer {
       });
       return;
     }
-    this.setLockedCheckAnswer(guildId, true);
 
     const reward = question.price;
 
-    const { embed, files } = this.getAnswerEmbed(question);
+    const { embed, files } = SIGameEmbedBuilder.buildAnswer(question);
 
     const description =
       answer == Answer.Correct
@@ -346,13 +221,12 @@ export class SIGamePlayer {
       files,
     });
 
-    state.playersScores[message.author.id] =
-      (state.playersScores[message.author.id] ?? 0) + reward;
-    await this.setGameState(guildId, state);
-    await this.userService.addCoins(user, reward);
+    game.addPlayerScore(message.author.id, reward);
+    game.resetHints();
+    await this.sigameController.saveGameState(guildId, game);
+
+    await this.awardUser(message.author.id, guildId, reward);
     await this.askNextQuestion(guildId);
-    this.hints.set(guildId, 0);
-    this.setLockedCheckAnswer(guildId, false);
   }
 
   @Subcommand({
@@ -362,8 +236,8 @@ export class SIGamePlayer {
   async commandEnd(@Context() [interaction]: SlashCommandContext) {
     const guildId = interaction.guildId!;
 
-    const state = await this.getGameState(guildId);
-    if (!state) {
+    const isRunning = await this.sigameController.isGameRunning(guildId);
+    if (!isRunning) {
       await interaction.reply({
         content: 'Нет активной игры SIGame.',
         flags: MessageFlags.Ephemeral,
@@ -378,37 +252,17 @@ export class SIGamePlayer {
     });
   }
 
-  private async askNextQuestion(guildId: DiscordID) {
-    const { state, theme, round, pack } =
-      await this.getCurrentQuestion(guildId);
-
-    state.currentQuestionIndex += 1;
-    if (state.currentQuestionIndex >= theme.questions.length) {
-      state.currentQuestionIndex = 0;
-      state.currentThemeIndex += 1;
-      if (state.currentThemeIndex >= round.themes.length) {
-        state.currentThemeIndex = 0;
-        state.currentRoundIndex += 1;
-        if (state.currentRoundIndex >= pack.rounds.length) {
-          await this.endGame(guildId);
-          return;
-        }
-      }
-    }
-    this.hints.set(guildId, 0);
-    await this.setGameState(guildId, state);
-    await this.askQuestion(guildId);
-    this.setLockedCheckAnswer(guildId, false);
-  }
-
   private async endGame(guildId: DiscordID) {
-    const state = await this.getGameState(guildId);
-    await this.clearGameState(guildId);
+    const state = await this.sigameController.getGameState(guildId);
+    await this.sigameController.clearGameState(guildId);
 
-    const channel = await this.getChannel(guildId);
+    if (!state) return;
 
-    const playersScores = state?.playersScores ?? {};
-    const sortedPlayers = Object.entries(playersScores).sort(
+    const channel = await this.sigameController.getChannel(guildId);
+    if (!channel) return;
+
+    const playersScores = state.players;
+    const sortedPlayers = Array.from(playersScores.entries()).sort(
       (a, b) => b[1] - a[1],
     );
 
@@ -436,227 +290,53 @@ export class SIGamePlayer {
     });
   }
 
+  private async askNextQuestion(guildId: DiscordID) {
+    const game = await this.sigameController.getGameState(guildId);
+    if (!game) return;
+
+    const hasNext = game.nextQuestion();
+    await this.sigameController.saveGameState(guildId, game);
+
+    if (hasNext) {
+      await this.askQuestion(guildId);
+    } else {
+      await this.endGame(guildId);
+    }
+  }
+
   private async askQuestion(guildId: DiscordID) {
-    const { question, state, theme, round, pack } =
-      await this.getCurrentQuestion(guildId);
+    const channel = await this.sigameController.getChannel(guildId);
+    if (!channel) return;
 
-    const hasEnglish = question.right.answers
-      ? /[A-Za-z]/g.test(question.right.answers.join(''))
-      : false;
-    const hasRussian = question.right.answers
-      ? /[А-Яа-яЁё]/g.test(question.right.answers.join(''))
-      : false;
-    const hasNumbers = question.right.answers
-      ? /[0-9]/g.test(question.right.answers.join(''))
-      : false;
+    const game = await this.sigameController.getGameState(guildId);
+    if (!game) return;
 
-    const embed = new EmbedBuilder()
-      .setColor(SIGameColor)
-      .setAuthor({
-        name: `Тема: ${theme.name} (${state.currentQuestionIndex + 1}/${theme.questions.length})`,
-        iconURL: SIGameAvatar,
-      })
-      .setFooter({
-        text: `${round.name} | ${question.price} | ${pack.name}`,
-      });
+    const state = game.getCurrentState();
+    if (!state) return;
 
-    let description = '';
+    const { embed, files } = SIGameEmbedBuilder.buildQuestion(game)!;
 
-    if (question.scenarios.length > 0) {
-      /// add all scenarios text and embeds
-      for (const scenario of question.scenarios) {
-        if (scenario.text) {
-          description += `❓ ${scenario.text}\n\n`;
-        }
-      }
-    }
-    const languages: string[] = [];
-    if (hasEnglish) languages.push('🇺🇸');
-    if (hasRussian) languages.push('🇷🇺');
-    if (hasNumbers) languages.push('🔢');
-    description += `Язык: ${languages.join('/')}`;
-
-    embed.setDescription(description);
-
-    const files: { attachment: string; name: string }[] = [];
-
-    if (question.scenarios.length === 1 && question.scenarios[0].embed) {
-      const ext = question.scenarios[0].embed.split('.').pop()!;
-      if (/(mp4|mov|webm)/i.exec(ext)) {
-        embed.data.video = {
-          url: `attachment://question.${ext}`,
-        };
-      } else {
-        embed.setImage(`attachment://question.${ext}`);
-      }
-    }
-
-    for (const scenario of question.scenarios) {
-      /// add all scenario embeds
-      if (scenario.embed) {
-        const ext = scenario.embed.split('.').pop()!;
-        files.push({
-          attachment: scenario.embed,
-          name: `question.${ext}`,
-        });
-      }
-    }
-
-    const channel = await this.getChannel(guildId);
-    try {
-      await channel.send({ embeds: [embed], files });
-    } catch (error) {
-      this.logger.error(
-        `Failed to send question in guild ${guildId}: ${error}`,
-      );
-      await this.askNextQuestion(guildId);
-    }
+    await channel.send({
+      embeds: [embed],
+      files,
+    });
   }
 
-  private getHint(guildId: DiscordID, rightAnswer: string) {
-    if (!guildId) return false;
-
-    let hintCount = this.hints.get(guildId) ?? 0;
-
-    if (hintCount < rightAnswer.length) {
-      hintCount += 1;
-      this.hints.set(guildId, hintCount);
-
-      let openLetters = '';
-      let hintMessage = '';
-
-      /// add to open letter all non letter ru and en, numbers
-      for (const char of rightAnswer) {
-        if (!/[A-Za-zА-Яа-яЁё0-9]/.test(char)) {
-          openLetters += char;
-        }
-      }
-
-      for (let i = 0; i < rightAnswer.length; i++) {
-        const char = rightAnswer[i];
-
-        if (i < hintCount) {
-          hintMessage += char;
-          openLetters += char;
-        } else if (openLetters.includes(char)) hintMessage += char;
-        else hintMessage += '■';
-      }
-
-      return hintMessage;
-    } else return rightAnswer;
+  private async awardUser(
+    userId: DiscordID,
+    guildId: DiscordID,
+    amount: number,
+  ) {
+    const user = await this.userService.findOrCreate(guildId, userId);
+    await this.userService.addCoins(user, amount);
   }
 
-  private async getCurrentPack(guildId: DiscordID) {
-    let pack = this.packs.get(guildId);
-    if (!pack) {
-      const state = await this.getGameState(guildId);
-      if (!state) {
-        throw new Error('No active SIGame for this guild');
-      }
-      pack = await this.sigameService.parsePack(state.packId);
-      this.packs.set(guildId, pack);
-    }
-    return pack;
-  }
+  private async getGame(guildId: DiscordID, channelId: DiscordID) {
+    const channel = await this.sigameController.getChannel(guildId);
+    if (!channel) return null;
+    if (channel.id !== channelId) return null;
 
-  private async getChannel(guildId: DiscordID): Promise<SendableChannels> {
-    if (this._cachedChannels.has(guildId)) {
-      return this._cachedChannels.get(guildId)!;
-    }
-    const channelId = await this.guildSettings.getSetting<string>(
-      guildId,
-      GuildSettings.SIGameChannelId,
-    );
-    if (!channelId) {
-      throw new Error('SIGame channel not configured for this guild');
-    }
-    const guild = await this.discord.guilds.fetch(String(guildId));
-    const channel = await guild.channels.fetch(channelId);
-    if (!channel?.isSendable()) {
-      throw new Error('Configured SIGame channel is not sendable');
-    }
-    this._cachedChannels.set(guildId, channel as SendableChannels);
-    return channel;
-  }
-
-  private async getGameState(guildId: DiscordID) {
-    const stateKey = `sigame:state:${guildId}`;
-    const stateData = await this.redis.get(stateKey);
-    if (!stateData) {
-      return null;
-    }
-    return JSON.parse(stateData) as GameState;
-  }
-  private async setGameState(guildId: DiscordID, state: GameState) {
-    const stateKey = `sigame:state:${guildId}`;
-    await this.redis.set(stateKey, JSON.stringify(state));
-  }
-
-  private async clearGameState(guildId: DiscordID) {
-    const state = await this.getGameState(guildId);
-    if (!state) {
-      throw new Error('Game state not found');
-    }
-    const stateKey = `sigame:state:${guildId}`;
-    await this.redis.del(stateKey);
-    this.packs.delete(guildId);
-    this.hints.delete(guildId);
-    await this.sigameService.deletePack(state.packId);
-  }
-
-  private getAnswerEmbed(question: SIGameQuestion) {
-    const files: { attachment: string; name: string }[] = [];
-
-    for (const embed of question.right.embeds ?? []) {
-      const ext = embed.split('.').pop()?.toLowerCase();
-      files.push({
-        attachment: embed,
-        name: `question.${ext}`,
-      });
-    }
-
-    const embed = new EmbedBuilder()
-      .setColor(SIGameColor)
-      .setDescription(`Ответ: \`${question.right.answers.join(', ')}\`.`);
-
-    if (question.scenarios.length === 1 && question.scenarios[0].embed) {
-      const ext = question.scenarios[0].embed.split('.').pop()!;
-      if (/(mp4|mov|webm)/i.exec(ext)) {
-        embed.data.video = {
-          url: `attachment://question.${ext}`,
-        };
-      } else if (/jpg|jpeg|png|gif/i.exec(ext)) {
-        embed.setImage(`attachment://question.${ext}`);
-      }
-    }
-
-    return { embed, files };
-  }
-
-  private async getCurrentQuestion(guildId: DiscordID) {
-    const state = await this.getGameState(guildId);
-    if (!state) {
-      throw new Error('No active SIGame for this guild');
-    }
-    const pack = await this.getCurrentPack(guildId);
-    if (!pack) {
-      throw new Error('Pack not found');
-    }
-
-    const round = pack.rounds[state.currentRoundIndex];
-    if (!round) {
-      throw new Error('No rounds available');
-    }
-    const theme = round.themes[state.currentThemeIndex];
-    if (!theme) {
-      throw new Error('No themes available');
-    }
-
-    const question = theme.questions[state.currentQuestionIndex];
-    if (!question) {
-      throw new Error('No questions available');
-    }
-
-    return { question, pack, round, theme, state };
+    const game = await this.sigameController.getGameState(guildId);
+    return game;
   }
 }

@@ -1,4 +1,4 @@
-export interface SIGamePack {
+export interface SIGamePackInfo {
   id: number;
   downloadCount: number;
   logoUri: string;
@@ -20,36 +20,3 @@ export const SIGameSortDirection = {
   Ascending: 0,
   Descending: 1,
 };
-
-export interface SIGameParsed {
-  description: string;
-  name: string;
-  rounds: SIGameRound[];
-  stats: {
-    rounds: number;
-    themes: number;
-    questions: number;
-  };
-}
-
-export interface SIGameRound {
-  name: string;
-  themes: SIGameTheme[];
-}
-
-export interface SIGameTheme {
-  name: string;
-  questions: SIGameQuestion[];
-}
-
-export interface SIGameQuestion {
-  scenarios: {
-    text: string;
-    embed?: string;
-  }[];
-  right: {
-    answers: string[];
-    embeds?: string[];
-  };
-  price: number;
-}

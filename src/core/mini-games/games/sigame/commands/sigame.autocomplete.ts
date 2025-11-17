@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AutocompleteInteraction } from 'discord.js';
 import { AutocompleteInterceptor, StringOption } from 'necord';
 
-import { SIGameService } from './sigame.service';
+import { SIGameService } from '../sigame.service';
 
 export class SIGameSearchDTO {
   @StringOption({
