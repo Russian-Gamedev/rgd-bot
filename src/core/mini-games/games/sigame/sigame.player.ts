@@ -174,7 +174,7 @@ export class SIGamePlayer {
     const lowerText = text.toLowerCase();
 
     if (
-      ['подсказка', 'hint'].includes(lowerText) ||
+      ['подсказка', 'hint', 'хинт'].includes(lowerText) ||
       lowerText.startsWith('подска')
     ) {
       const hint = game.getHint();

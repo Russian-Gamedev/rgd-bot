@@ -32,7 +32,7 @@ export class SIGamePackAutocompleteInterceptor extends AutocompleteInterceptor {
       return Math.round(bytes / Math.pow(1024, i)) + ' ' + sizes[i];
     };
 
-    if (focused.name === 'query') {
+    if (focused.name === 'query' && !focused.value.startsWith('http')) {
       const packs = await this.sigameService.searchPacks(focused.value);
       for (const pack of packs.packages.slice(0, 10)) {
         choices.push({
