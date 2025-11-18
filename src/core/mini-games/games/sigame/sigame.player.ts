@@ -143,7 +143,7 @@ export class SIGamePlayer {
     if (!message.guild || message.author.bot) return;
     if (!guildId || !channelId) return;
 
-    const game = await this.getGame(guildId, channelId);
+    const game = await this.getGame(guildId, channelId).catch(() => null);
     if (!game) return;
 
     if (this._answerLocks.get(guildId)) return;
