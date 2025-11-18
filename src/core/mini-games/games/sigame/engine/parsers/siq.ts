@@ -75,25 +75,23 @@ export class SIGameParserSIQ extends SIGamePackParser {
 
           for (const param of params) {
             const itemType = XMLNormalizer.getAttribute(param, 'name', 'text');
+            const items = XMLNormalizer.toArray(param.item);
             switch (itemType) {
               case 'question': {
-                const text = XMLNormalizer.getText(param.item, '');
-                const type = XMLNormalizer.getAttribute(
-                  param.item,
-                  'type',
-                  'text',
-                );
+                for (const item of items) {
+                  const text = XMLNormalizer.getText(item, '');
+                  const type = XMLNormalizer.getAttribute(item, 'type', 'text');
 
-                if (type === 'text') {
-                  atomEmbed.text.push(text);
-                } else {
-                  atomEmbed.files.push(text);
+                  if (type === 'text') {
+                    atomEmbed.text.push(text);
+                  } else {
+                    atomEmbed.files.push(text);
+                  }
                 }
-
                 break;
               }
               case 'answer': {
-                answer.push(param.item);
+                answer.push(...items);
                 break;
               }
               case 'answerType': {
@@ -105,13 +103,16 @@ export class SIGameParserSIQ extends SIGamePackParser {
               }
               case 'answerOptions': {
                 for (const option of param.param) {
-                  const optionText = XMLNormalizer.getText(option.item, '');
-                  const optionVariant = XMLNormalizer.getAttribute(
-                    option,
-                    'name',
-                    'text',
-                  );
-                  atomEmbed.text.push(`${optionVariant}: ${optionText}`);
+                  const items = XMLNormalizer.toArray(option.item);
+                  for (const item of items) {
+                    const optionText = XMLNormalizer.getText(item, '');
+                    const optionVariant = XMLNormalizer.getAttribute(
+                      option,
+                      'name',
+                      'text',
+                    );
+                    atomEmbed.text.push(`${optionVariant}: ${optionText}`);
+                  }
                 }
                 break;
               }

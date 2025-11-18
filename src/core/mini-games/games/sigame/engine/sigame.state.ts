@@ -103,6 +103,7 @@ export class SIGameState {
       currentQuestionIndex: this.currentQuestionIndex,
       currentThemeIndex: this.currentThemeIndex,
       hintCount: this.hintCount,
+      players: Array.from(this.players.entries()),
     };
   }
 

@@ -171,7 +171,12 @@ export class SIGamePlayer {
       return this.askNextQuestion(guildId);
     }
 
-    if (['подсказка', 'hint'].includes(text.toLowerCase())) {
+    const lowerText = text.toLowerCase();
+
+    if (
+      ['подсказка', 'hint'].includes(lowerText) ||
+      lowerText.startsWith('подска')
+    ) {
       const hint = game.getHint();
       await message.reply({
         embeds: [
