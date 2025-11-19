@@ -26,9 +26,12 @@ export class DiscordService {
         },
       },
     ).then((res) => res.json());
-    const launchBarCommand = commands.find((cmd) => cmd.name === 'launch');
+
+    const launchBarCommand = commands.find(
+      (cmd) => cmd.name === 'launch' || cmd.name === 'launch-bar',
+    );
     if (!launchBarCommand) return;
-    const response = await fetch(
+    await fetch(
       'https://discord.com/api/v10/applications/' +
         clientId +
         '/commands/' +
@@ -42,11 +45,12 @@ export class DiscordService {
       },
     ).then((res) => res.json());
 
-    console.log(response);
+    this.logger.log('Deleted /launch command');
   }
 
   @Once('clientReady')
   public async onReady() {
+    await Bun.sleep(5000); // wait for discord to be ready
     await this.client.application?.commands
       .create({
         name: 'launch',
@@ -59,6 +63,7 @@ export class DiscordService {
       .catch((err) => {
         this.logger.error('Failed to create application command:', err);
       });
+    this.logger.log('Registered /launch command');
   }
 
   public async getEmojiImage(emoji: string, size = 128) {
