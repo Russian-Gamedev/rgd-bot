@@ -12,9 +12,53 @@ export class DiscordService {
     private readonly redis: Redis,
   ) {}
 
+  async onModuleInit() {
+    const token = process.env.DISCORD_BOT_TOKEN;
+    const clientId = process.env.DISCORD_CLIENT_ID;
+
+    const commands = await fetch(
+      'https://discord.com/api/v10/applications/' + clientId + '/commands',
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bot ${token}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    ).then((res) => res.json());
+    const launchBarCommand = commands.find((cmd) => cmd.name === 'launch');
+    if (!launchBarCommand) return;
+    const response = await fetch(
+      'https://discord.com/api/v10/applications/' +
+        clientId +
+        '/commands/' +
+        launchBarCommand.id,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bot ${token}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    ).then((res) => res.json());
+
+    console.log(response);
+  }
+
   @Once('clientReady')
-  public onReady() {
-    this.logger.log('Discord client is ready!');
+  public async onReady() {
+    await this.client.application?.commands
+      .create({
+        name: 'launch',
+        description: 'Start rgdbar',
+        type: 4,
+        handler: 2,
+        integration_types: [0],
+        contexts: [0],
+      })
+      .catch((err) => {
+        this.logger.error('Failed to create application command:', err);
+      });
   }
 
   public async getEmojiImage(emoji: string, size = 128) {
