@@ -13,7 +13,7 @@ import { BarWatcher } from './bar.watcher';
   cors: {
     origin: '*',
   },
-  path: '/bar',
+  path: '/bar/',
 })
 export class BarGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(BarGateway.name);
