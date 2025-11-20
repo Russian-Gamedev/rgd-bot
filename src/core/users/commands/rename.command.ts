@@ -115,8 +115,8 @@ export class RenameCommands {
 
     if (target_member.id === guild.ownerId) {
       return {
-        error: true,
-        message: `Нету власти для переименования создателя`,
+        error: false,
+        message: `<@${executor_member.id}> пытался переименовать <@${guild.ownerId}> в \`${new_nickname}\`, но у него не получилось.`,
       };
     }
 
