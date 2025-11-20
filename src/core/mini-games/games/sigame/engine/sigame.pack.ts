@@ -11,7 +11,9 @@ export class SIGamePack {
       for (const theme of round.themes) {
         for (const question of theme.questions) {
           for (const embed of [...question.question, ...question.answer]) {
-            embed.files = embed.files.map((file) => files[file] || file);
+            embed.files = embed.files.map(
+              (file) => files[file.replace('@', '')] || file,
+            );
           }
         }
       }
