@@ -61,6 +61,7 @@ export class SIGameParserSIQ extends SIGamePackParser {
 
         const questions = XMLNormalizer.toArray(themeXml.questions?.question);
         for (const questionXml of questions) {
+          if (!questionXml) continue;
           const question = new SIGameQuestion();
           question.price = Number(
             XMLNormalizer.getAttribute(questionXml, 'price', '0'),
