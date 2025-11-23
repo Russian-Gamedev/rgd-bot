@@ -10,7 +10,7 @@ export enum GuildSettings {
   BarEnabled = 'bar_enabled',
 }
 
-export const enum GuildEvents {
+export enum GuildEvents {
   MEMBER_FIRST_JOIN = 'member_first_join',
   MEMBER_JOIN = 'member_join',
   MEMBER_LEAVE = 'member_leave',
