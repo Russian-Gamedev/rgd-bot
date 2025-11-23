@@ -15,6 +15,7 @@ import { GuildModule } from '#core/guilds/guild.module';
 import { ImageGeneratorModule } from '#core/image-generator/image-generator.module';
 import { ItemsModule } from '#core/items/items.module';
 import { MiniGamesModule } from '#core/mini-games/mini-games.module';
+import { RoleManagerModule } from '#core/role-manager/role-manager.module';
 import { TelegramModule } from '#core/telegram/telegram.module';
 import { UserModule } from '#core/users/users.module';
 
@@ -38,6 +39,7 @@ import { AppController } from './app.controller';
     TelegramModule,
     ImageGeneratorModule,
     BarModule,
+    RoleManagerModule,
   ],
   controllers: [AppController],
   providers: [GitInfoService],
