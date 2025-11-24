@@ -8,6 +8,7 @@ export enum GuildSettings {
   ShizRoleId = 'shiz_role_id',
   SIGameChannelId = 'sigame_channel_id',
   BarEnabled = 'bar_enabled',
+  PostActivityMessages = 'post_activity_messages',
 }
 
 export enum GuildEvents {

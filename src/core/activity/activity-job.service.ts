@@ -188,6 +188,13 @@ export class ActivityJobService {
   }
 
   private async postActivitySummary(guild: Guild, period: ActivityPeriod) {
+    const postMessages = await this.guildSettings.getSetting<string>(
+      BigInt(guild.id),
+      GuildSettings.PostActivityMessages,
+    );
+
+    if (!postMessages) return;
+
     const activities = await this.activityRepository.find({
       guild_id: BigInt(guild.id),
       period,
