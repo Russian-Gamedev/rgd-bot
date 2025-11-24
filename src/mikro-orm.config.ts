@@ -2,8 +2,6 @@ import { Migrator } from '@mikro-orm/migrations';
 import { defineConfig, PostgreSqlDriver } from '@mikro-orm/postgresql';
 import path from 'path';
 
-import { Environment } from '#config/env';
-
 const migrationPath = path.join(__dirname, './migrations');
 
 export default defineConfig({
@@ -12,7 +10,7 @@ export default defineConfig({
   entitiesTs: ['./**/entities/*.entity.ts'],
   extensions: [Migrator],
   driver: PostgreSqlDriver,
-  debug: process.env.NODE_ENV === Environment.Development,
+  debug: process.env.DATABASE_QUERY_LOG == 'true',
   allowGlobalContext: true,
   migrations: {
     tableName: 'mikro_orm_migrations',

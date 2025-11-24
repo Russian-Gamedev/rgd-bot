@@ -6,6 +6,7 @@ import { GuildSettingsModule } from '#core/guilds/settings/guild-settings.module
 
 import { UserEntity } from './entities/user.entity';
 import { UserRoleEntity } from './entities/user-roles.entity';
+import { BirthdayService } from './birthday.service';
 import { commands } from './commands';
 import { UserService } from './users.service';
 
@@ -15,7 +16,7 @@ import { UserService } from './users.service';
     GuildSettingsModule,
     GuildEventsModule,
   ],
-  providers: [UserService, ...commands],
+  providers: [UserService, BirthdayService, ...commands],
   exports: [UserService],
 })
 export class UserModule {}

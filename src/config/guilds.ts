@@ -9,6 +9,8 @@ export enum GuildSettings {
   SIGameChannelId = 'sigame_channel_id',
   BarEnabled = 'bar_enabled',
   PostActivityMessages = 'post_activity_messages',
+  BirthdayRoleId = 'birthday_role_id',
+  CreateBirthdayEvents = 'create_birthday_events',
 }
 
 export enum GuildEvents {

@@ -226,4 +226,28 @@ export class UserService {
 
     await this.em.persistAndFlush([fromUser, toUser]);
   }
+
+  async setBirthday(user: UserEntity, birthday: Date | null): Promise<void> {
+    user.birth_date = birthday;
+    await this.em.persistAndFlush(user);
+  }
+
+  async getBirthdayUsers(
+    guild_id: DiscordID,
+    month: number,
+    day: number,
+  ): Promise<UserEntity[]> {
+    const qb = this.userRepository.createQueryBuilder('u');
+    qb.where({ guild_id: BigInt(guild_id) });
+    qb.andWhere('EXTRACT(MONTH FROM u.birth_date) = ?', [month]);
+    qb.andWhere('EXTRACT(DAY FROM u.birth_date) = ?', [day]);
+    return qb.getResult();
+  }
+
+  async getUsersWithBirthdaySet(guild_id: DiscordID) {
+    return this.userRepository.find({
+      guild_id: BigInt(guild_id),
+      birth_date: { $ne: null },
+    });
+  }
 }
