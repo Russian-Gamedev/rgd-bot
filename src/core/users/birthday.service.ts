@@ -45,6 +45,9 @@ export class BirthdayService {
         today.getMonth() + 1,
         today.getDate(),
       );
+
+      if (!users.length) continue;
+
       this.logger.log(`Found ${users.length} users with birthdays today`);
       const eventChannel =
         await this.guildSettings.getEventMessageChannel(guildId);
