@@ -167,7 +167,13 @@ export class ActivityJobService {
           `User ${user.user_id} in guild ${guild.id} has an active streak of ${user.activeStreak} days!`,
         );
 
-        await this.userService.giveRoleToUser(user, activeRole.id);
+        await this.userService
+          .giveRoleToUser(user, activeRole.id)
+          .catch((err) => {
+            this.logger.warn(
+              `Failed to give active role to user ${user.user_id} in guild ${guild.id}: ${err.message}`,
+            );
+          });
       }
     }
 
@@ -182,7 +188,13 @@ export class ActivityJobService {
         this.logger.log(
           `Removing active role from user ${user.user_id} in guild ${guild.id} due to inactivity`,
         );
-        await this.userService.removeRoleFromUser(user, activeRole.id);
+        await this.userService
+          .removeRoleFromUser(user, activeRole.id)
+          .catch((err) => {
+            this.logger.warn(
+              `Failed to remove active role from user ${user.user_id} in guild ${guild.id}: ${err.message}`,
+            );
+          });
       }
     }
   }
