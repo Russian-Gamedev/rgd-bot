@@ -11,6 +11,7 @@ import { BarModule } from '#core/bar/bar.module';
 import { BotsModule } from '#core/bots/bots.module';
 import { DiscordModule } from '#core/discord/discord.module';
 import { FFMpegModule } from '#core/ffmpeg/ffmpeg.module';
+import { FunModule } from '#core/fun/fun.module';
 import { GuildModule } from '#core/guilds/guild.module';
 import { ImageGeneratorModule } from '#core/image-generator/image-generator.module';
 import { ItemsModule } from '#core/items/items.module';
@@ -40,6 +41,7 @@ import { AppController } from './app.controller';
     ImageGeneratorModule,
     BarModule,
     RoleManagerModule,
+    FunModule,
   ],
   controllers: [AppController],
   providers: [GitInfoService],
