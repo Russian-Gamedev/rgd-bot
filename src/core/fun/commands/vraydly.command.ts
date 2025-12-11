@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { files } from 'jszip';
 import { Context, MessageCommand, type MessageCommandContext } from 'necord';
 
 @Injectable()
