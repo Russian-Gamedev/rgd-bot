@@ -109,7 +109,6 @@ export class ActivityWatchService {
     if (!newState.channel) {
       /// left
       await this.saveVoiceActivity(member);
-      this.logger.log(`Member ${member.user.username} left voice channel`);
       return;
     }
 
@@ -117,23 +116,19 @@ export class ActivityWatchService {
       // switched
       await this.saveVoiceActivity(member);
       await recordTime();
-      this.logger.log(`Member ${member.user.username} switched voice channel`);
       return;
     }
 
     if (newState.selfDeaf) {
       await this.saveVoiceActivity(member);
-      this.logger.log(`Member ${member.user.username} deafened themself`);
       return;
     }
 
     if (oldState.selfDeaf && !newState.selfDeaf) {
       await recordTime();
-      this.logger.log(`Member ${member.user.username} undeafened themself`);
       return;
     }
 
-    this.logger.log(`Member ${member.user.username} joined voice channel`);
     await recordTime();
   }
 
