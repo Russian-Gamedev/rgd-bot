@@ -1,4 +1,5 @@
 import { Controller, Get, Param, Res } from '@nestjs/common';
+import { ApiResponse } from '@nestjs/swagger';
 import { type Response } from 'express';
 
 import { DiscordService } from './discord.service';
@@ -19,6 +20,7 @@ export class DiscordController {
   }
 
   @Get('/members')
+  @ApiResponse({ description: 'Get statistics about members', status: 200 })
   public async getMembersStats() {
     return this.discordService.getMembersStats();
   }

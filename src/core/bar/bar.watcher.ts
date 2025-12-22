@@ -220,7 +220,7 @@ export class BarWatcher {
       channel_id: message.channel.id,
       message_id: message.id,
       emoji: {
-        url: reaction.emoji.url ?? '',
+        url: reaction.emoji.imageURL() ?? '',
         name: reaction.emoji.name ?? '',
       },
       member: this.normalizeMember(user),
