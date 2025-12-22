@@ -21,3 +21,12 @@ export enum GuildEvents {
   MEMBER_KICK = 'member_kick',
   MEMBER_SET_NAME = 'member_set_name',
 }
+
+export const GuildEventsParameters: Record<GuildEvents, string[]> = {
+  [GuildEvents.MEMBER_FIRST_JOIN]: ['user'],
+  [GuildEvents.MEMBER_JOIN]: ['user'],
+  [GuildEvents.MEMBER_LEAVE]: ['user'],
+  [GuildEvents.MEMBER_BAN]: ['user', 'moderator'],
+  [GuildEvents.MEMBER_KICK]: ['user', 'moderator'],
+  [GuildEvents.MEMBER_SET_NAME]: ['user', 'nickname'],
+};

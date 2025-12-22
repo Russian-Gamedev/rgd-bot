@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { Client } from 'discord.js';
 
 import { GuildEvents } from '#config/guilds';
+import { DiscordID } from '#root/lib/types';
 import { pickRandom } from '#root/lib/utils';
 
 import { GuildEventEntity } from './entities/events.entity';
@@ -50,35 +51,33 @@ export class GuildEventService {
 
     await this.entityManager.persistAndFlush(template);
 
-    const names = Object.keys(params);
-    const values = Object.values(params);
-
-    let message = template.message.replace(/\$\{(\w+)\}/g, (match, p1) => {
-      const index = names.indexOf(p1);
-      return index !== -1 ? values[index] : match;
-    });
-
-    const attachment = pickRandom(template.attachments ?? []);
-    if (attachment) {
-      message += `\n${attachment}`;
-    }
-
-    return message;
+    return this.buildTemplate(template, params);
   }
 
   async addEvent(
-    guild_id: bigint,
     event: GuildEvents,
     message: string,
     attachments: string[] | null,
+    guild_id?: DiscordID,
   ) {
-    const newEvent = new GuildEventEntity();
-    newEvent.guild_id = guild_id;
-    newEvent.event = event;
-    newEvent.message = message;
-    newEvent.attachments = attachments;
+    const guilds: bigint[] = [];
+    if (guild_id) {
+      guilds.push(BigInt(guild_id));
+    } else {
+      const allGuilds = this.discord.guilds.cache.map((g) => BigInt(g.id));
+      guilds.push(...allGuilds);
+    }
+    let newEvent: GuildEventEntity | null = null;
+    for (const gid of guilds) {
+      newEvent = new GuildEventEntity();
+      newEvent.guild_id = gid;
+      newEvent.event = event;
+      newEvent.message = message;
+      newEvent.attachments = attachments;
 
-    await this.entityManager.persistAndFlush(newEvent);
+      this.entityManager.persist(newEvent);
+    }
+    await this.entityManager.flush();
     return newEvent;
   }
 
@@ -105,5 +104,41 @@ export class GuildEventService {
       { guild_id },
       { orderBy: { createdAt: 'DESC' } },
     );
+  }
+
+  buildTemplate(template: GuildEventEntity, params: Record<string, string>) {
+    const names = Object.keys(params);
+    const values = Object.values(params);
+
+    let message = template.message.replace(/\$\{(\w+)\}/g, (match, p1) => {
+      const index = names.indexOf(p1);
+      return index !== -1 ? values[index] : match;
+    });
+
+    const attachment = pickRandom(template.attachments ?? []);
+    if (attachment) {
+      message += `\n${attachment}`;
+    }
+    return message;
+  }
+
+  // Validate that all required parameters are present in the template
+  validateTemplate(template: string, requiredParams: string[]) {
+    const regex = /\$\{(\w+)\}/g;
+    const matches = template.matchAll(regex);
+    const missingParams: string[] = [];
+
+    const presentParams = new Set<string>();
+    for (const match of matches) {
+      presentParams.add(match[1]);
+    }
+
+    for (const param of requiredParams) {
+      if (!presentParams.has(param)) {
+        missingParams.push(param);
+      }
+    }
+
+    return missingParams;
   }
 }
