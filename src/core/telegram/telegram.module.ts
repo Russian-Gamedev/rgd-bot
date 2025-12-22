@@ -6,6 +6,8 @@ import { TelegrafModule } from 'nestjs-telegraf';
 import { RedisModule } from '#common/redis.module';
 import { EnvironmentVariables } from '#config/env';
 
+import { TelegramLinkEntity } from './entities/link.entity';
+import { TelegramLinkService } from './link.update';
 import { TelegramUpdate } from './telegram.update';
 
 @Module({
@@ -22,10 +24,10 @@ import { TelegramUpdate } from './telegram.update';
         },
       }),
     }),
-    MikroOrmModule.forFeature([]),
+    MikroOrmModule.forFeature([TelegramLinkEntity]),
     RedisModule,
   ],
-  providers: [TelegramUpdate],
+  providers: [TelegramLinkService, TelegramUpdate],
   controllers: [],
 })
 export class TelegramModule {}
