@@ -29,7 +29,7 @@ wss://bot.rgd.chat/bar
 
 ```json
 {
-  "event": "название_события",
+  "type": "название_события",
   "data": {
     /* полезная нагрузка */
   },
@@ -55,7 +55,7 @@ wss://bot.rgd.chat/bar
 
 ```json
 {
-  "event": "connected",
+  "type": "connected",
   "data": {
     "guilds": [
       {
@@ -102,7 +102,7 @@ wss://bot.rgd.chat/bar
 
 ```json
 {
-  "event": "member_start_typing",
+  "type": "member_start_typing",
   "data": {
     "guild_id": "123456789",
     "channel_id": "987654321",
@@ -132,7 +132,7 @@ wss://bot.rgd.chat/bar
 
 ```json
 {
-  "event": "message_create",
+  "type": "message_create",
   "data": {
     "guild_id": "123456789",
     "channel_id": "987654321",
@@ -169,7 +169,7 @@ wss://bot.rgd.chat/bar
 
 ```json
 {
-  "event": "member_join_voice",
+  "type": "member_join_voice",
   "data": {
     "guild_id": "123456789",
     "channel_id": "987654322",
@@ -199,7 +199,7 @@ wss://bot.rgd.chat/bar
 
 ```json
 {
-  "event": "member_leave_voice",
+  "type": "member_leave_voice",
   "data": {
     "guild_id": "123456789",
     "channel_id": "987654322",
@@ -229,7 +229,7 @@ wss://bot.rgd.chat/bar
 
 ```json
 {
-  "event": "member_move_voice",
+  "type": "member_move_voice",
   "data": {
     "guild_id": "123456789",
     "old_channel_id": "987654322",
@@ -261,7 +261,7 @@ wss://bot.rgd.chat/bar
 
 ```json
 {
-  "event": "voice_state_update",
+  "type": "voice_state_update",
   "data": {
     "guild_id": "123456789",
     "channel_id": "987654322",
@@ -295,7 +295,7 @@ wss://bot.rgd.chat/bar
 
 ```json
 {
-  "event": "member_reaction_add",
+  "type": "member_reaction_add",
   "data": {
     "guild_id": "123456789",
     "channel_id": "987654321",
@@ -336,7 +336,7 @@ wss://bot.rgd.chat/bar
 
 ```json
 {
-  "event": "member_speaking",
+  "type": "member_speaking",
   "data": {
     "guild_id": "123456789",
     "channel_id": "987654322",
@@ -375,7 +375,7 @@ Keepalive сообщение для поддержания соединения.
 
 ```json
 {
-  "event": "ping"
+  "type": "ping"
 }
 ```
 
