@@ -44,7 +44,9 @@ export class UserCommands {
     if (!guild) return;
     const guildId = BigInt(guild.id);
     const targetId = BigInt(member?.id ?? interaction.user.id);
-    const target = await guild.members.fetch(targetId.toString());
+    const target = await guild.members
+      .fetch(targetId.toString())
+      .catch(() => null);
     if (!target) return;
     const guildUser = await this.userService.findOrCreate(guildId, targetId);
     const allUser = await this.userService.getUserFromGuilds(targetId);

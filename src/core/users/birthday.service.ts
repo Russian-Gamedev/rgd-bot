@@ -95,7 +95,9 @@ export class BirthdayService {
       let field = '';
 
       for (const user of users) {
-        const member = await guild.members.fetch(user.user_id.toString());
+        const member = await guild.members
+          .fetch(user.user_id.toString())
+          .catch(() => null);
         if (!member) continue;
         const birthDate = new Date(user.birth_date!);
         const age = today.getFullYear() - birthDate.getFullYear();

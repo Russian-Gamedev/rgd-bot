@@ -177,7 +177,7 @@ export class ActivityWatchService {
     const message = await reaction.message.fetch();
     if (!message.guild) return;
 
-    const member = await message.guild.members.fetch(user.id);
+    const member = await message.guild.members.fetch(user.id).catch(() => null);
     if (!member) return;
 
     if (message.author.id === user.id) return;
@@ -249,7 +249,7 @@ export class ActivityWatchService {
       const members = await this.redis.hgetall(key);
 
       for (const memberId of Object.keys(members)) {
-        const member = await guild.members.fetch(memberId);
+        const member = await guild.members.fetch(memberId).catch(() => null);
         if (!member) continue;
         await this.saveVoiceActivity(member);
         if (member.voice.channel) {

@@ -18,7 +18,9 @@ export class RoleReactionWatcher {
   ) {
     if (user.bot) return;
 
-    const member = await reaction.message.guild?.members.fetch(user.id);
+    const member = await reaction.message.guild?.members
+      .fetch(user.id)
+      ?.catch(() => null);
     const emoji = reaction.emoji.id ?? reaction.emoji.name;
     if (!emoji) return;
 
@@ -40,7 +42,9 @@ export class RoleReactionWatcher {
   ) {
     if (user.bot) return;
 
-    const member = await reaction.message.guild?.members.fetch(user.id);
+    const member = await reaction.message.guild?.members
+      .fetch(user.id)
+      .catch(() => null);
     const emoji = reaction.emoji.id ?? reaction.emoji.name;
     if (!emoji) return;
 

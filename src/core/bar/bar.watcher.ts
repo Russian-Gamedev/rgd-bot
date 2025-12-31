@@ -232,6 +232,7 @@ export class BarWatcher {
       id: member.id,
       username: member.displayName,
       avatar_url: getDisplayAvatar(cast<GuildMember>(member), 'png', 256),
+      is_bot: 'bot' in member ? member.bot : member.user.bot,
     };
   }
 

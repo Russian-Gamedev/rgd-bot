@@ -151,7 +151,9 @@ export class UserService {
       const discordRole = await guild.roles.fetch(role.role_id.toString());
       if (!discordRole) continue;
 
-      const member = await guild.members.fetch(user.user_id.toString());
+      const member = await guild.members
+        .fetch(user.user_id.toString())
+        .catch(() => null);
       if (!member) continue;
 
       if (!member.roles.cache.has(discordRole.id)) {
@@ -173,7 +175,9 @@ export class UserService {
   async giveRoleToUser(user: UserEntity, roleId: DiscordID): Promise<void> {
     const guild = await this.client.guilds.fetch(user.guild_id.toString());
     if (!guild) return;
-    const discordUser = await guild.members.fetch(user.user_id.toString());
+    const discordUser = await guild.members
+      .fetch(user.user_id.toString())
+      .catch(() => null);
     if (!discordUser) return;
 
     const role = await guild.roles.fetch(roleId.toString());
@@ -187,7 +191,9 @@ export class UserService {
   async removeRoleFromUser(user: UserEntity, roleId: DiscordID): Promise<void> {
     const guild = await this.client.guilds.fetch(user.guild_id.toString());
     if (!guild) return;
-    const discordUser = await guild.members.fetch(user.user_id.toString());
+    const discordUser = await guild.members
+      .fetch(user.user_id.toString())
+      .catch(() => null);
     if (!discordUser) return;
 
     const role = await guild.roles.fetch(roleId.toString());
