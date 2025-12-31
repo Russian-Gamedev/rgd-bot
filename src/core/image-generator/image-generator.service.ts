@@ -48,11 +48,16 @@ export class ImageGeneratorService {
   }
 
   public async renderInviteBanner(inviteCode: string) {
+    this.logger.debug(`Requested render invite banner for code: ${inviteCode}`);
     const cache = this.cacheImage(`invite-banner:${inviteCode}`, 3600);
     const cachedImage = await cache.get();
     if (cachedImage) {
+      this.logger.debug(`Cache hit for invite banner: ${inviteCode}`);
       return cachedImage;
     }
+
+    const time = Date.now();
+    this.logger.debug(`Cache miss for invite banner: ${inviteCode}`);
 
     const invite = await this.discord.fetchInvite(inviteCode).catch(() => null);
 
@@ -81,6 +86,11 @@ export class ImageGeneratorService {
       format: 'webp',
     });
     await cache.set(buffer);
+    this.logger.debug(
+      `Rendered invite banner for code: ${inviteCode} in ${
+        Date.now() - time
+      }ms`,
+    );
     return buffer;
   }
 
