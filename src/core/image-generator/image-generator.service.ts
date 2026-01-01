@@ -1,9 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { Renderer } from '@takumi-rs/core';
 import { fromJsx } from '@takumi-rs/helpers/jsx';
 import { Client } from 'discord.js';
@@ -11,8 +6,6 @@ import Redis from 'ioredis';
 import path from 'path';
 
 import { GuildService } from '#core/guilds/guild.service';
-
-import { renderInviteBanner } from './renderers/invite-banner';
 
 export interface ImageRenderer {
   node: Awaited<ReturnType<typeof fromJsx>>;
@@ -52,7 +45,7 @@ export class ImageGeneratorService {
     this.logger.log('Image renderer initialized');
   }
 
-  public async renderInviteBanner(inviteCode: string) {
+  public async renderInviteBanner(inviteCode: string): Promise<Buffer> {
     console.log(inviteCode);
     throw new ForbiddenException('Invite banners are disabled');
   }
