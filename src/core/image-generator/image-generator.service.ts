@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { Renderer } from '@takumi-rs/core';
 import { fromJsx } from '@takumi-rs/helpers/jsx';
 import { Client } from 'discord.js';
@@ -48,6 +53,7 @@ export class ImageGeneratorService {
   }
 
   public async renderInviteBanner(inviteCode: string) {
+    throw new ForbiddenException('Invite banners are disabled');
     this.logger.debug(`Requested render invite banner for code: ${inviteCode}`);
     const cache = this.cacheImage(`invite-banner:${inviteCode}`, 3600);
     const cachedImage = await cache.get();
@@ -73,6 +79,8 @@ export class ImageGeneratorService {
     const online = invite.presenceCount ?? 0;
     const banner = guild?.custom_banner_url ?? invite.guild.bannerURL();
 
+    this.logger.debug(`Rendering invite banner for code: ${inviteCode}`);
+
     const { width, height, node } = await renderInviteBanner({
       title,
       iconURL,
@@ -80,11 +88,15 @@ export class ImageGeneratorService {
       online,
       banner,
     });
+    this.logger.debug(`Invite banner layout calculated: ${width}x${height}`);
     const buffer = await this.renderer.render(node, {
       width,
       height,
-      format: 'webp',
+      format: 'png',
     });
+    this.logger.debug(
+      `Invite banner rendered to buffer: ${buffer.length} bytes`,
+    );
     await cache.set(buffer);
     this.logger.debug(
       `Rendered invite banner for code: ${inviteCode} in ${
