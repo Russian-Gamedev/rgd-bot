@@ -53,57 +53,8 @@ export class ImageGeneratorService {
   }
 
   public async renderInviteBanner(inviteCode: string) {
+    console.log(inviteCode);
     throw new ForbiddenException('Invite banners are disabled');
-    this.logger.debug(`Requested render invite banner for code: ${inviteCode}`);
-    const cache = this.cacheImage(`invite-banner:${inviteCode}`, 3600);
-    const cachedImage = await cache.get();
-    if (cachedImage) {
-      this.logger.debug(`Cache hit for invite banner: ${inviteCode}`);
-      return cachedImage;
-    }
-
-    const time = Date.now();
-    this.logger.debug(`Cache miss for invite banner: ${inviteCode}`);
-
-    const invite = await this.discord.fetchInvite(inviteCode).catch(() => null);
-
-    if (!invite?.guild) {
-      throw new NotFoundException('Invite not found');
-    }
-
-    const guild = await this.guildService.getGuildById(invite.guild.id);
-
-    const title = invite.guild.name;
-    const iconURL = invite.guild.iconURL({ size: 128 }) ?? '';
-    const members = invite.memberCount ?? 0;
-    const online = invite.presenceCount ?? 0;
-    const banner = guild?.custom_banner_url ?? invite.guild.bannerURL();
-
-    this.logger.debug(`Rendering invite banner for code: ${inviteCode}`);
-
-    const { width, height, node } = await renderInviteBanner({
-      title,
-      iconURL,
-      members,
-      online,
-      banner,
-    });
-    this.logger.debug(`Invite banner layout calculated: ${width}x${height}`);
-    const buffer = await this.renderer.render(node, {
-      width,
-      height,
-      format: 'png',
-    });
-    this.logger.debug(
-      `Invite banner rendered to buffer: ${buffer.length} bytes`,
-    );
-    await cache.set(buffer);
-    this.logger.debug(
-      `Rendered invite banner for code: ${inviteCode} in ${
-        Date.now() - time
-      }ms`,
-    );
-    return buffer;
   }
 
   private cacheImage(key: string, ttl: number) {
