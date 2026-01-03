@@ -23,24 +23,12 @@ export class GuildEventService {
     event: GuildEvents,
     params: Record<string, string> = {},
   ) {
-    /// Получаем список, которые меньше максимального в таблице ИЛИ все равны
-
-    const queryMax =
-      '("events"."triggered_count" < (SELECT MAX("triggered_count") FROM "guild_events" WHERE "event" = ? AND "guild_id" = ? ))';
-    const queryDistinct =
-      '(SELECT COUNT(DISTINCT triggered_count) FROM guild_events WHERE "event" = ? AND "guild_id" = ?) = 1';
-
     const events = await this.guildEventRepository
       .createQueryBuilder('events')
       .select('*')
-      .where({ event })
-      .andWhere(`${queryMax} OR ${queryDistinct}`, [
-        event,
-        guild_id,
-        event,
-        guild_id,
-      ])
-      .orderBy({ triggered_count: 'ASC' })
+      .where({ event, guild_id: BigInt(guild_id) })
+      .orderBy({ updatedAt: 'ASC' })
+      .limit(10)
       .execute();
 
     if (!events.length) return null;
@@ -49,7 +37,7 @@ export class GuildEventService {
 
     template.triggered_count++;
 
-    await this.entityManager.persistAndFlush(template);
+    await this.entityManager.persist(template).flush();
 
     return this.buildTemplate(template, params);
   }
