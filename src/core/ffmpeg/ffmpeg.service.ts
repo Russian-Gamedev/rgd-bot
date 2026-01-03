@@ -1,6 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { $ } from 'bun';
 import fs from 'fs/promises';
+
+import { EnvironmentVariables } from '#config/env';
 
 @Injectable()
 export class FFMpegService {
@@ -11,7 +14,17 @@ export class FFMpegService {
   private readonly binFFMpegPath = './bin/ffmpeg';
   private readonly binFFProbePath = './bin/ffprobe';
 
+  constructor(
+    private readonly configService: ConfigService<EnvironmentVariables>,
+  ) {}
+
   async onModuleInit() {
+    const useFmpeg = this.configService.get<boolean>('USE_FFMPEG', false);
+    if (!useFmpeg) {
+      this.logger.log('FFMpeg usage is disabled via configuration.');
+      return;
+    }
+
     await this.checkFFMpegExists();
     const version = await this.getVersion();
     this.logger.log(`FFMpeg Version:\n${version}`);

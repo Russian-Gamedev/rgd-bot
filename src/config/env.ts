@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsEnum,
   IsNumber,
   IsOptional,
@@ -55,4 +56,8 @@ export class EnvironmentVariables {
   @IsString()
   @IsOptional()
   TELEGRAM_API_ROOT?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  USE_FFMPEG: boolean;
 }
