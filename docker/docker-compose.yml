@@ -5,6 +5,17 @@ services:
     image: rgd-bot:latest
     container_name: "${COMPOSE_PROJECT_NAME}_app"
     restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          "curl -f -m 5 http://localhost:3000 || kill -s TERM 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     env_file:
       - .env.production
     volumes:
