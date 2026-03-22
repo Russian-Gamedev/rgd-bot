@@ -1,8 +1,9 @@
 <div align='center'>
+<img src='https://assets.rgd.chat/banner.jpg'  alt='rgd logo'>
 
 # Russian GameDev Bot
 
-[![Discord Link](https://bot.rgd.chat/embed/invite/TGZ4CDxWRC/banner)](https://discord.gg/TGZ4CDxWRC)
+[![Discord Link](https://dcbadge.limes.pink/api/server/5kZhhWD)](https://discord.gg/5kZhhWD)
 
 </div>
 
