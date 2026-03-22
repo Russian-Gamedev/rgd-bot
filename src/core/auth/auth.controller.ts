@@ -13,6 +13,7 @@ import type { Request, Response } from 'express';
 
 import { EnvironmentVariables } from '#config/env';
 
+import { DiscordAuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 import { AuthProfile } from './auth.type';
 
@@ -30,7 +31,7 @@ export class AuthController {
   }
 
   @Get('/discord')
-  @UseGuards(AuthGuard('discord'))
+  @UseGuards(DiscordAuthGuard)
   async login() {
     ///
   }
