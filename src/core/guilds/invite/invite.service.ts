@@ -53,13 +53,13 @@ export class GuildInviteService {
 
     /// update existing invites and create new ones
     for (const invite of invites.values()) {
-      let inviteEntity = inviteEntities.find((i) => i.id === invite.code);
+      const inviteEntity = inviteEntities.find((i) => i.id === invite.code);
       if (inviteEntity) {
         inviteEntity.uses = invite.uses ?? inviteEntity.uses;
         await this.entityManager.flush();
         updated++;
       } else {
-        inviteEntity = await this.create(invite);
+        await this.create(invite);
       }
     }
     this.logger.log(`Updated ${updated} invites for guild ID: ${guildId}`);

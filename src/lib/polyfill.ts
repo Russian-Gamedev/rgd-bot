@@ -4,4 +4,7 @@ BigInt.prototype.toJSON = function () {
 };
 
 // fixes Bun standalone executable Error#message being non-writable
-Object.defineProperty(Error.prototype, "message", { writable: true, configurable: true });
+Object.defineProperty(Error.prototype, 'message', {
+  writable: true,
+  configurable: true,
+});

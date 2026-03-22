@@ -15,7 +15,7 @@ import { EmojiNumber } from '#config/emojies';
 import { RoleReactionEntity } from './entities/role-reaction.entity';
 
 const BindRegex =
-  /(?<emoji>.+|<a?:\w{1,32}:\d{17,21}>|(\S+)) <@&(?<role_id>\d{17,21})>/g;
+  /(?<emoji><a?:\w{1,32}:\d{17,21}>|[^\s]+)\s+<@&(?<role_id>\d{17,21})>/g;
 
 @Injectable()
 export class RoleReactionService {

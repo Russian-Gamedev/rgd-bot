@@ -130,7 +130,7 @@ export class UserCommands {
     const guild = interaction.guild;
     if (!guild) return;
 
-    let date: Date | null = null;
+    let date: Date | null;
 
     try {
       if (!dto.date?.match(/^\d{2}\.\d{2}\.\d{4}$/)) {
