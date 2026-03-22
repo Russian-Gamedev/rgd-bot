@@ -99,37 +99,22 @@ export class ActivityWatchService {
     @Context() [oldState, newState]: ContextOf<'voiceStateUpdate'>,
   ) {
     if (!newState.guild) return;
-    if (newState.member?.user.bot) return;
+    const member = newState.member ?? oldState.member;
+    if (!member || member.user.bot) return;
 
     const key = `activity:voice:${newState.guild.id}`;
-    const member = newState.member!;
-
     const recordTime = () => this.redis.hset(key, member.id, Date.now());
+    const wasTracking = Boolean(oldState.channelId && !oldState.selfDeaf);
+    const shouldTrack = Boolean(newState.channelId && !newState.selfDeaf);
+    const switchedChannel = oldState.channelId !== newState.channelId;
 
-    if (!newState.channel) {
-      /// left
+    if (wasTracking && (switchedChannel || !shouldTrack)) {
       await this.saveVoiceActivity(member);
-      return;
     }
 
-    if (oldState.channelId !== newState.channelId) {
-      // switched
-      await this.saveVoiceActivity(member);
+    if (shouldTrack && (switchedChannel || !wasTracking)) {
       await recordTime();
-      return;
     }
-
-    if (newState.selfDeaf) {
-      await this.saveVoiceActivity(member);
-      return;
-    }
-
-    if (oldState.selfDeaf && !newState.selfDeaf) {
-      await recordTime();
-      return;
-    }
-
-    await recordTime();
   }
 
   @On('messageReactionAdd')
