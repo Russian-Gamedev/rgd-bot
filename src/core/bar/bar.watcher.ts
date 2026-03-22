@@ -120,7 +120,7 @@ export class BarWatcher {
           channels: guild.channels.cache.map((channel) => ({
             id: channel.id,
             name: channel.name,
-            type: cast<keyof typeof ChannelType>(channel.type),
+            type: ChannelType[channel.type] as keyof typeof ChannelType,
           })),
         };
       }),
@@ -228,10 +228,19 @@ export class BarWatcher {
   }
 
   private normalizeMember(member: GuildMember | User | PartialUser) {
+    const username =
+      member instanceof GuildMember
+        ? member.displayName
+        : (member.username ?? 'Unknown user');
+
     return {
       id: member.id,
-      username: member.displayName,
-      avatar_url: getDisplayAvatar(cast<GuildMember>(member), 'png', 256),
+      username,
+      avatar_url: getDisplayAvatar(
+        cast<GuildMember | User>(member),
+        'png',
+        256,
+      ),
       is_bot: 'bot' in member ? member.bot : member.user.bot,
     };
   }

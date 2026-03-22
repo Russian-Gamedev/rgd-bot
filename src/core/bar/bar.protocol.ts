@@ -11,6 +11,7 @@ export interface BarMember {
   id: string;
   username: string;
   avatar_url: string;
+  is_bot: boolean;
 }
 
 /// Server to Client Events & Payloads
