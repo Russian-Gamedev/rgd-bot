@@ -124,8 +124,8 @@ export class BirthdayService {
       this.logger.log(`Setting up birthday events for guild ${guildId}`);
 
       const createBirthdayEvents = await this.guildSettings
-        .getSetting<string>(guildId, GuildSettings.CreateBirthdayEvents)
-        .then((setting) => setting === 'true');
+        .getSetting(guildId, GuildSettings.CreateBirthdayEvents, false)
+        .then((setting) => this.guildSettings.asBoolean(setting));
       if (!createBirthdayEvents) {
         this.logger.log(
           `Birthday events creation disabled for guild ${guildId}, skipping`,

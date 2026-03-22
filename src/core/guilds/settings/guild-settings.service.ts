@@ -27,7 +27,19 @@ export class GuildSettingsService {
       guild_id: guildId,
       key,
     });
-    return setting ? (setting.value as T) : defaultValue;
+    if (!setting) {
+      return defaultValue;
+    }
+
+    if (typeof defaultValue === 'boolean') {
+      return this.asBoolean(setting.value) as T;
+    }
+
+    if (typeof defaultValue === 'number') {
+      return this.asNumber(setting.value, defaultValue) as T;
+    }
+
+    return setting.value as T;
   }
 
   async setSetting<T>(
@@ -93,8 +105,29 @@ export class GuildSettingsService {
   ): Promise<string[]> {
     const settings = await this.guildSettingsRepository.find({
       key: featureKey,
-      value: true,
     });
-    return settings.map((s) => String(s.guild_id));
+
+    return settings
+      .filter((setting) => this.asBoolean(setting.value))
+      .map((setting) => String(setting.guild_id));
+  }
+
+  asBoolean(value: unknown): boolean {
+    return value === true || value === 'true';
+  }
+
+  asNumber(value: unknown, fallback: number): number {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+
+    return fallback;
   }
 }

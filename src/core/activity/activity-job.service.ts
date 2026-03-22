@@ -108,6 +108,7 @@ export class ActivityJobService {
     const enabledAutoRole = await this.guildSettings.getSetting<boolean>(
       BigInt(guild.id),
       GuildSettings.ActiveAutoGiveRole,
+      false,
     );
     const activeRoleThreshold = await this.guildSettings.getSetting<number>(
       BigInt(guild.id),
@@ -201,8 +202,8 @@ export class ActivityJobService {
 
   private async postActivitySummary(guild: Guild, period: ActivityPeriod) {
     const postMessages = await this.guildSettings
-      .getSetting<string>(BigInt(guild.id), GuildSettings.PostActivityMessages)
-      .then((value) => value === 'true');
+      .getSetting(BigInt(guild.id), GuildSettings.PostActivityMessages, false)
+      .then((value) => this.guildSettings.asBoolean(value));
 
     if (!postMessages) return;
 
