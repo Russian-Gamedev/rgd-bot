@@ -10,13 +10,15 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
 
       - name: install and lint
-        run: bun install
+        run: bun install --frozen-lockfile
       - name: run lint
-        run: bun lint
+        run: bun run lint
 
   deploy:
     needs: [lint]
@@ -24,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Build Docker image
         env:
@@ -59,5 +61,5 @@ jobs:
       - name: Deploy Docker containers using Docker Compose on remote server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
-          cd ${{ secrets.REMOTE_PATH }} && docker compose up --build -d
+          cd ${{ secrets.REMOTE_PATH }} && docker compose up -d
           ENDSSH

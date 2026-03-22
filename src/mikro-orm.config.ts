@@ -4,12 +4,15 @@ import { defineConfig, PostgreSqlDriver } from '@mikro-orm/postgresql';
 import path from 'path';
 
 const migrationPath = path.join(__dirname, './migrations');
+const isMikroOrmCli = process.argv.some((arg) => arg.includes('mikro-orm'));
+
+const entities = isMikroOrmCli ? ['./**/entities/*.entity.ts'] : [];
 
 export default defineConfig({
   metadataProvider: ReflectMetadataProvider,
   clientUrl: process.env.POSTGRES_URL,
-  entities: ['./**/entities/*.entity.ts'],
-  entitiesTs: ['./**/entities/*.entity.ts'],
+  entities: entities,
+  entitiesTs: entities,
   extensions: [Migrator],
   driver: PostgreSqlDriver,
   debug: process.env.DATABASE_QUERY_LOG == 'true',
@@ -17,6 +20,7 @@ export default defineConfig({
   migrations: {
     tableName: 'mikro_orm_migrations',
     path: migrationPath,
+    pathTs: path.join(process.cwd(), 'src/migrations'),
     transactional: true,
     disableForeignKeys: true,
     allOrNothing: true,

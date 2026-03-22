@@ -12,7 +12,7 @@ import './lib/polyfill';
 import { AppModule } from './app.module';
 
 async function getSwaggerCustom() {
-  const assetsDir = path.join(__dirname, '../assets/swagger');
+  const assetsDir = path.resolve('./assets/swagger');
   const customCss = await Bun.file(path.join(assetsDir, 'custom.css')).text();
   const customJs = await Bun.file(path.join(assetsDir, 'custom.js')).text();
 

@@ -6,7 +6,7 @@ import { Environment } from '#config/env';
 import config from '#root/mikro-orm.config';
 
 @Module({
-  imports: [MikroOrmModule.forRoot(config)],
+  imports: [MikroOrmModule.forRoot({ ...config, autoLoadEntities: true })],
 })
 export class DatabaseModule {
   private logger = new Logger(DatabaseModule.name);

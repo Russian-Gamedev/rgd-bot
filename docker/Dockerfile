@@ -1,8 +1,6 @@
-FROM oven/bun:alpine AS base
+FROM oven/bun:1.3.11-alpine AS builder
 
 WORKDIR /app
-
-FROM base AS builder
 
 # Accept build arguments for git information
 ARG GIT_BRANCH=unknown
@@ -11,21 +9,21 @@ ARG GIT_COMMIT_MESSAGE=unknown
 
 COPY package.json bun.lock ./
 
-RUN bun install
+RUN bun install --frozen-lockfile
 
 COPY . .
 
-# Check if build works
-RUN bun run build
+# Build a Linux Bun standalone executable inside the container.
+RUN bun run build.ts
 
-FROM base AS production
+FROM alpine:3.22 AS production
 
-RUN apk add --no-cache tini
+WORKDIR /app
 
-COPY --from=builder /app/node_modules ./node_modules
+RUN apk add --no-cache ca-certificates tini libstdc++ libgcc
+
+COPY --from=builder /app/dist/bot ./bot
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/tsconfig.json ./tsconfig.json
-COPY --from=builder /app/src ./src
 COPY --from=builder /app/assets ./assets
 
 # Set git information as environment variables
@@ -39,4 +37,4 @@ ENV GIT_COMMIT_MESSAGE=$GIT_COMMIT_MESSAGE
 ENV NODE_ENV=production
 
 ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["bun","./src/main.ts"]
+CMD ["./bot"]

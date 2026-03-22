@@ -4,3 +4,7 @@ node_modules
 build
 dist
 .env.*
+docker/postgresql
+docker/redis
+*.log
+.DS_Store
