@@ -394,7 +394,7 @@ export class ActivityJobService {
         nextActivity.voice += activity.voice;
         nextActivity.reactions += activity.reactions;
 
-        await this.em.persistAndFlush(nextActivity);
+        await this.em.persist(nextActivity).flush();
       }
     }
 
@@ -420,7 +420,7 @@ export class ActivityJobService {
       activity.guild_id = guildId;
       activity.user_id = userId;
       activity.period = period;
-      await this.em.persistAndFlush(activity);
+      await this.em.persist(activity).flush();
     }
 
     return activity;

@@ -1,4 +1,10 @@
-import { Entity, Index, PrimaryKey, Property, Unique } from '@mikro-orm/core';
+import {
+  Entity,
+  Index,
+  PrimaryKey,
+  Property,
+  Unique,
+} from '@mikro-orm/decorators/legacy';
 
 import { BaseEntity } from '#common/entities/base.entity';
 

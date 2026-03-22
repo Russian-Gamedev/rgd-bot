@@ -5,11 +5,10 @@ import { UserModule } from '#core/users/users.module';
 
 import { FlipGame } from './games/flip.game';
 import { RandomMuteGame } from './games/random-mute.game';
-import { SIGameModule } from './games/sigame/sigame.module';
 import { SlotGame } from './games/slot.game';
 
 @Module({
-  imports: [UserModule, GuildSettingsModule, SIGameModule],
+  imports: [UserModule, GuildSettingsModule],
   providers: [FlipGame, SlotGame, RandomMuteGame],
 })
 export class MiniGamesModule {}

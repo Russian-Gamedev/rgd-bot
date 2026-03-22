@@ -76,7 +76,7 @@ export class GuildEventService {
     });
     if (!event) return false;
 
-    await this.entityManager.removeAndFlush(event);
+    await this.entityManager.remove(event).flush();
     return true;
   }
 

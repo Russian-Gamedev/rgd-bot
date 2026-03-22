@@ -28,7 +28,7 @@ export class BotsService {
     bot.scopes = scopes;
     bot.tokenHash = hashedToken;
 
-    await this.entityManager.persistAndFlush(bot);
+    await this.entityManager.persist(bot).flush();
 
     this.logger.log(`Created new bot with ID ${bot.id} and name ${name}`);
 
@@ -59,7 +59,7 @@ export class BotsService {
   async deleteBot(id: number): Promise<void> {
     const bot = await this.botsRepository.findOne({ id });
     if (!bot) return;
-    await this.entityManager.removeAndFlush(bot);
+    await this.entityManager.remove(bot).flush();
     this.logger.log(`Deleted bot with ID ${id} and name ${bot.name}`);
   }
 }

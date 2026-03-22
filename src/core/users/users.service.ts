@@ -42,7 +42,7 @@ export class UserService {
   }
 
   async save(user: UserEntity): Promise<void> {
-    await this.em.persistAndFlush(user);
+    await this.em.persist(user).flush();
   }
 
   async getUserFromGuilds(user_id: DiscordID) {
@@ -69,40 +69,40 @@ export class UserService {
     user.banner = discordUser.bannerURL() ?? null;
     user.banner_color = discordUser.displayHexColor ?? '#fff';
     user.first_joined_at ??= discordUser.joinedAt ?? new Date();
-    await this.em.persistAndFlush(user);
+    await this.save(user);
   }
 
   async addExperience(user: UserEntity, amount: number): Promise<void> {
     user.experience += amount;
-    await this.em.persistAndFlush(user);
+    await this.save(user);
   }
 
   async addReputation(user: UserEntity, amount: number): Promise<void> {
     user.reputation += amount;
-    await this.em.persistAndFlush(user);
+    await this.save(user);
   }
 
   async addCoins(user: UserEntity, amount: number): Promise<void> {
     user.coins += amount;
-    await this.em.persistAndFlush(user);
+    await this.save(user);
   }
 
   async addVoiceTime(user: UserEntity, amount: number): Promise<void> {
     user.voice_time += amount;
-    await this.em.persistAndFlush(user);
+    await this.save(user);
   }
 
   async leaveGuild(user: UserEntity): Promise<void> {
     user.left_at = new Date();
     user.is_left_guild = true;
     user.left_count += 1;
-    await this.em.persistAndFlush(user);
+    await this.save(user);
   }
 
   async rejoinGuild(user: UserEntity): Promise<void> {
     user.left_at = null;
     user.is_left_guild = false;
-    await this.em.persistAndFlush(user);
+    await this.save(user);
     await this.loadRoles(user);
   }
 
@@ -164,12 +164,12 @@ export class UserService {
 
   async updateLastActiveAt(user: UserEntity): Promise<void> {
     user.lastActiveAt = new Date();
-    await this.em.persistAndFlush(user);
+    await this.save(user);
   }
 
   async increaseActiveStreak(user: UserEntity): Promise<void> {
     user.activeStreak += 1;
-    await this.em.persistAndFlush(user);
+    await this.save(user);
   }
 
   async giveRoleToUser(user: UserEntity, roleId: DiscordID): Promise<void> {
@@ -230,12 +230,13 @@ export class UserService {
     fromUser.coins -= amount;
     toUser.coins += amount;
 
-    await this.em.persistAndFlush([fromUser, toUser]);
+    await this.save(fromUser);
+    await this.save(toUser);
   }
 
   async setBirthday(user: UserEntity, birthday: Date | null): Promise<void> {
     user.birth_date = birthday;
-    await this.em.persistAndFlush(user);
+    await this.save(user);
   }
 
   async getBirthdayUsers(

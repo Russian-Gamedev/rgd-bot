@@ -91,7 +91,7 @@ export class ActivityWatchService {
     await this.userService.addExperience(user, words.length);
     await this.userService.updateLastActiveAt(user);
 
-    await this.em.persistAndFlush(activity);
+    await this.em.persist(activity).flush();
   }
 
   @On('voiceStateUpdate')
@@ -147,7 +147,7 @@ export class ActivityWatchService {
 
     activity.reactions += 1;
 
-    await this.em.persistAndFlush(activity);
+    await this.em.persist(activity).flush();
   }
 
   @On('messageReactionRemove')
@@ -165,7 +165,7 @@ export class ActivityWatchService {
 
     activity.reactions -= 1;
 
-    await this.em.persistAndFlush(activity);
+    await this.em.persist(activity).flush();
   }
 
   private async canProcessReaction(
@@ -204,7 +204,7 @@ export class ActivityWatchService {
       activity.guild_id = guildId;
       activity.user_id = userId;
       activity.period = period;
-      await this.em.persistAndFlush(activity);
+      await this.em.persist(activity).flush();
     }
 
     return activity;
@@ -233,7 +233,7 @@ export class ActivityWatchService {
     await this.userService.addVoiceTime(user, elapsed);
     await this.userService.updateLastActiveAt(user);
 
-    await this.em.persistAndFlush(activity);
+    await this.em.persist(activity).flush();
 
     await this.redis.hdel(key, member.id);
   }

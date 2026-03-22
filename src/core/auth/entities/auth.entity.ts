@@ -1,4 +1,9 @@
-import { Entity, OneToOne, PrimaryKey, Property } from '@mikro-orm/core';
+import {
+  Entity,
+  OneToOne,
+  PrimaryKey,
+  Property,
+} from '@mikro-orm/decorators/legacy';
 
 import { BaseEntity } from '#common/entities/base.entity';
 import { UserEntity } from '#core/users/entities/user.entity';

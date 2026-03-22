@@ -1,4 +1,4 @@
-import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
+import { Entity, PrimaryKey, Property } from '@mikro-orm/decorators/legacy';
 import { type HexColorString } from 'discord.js';
 
 import { BaseEntity } from '#common/entities/base.entity';

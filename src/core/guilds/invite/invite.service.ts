@@ -27,7 +27,7 @@ export class GuildInviteService {
     inviteEntity.guild_id = invite.guild?.id ?? '0';
     inviteEntity.uses = invite.uses ?? 0;
     inviteEntity.inviter_id = invite.inviter?.id ?? '0';
-    await this.entityManager.persistAndFlush(inviteEntity);
+    await this.entityManager.persist(inviteEntity).flush();
     this.logger.log(
       `Created invite with ID: ${inviteEntity.id} by ${inviteEntity.inviter_id}`,
     );
@@ -44,7 +44,7 @@ export class GuildInviteService {
     /// delete invites that no longer exist
     for (const inviteEntity of inviteEntities) {
       if (!invites.has(inviteEntity.id)) {
-        await this.entityManager.removeAndFlush(inviteEntity);
+        await this.entityManager.remove(inviteEntity).flush();
         this.logger.log(`Deleted invite with ID: ${inviteEntity.id}`);
       }
     }
@@ -76,7 +76,7 @@ export class GuildInviteService {
       const inviteEntity = inviteEntities.find((i) => i.id === invite.code);
       if (inviteEntity && inviteEntity.uses < invite.uses!) {
         inviteEntity.uses = invite.uses!;
-        await this.entityManager.persistAndFlush(inviteEntity);
+        await this.entityManager.persist(inviteEntity).flush();
         return inviteEntity;
       }
     }
@@ -87,7 +87,7 @@ export class GuildInviteService {
       id: invite.code,
     });
     if (inviteEntity) {
-      await this.entityManager.removeAndFlush(inviteEntity);
+      await this.entityManager.remove(inviteEntity).flush();
       this.logger.log(`Deleted invite with ID: ${inviteEntity.id}`);
     }
   }
@@ -104,7 +104,7 @@ export class GuildInviteService {
     inviteHistory.guild_id = inviteEntity.guild_id;
     inviteHistory.invite_user = inviteEntity.inviter_id;
 
-    await this.entityManager.persistAndFlush(inviteHistory);
+    await this.entityManager.persist(inviteHistory).flush();
   }
 
   async trackLeave(user: UserEntity) {
@@ -119,6 +119,6 @@ export class GuildInviteService {
     if (!inviteHistory) return;
 
     inviteHistory.leftAt = new Date();
-    await this.entityManager.persistAndFlush(inviteHistory);
+    await this.entityManager.persist(inviteHistory).flush();
   }
 }

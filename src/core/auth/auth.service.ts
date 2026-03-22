@@ -44,7 +44,7 @@ export class AuthService {
       auth.guild_id = BigInt(profile.guild_id);
       auth.user = user;
 
-      await this.entityManager.persistAndFlush(auth);
+      await this.entityManager.persist(auth).flush();
 
       this.logger.log(
         `Created new auth entry for user ${profile.username} in guild ${profile.guild_id}`,

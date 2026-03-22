@@ -25,7 +25,7 @@ export class ItemsService {
   async createItem(item: Partial<ItemEntity>): Promise<ItemEntity> {
     const newItem = new ItemEntity();
     Object.assign(newItem, item);
-    await this.entityManager.persistAndFlush(newItem);
+    await this.entityManager.persist(newItem).flush();
     return newItem;
   }
 
@@ -39,7 +39,7 @@ export class ItemsService {
       date: new Date(),
     });
     item.user_id = targetUserID;
-    await this.entityManager.persistAndFlush(item);
+    await this.entityManager.persist(item).flush();
     return item;
   }
 
