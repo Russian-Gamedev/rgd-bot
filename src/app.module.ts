@@ -21,6 +21,7 @@ import { ItemsModule } from '#core/items/items.module';
 import { MahoragaModule } from '#core/mahoraga/mahoraga.module';
 import { MiniGamesModule } from '#core/mini-games/mini-games.module';
 import { NicknameModule } from '#core/nickname/nickname.module';
+import { PortalsModule } from '#core/portals/portals.module';
 import { RoleManagerModule } from '#core/role-manager/role-manager.module';
 import { UserModule } from '#core/users/users.module';
 import { WalletModule } from '#core/wallet/wallet.module';
@@ -52,6 +53,7 @@ type MikroOrmRootOptions = Record<string, unknown>;
     RoleManagerModule,
     FunModule,
     NicknameModule,
+    PortalsModule,
   ],
   controllers: [AppController],
   providers: [ScheduleLoggerService],
