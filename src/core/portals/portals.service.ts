@@ -26,6 +26,7 @@ interface MessageMapping {
   originalGuildId: string;
   originalChannelId: string;
   originalMessageId: string;
+  replyPrefix?: string;
 }
 
 interface CachedPortalData {
@@ -283,6 +284,95 @@ export class PortalsService {
     await this.relayMessage(message);
   }
 
+  @On('messageDelete')
+  @EnsureRequestContext()
+  public async onMessageDelete(
+    @Context() [message]: ContextOf<'messageDelete'>,
+  ) {
+    if (message.webhookId) return;
+    if (message.author?.bot) return;
+
+    const msgId = message.id;
+
+    const raw = await this.redis.get(`${MSG_MAP_PREFIX}${msgId}`);
+    if (!raw) return;
+
+    let mapping: MessageMapping;
+    try {
+      mapping = JSON.parse(raw);
+    } catch {
+      return;
+    }
+
+    const portalData = await this.findByChannelId(message.channelId);
+    if (!portalData) return;
+
+    const webhook = new WebhookClient({
+      id: portalData.targetWebhookId,
+      token: portalData.targetWebhookToken,
+    });
+
+    try {
+      await webhook.deleteMessage(mapping.originalMessageId);
+      this.logger.debug(
+        `Deleted relayed message ${mapping.originalMessageId} for original ${msgId}`,
+      );
+    } catch (error) {
+      this.logger.warn(
+        `Failed to delete relayed message for ${msgId}: ${String(error)}`,
+      );
+    }
+  }
+
+  @On('messageUpdate')
+  @EnsureRequestContext()
+  public async onMessageUpdate(
+    @Context() [_oldMessage, newMessage]: ContextOf<'messageUpdate'>,
+  ) {
+    if (newMessage.webhookId) return;
+    if (newMessage.author?.bot) return;
+
+    const msgId = newMessage.id;
+    const newContent = newMessage.content?.trim();
+    if (!newContent) return;
+
+    const raw = await this.redis.get(`${MSG_MAP_PREFIX}${msgId}`);
+    if (!raw) return;
+
+    let mapping: MessageMapping;
+    try {
+      mapping = JSON.parse(raw);
+    } catch {
+      return;
+    }
+
+    const portalData = await this.findByChannelId(newMessage.channelId);
+    if (!portalData) return;
+
+    const content = mapping.replyPrefix
+      ? `${mapping.replyPrefix}\n${newContent}`
+      : newContent;
+
+    const webhook = new WebhookClient({
+      id: portalData.targetWebhookId,
+      token: portalData.targetWebhookToken,
+    });
+
+    try {
+      await webhook.editMessage(mapping.originalMessageId, {
+        content,
+        allowedMentions: { parse: [] },
+      });
+      this.logger.debug(
+        `Edited relayed message ${mapping.originalMessageId} for original ${msgId}`,
+      );
+    } catch (error) {
+      this.logger.warn(
+        `Failed to edit relayed message for ${msgId}: ${String(error)}`,
+      );
+    }
+  }
+
   async relayMessage(message: Message): Promise<void> {
     if (message.webhookId) {
       this.logger.debug(`Skip relay: webhook message ${message.id}`);
@@ -314,17 +404,17 @@ export class PortalsService {
       `Relaying message ${message.id} from #${message.channelId} (guild ${message.guildId}) via portal #${portalData.portalId} → #${portalData.targetChannelId} (guild ${portalData.targetGuildId})`,
     );
 
-    let content = message.content
-      .replace(/<@!?\d+>/g, '')
-      .replace(/<@&\d+>/g, '')
-      .replace(/@everyone/g, '')
-      .replace(/@here/g, '')
-      .trim();
-
+    const replyAuthorId = await this.resolveReplyAuthorId(message);
     const replyLink = await this.resolveReplyLink(message);
+
+    let content = message.content.trim();
+
+    let replyPrefix: string | undefined;
     if (replyLink) {
       this.logger.debug(`Reply link for ${message.id}: ${replyLink}`);
-      content = content ? `${replyLink}\n${content}` : replyLink;
+      const prefix = replyAuthorId ? `<@${replyAuthorId}> ` : '';
+      replyPrefix = `${prefix}${replyLink}`;
+      content = content ? `${replyPrefix}\n${content}` : replyPrefix;
     } else if (message.reference?.messageId) {
       this.logger.debug(
         `No reply link for ${message.id} ref=${message.reference.messageId}`,
@@ -348,6 +438,7 @@ export class PortalsService {
           message.attachments.size > 0
             ? [...message.attachments.values()]
             : undefined,
+        allowedMentions: { parse: [] },
       });
 
       await this.saveMessageMapping(
@@ -357,6 +448,7 @@ export class PortalsService {
         message.channelId ?? '',
         portalData.targetGuildId ?? '',
         portalData.targetChannelId ?? '',
+        replyPrefix,
       );
 
       this.logger.log(
@@ -412,6 +504,25 @@ export class PortalsService {
     return `https://discord.com/channels/${guildId}/${channelId}/${ref.messageId}`;
   }
 
+  private async resolveReplyAuthorId(message: Message): Promise<string | null> {
+    const ref = message.reference;
+    if (!ref?.messageId) return null;
+
+    try {
+      const channelId = ref.channelId ?? message.channelId;
+      const channel = await this.client.channels.fetch(channelId);
+      if (!channel?.isTextBased()) return null;
+      const refMessage = await channel.messages.fetch(ref.messageId);
+      if (!refMessage || refMessage.author.bot) return null;
+      return refMessage.author.id;
+    } catch {
+      this.logger.debug(
+        `Failed to fetch reply author for message ${ref.messageId}`,
+      );
+      return null;
+    }
+  }
+
   private async saveMessageMapping(
     relayedMessageId: string,
     originalMessageId: string,
@@ -419,17 +530,20 @@ export class PortalsService {
     originalChannelId: string,
     relayedGuildId: string,
     relayedChannelId: string,
+    replyPrefix?: string,
   ): Promise<void> {
     const value = JSON.stringify({
       originalGuildId,
       originalChannelId,
       originalMessageId,
+      replyPrefix,
     });
 
     const reverseValue = JSON.stringify({
       originalGuildId: relayedGuildId,
       originalChannelId: relayedChannelId,
       originalMessageId: relayedMessageId,
+      replyPrefix,
     });
 
     await Promise.all([
