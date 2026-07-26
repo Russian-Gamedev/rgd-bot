@@ -5,7 +5,7 @@ import { Injectable, Optional } from '@nestjs/common';
 
 import { MetricsService } from '#common/metrics/metrics.service';
 import { MemberProfileEntity } from '#core/users/entities/member-profile.entity';
-import { DiscordID } from '#root/lib/types';
+import type { DiscordID } from '#root/lib/types';
 import { WalletEntity } from './entities/wallet.entity';
 import {
   WalletTransactionEntity,
