@@ -21,11 +21,4 @@ export class UserActivityTotalEntity extends BaseEntity {
 
   @Property({ type: 'integer', defaultRaw: '0' })
   reaction_count = 0;
-
-  @Property({
-    fieldName: 'last_active_at',
-    type: 'timestamptz',
-    nullable: true,
-  })
-  lastActiveAt: Date | null = null;
 }
