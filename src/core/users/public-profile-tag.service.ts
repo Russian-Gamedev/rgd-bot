@@ -3,7 +3,7 @@ import { EntityRepository } from '@mikro-orm/postgresql';
 import { Injectable } from '@nestjs/common';
 import { Client, type Role } from 'discord.js';
 
-import { DiscordID } from '#root/lib/types';
+import type { DiscordID } from '#root/lib/types';
 import { MemberProfileEntity } from './entities/member-profile.entity';
 import { UserProfileTagEntity } from './entities/user-profile-tag.entity';
 

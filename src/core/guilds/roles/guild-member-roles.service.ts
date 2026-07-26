@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { Client, Collection, Role } from 'discord.js';
 
 import { MemberProfileEntity } from '#core/users/entities/member-profile.entity';
-import { DiscordID } from '#root/lib/types';
+import type { DiscordID } from '#root/lib/types';
 
 import { GuildMemberRoleEntity } from './entities/guild-member-role.entity';
 

@@ -8,7 +8,7 @@ import {
   getDisplayAvatar,
   getDisplayBanner,
 } from '#lib/utils';
-import { DiscordID } from '#root/lib/types';
+import type { DiscordID } from '#root/lib/types';
 
 import { MemberProfileEntity } from './entities/member-profile.entity';
 import { UserProfileEntity } from './entities/user-profile.entity';

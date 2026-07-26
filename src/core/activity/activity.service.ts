@@ -7,7 +7,7 @@ import { MetricsService } from '#common/metrics/metrics.service';
 import { MemberProfileEntity } from '#core/users/entities/member-profile.entity';
 import { UserProfileEntity } from '#core/users/entities/user-profile.entity';
 import { UserService } from '#core/users/users.service';
-import { DiscordID } from '#root/lib/types';
+import type { DiscordID } from '#root/lib/types';
 import { toMoscowDateKey } from './activity-period';
 import { UserActivityDailyEntity } from './entities/user-activity-daily.entity';
 import { UserActivityTotalEntity } from './entities/user-activity-total.entity';
