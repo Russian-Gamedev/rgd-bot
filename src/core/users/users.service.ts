@@ -3,7 +3,7 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 
-import { DiscordID } from '#root/lib/types';
+import type { DiscordID } from '#root/lib/types';
 
 import { DiscordProfileSyncService } from './discord-profile-sync.service';
 import type { PatchCurrentUserProfileDto } from './dto/patch-current-user-profile.dto';

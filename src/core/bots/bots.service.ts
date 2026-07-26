@@ -5,7 +5,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Permission } from '#core/permissions/permissions.types';
 import { UserService } from '#core/users/users.service';
 import { WalletService } from '#core/wallet/wallet.service';
-import { DiscordID } from '#root/lib/types';
+import type { DiscordID } from '#root/lib/types';
 import { BotEntity } from './entities/bot.entity';
 
 @Injectable()

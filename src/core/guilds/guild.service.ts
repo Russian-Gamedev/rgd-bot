@@ -5,7 +5,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Client, Guild } from 'discord.js';
 import { Once } from 'necord';
 
-import { DiscordID } from '#root/lib/types';
+import type { DiscordID } from '#root/lib/types';
 
 import { GuildEntity } from './entities/guild.entity';
 import { RoleEntity } from './entities/role.entity';

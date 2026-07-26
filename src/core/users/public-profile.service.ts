@@ -3,7 +3,7 @@ import Redis from 'ioredis';
 
 import { PermissionService } from '#core/permissions/permissions.service';
 import type { AuthenticatedActor } from '#core/permissions/permissions.types';
-import { DiscordID } from '#root/lib/types';
+import type { DiscordID } from '#root/lib/types';
 
 import { CurrentUserProfileDto } from './dto/current-user-profile.dto';
 import { PublicUserProfileDto } from './dto/public-user-profile.dto';

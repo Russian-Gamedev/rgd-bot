@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { Client, SendableChannels } from 'discord.js';
 
 import { GuildSettings } from '#config/guilds';
-import { DiscordID } from '#root/lib/types';
+import type { DiscordID } from '#root/lib/types';
 
 import { GuildSettingsEntity } from './entities/guild-settings.entity';
 

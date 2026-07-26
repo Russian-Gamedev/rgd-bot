@@ -9,7 +9,7 @@ import { GuildSettings } from '#config/guilds';
 import { GuildMemberRolesService } from '#core/guilds/roles/guild-member-roles.service';
 import { GuildSettingsService } from '#core/guilds/settings/guild-settings.service';
 import { UserService } from '#core/users/users.service';
-import { DiscordID } from '#root/lib/types';
+import type { DiscordID } from '#root/lib/types';
 
 interface UpcomingBirthday {
   userId: DiscordID;
