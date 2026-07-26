@@ -159,7 +159,7 @@ export class WalletController {
   @ApiOkResponse({ type: WalletOperationResponseDto })
   async creditUser(@Body() dto: CreditDebitDto) {
     const user = await this.userService.findOrCreateMember(
-      dto.guild_id,
+      dto.guild_id ?? '0',
       dto.user_id,
     );
     const tx = await this.walletService.credit(
@@ -185,7 +185,7 @@ export class WalletController {
   @ApiOkResponse({ type: WalletOperationResponseDto })
   async debitUser(@Body() dto: CreditDebitDto) {
     const user = await this.userService.findOrCreateMember(
-      dto.guild_id,
+      dto.guild_id ?? '0',
       dto.user_id,
     );
     const tx = await this.walletService.debit(
