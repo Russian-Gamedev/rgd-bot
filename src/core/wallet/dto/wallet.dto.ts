@@ -15,9 +15,10 @@ export class CreditDebitDto {
   @IsString()
   user_id: string;
 
-  @ApiProperty({ description: 'Discord Guild ID' })
+  @ApiPropertyOptional({ description: 'Discord Guild ID' })
+  @IsOptional()
   @IsString()
-  guild_id: string;
+  guild_id?: string;
 
   @ApiProperty({ description: 'Amount (as string for bigint safety)' })
   @IsNumberString()
