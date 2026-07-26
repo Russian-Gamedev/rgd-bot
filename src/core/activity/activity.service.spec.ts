@@ -9,12 +9,29 @@ import { ActivityService } from './activity.service';
 import { UserActivityDailyEntity } from './entities/user-activity-daily.entity';
 import { UserActivityTotalEntity } from './entities/user-activity-total.entity';
 
-function activityKey(
-  userId: bigint,
-  guildId: bigint | null,
-  date?: string,
-): string {
-  return `${date ?? 'total'}:${userId}:${guildId ?? 'global'}`;
+function applyMockRawUpdate(
+  row: Record<string, unknown>,
+  data: Record<string, unknown>,
+): void {
+  for (const [key, value] of Object.entries(data)) {
+    if (
+      value != null &&
+      typeof value === 'object' &&
+      'sql' in (value as Record<string, unknown>) &&
+      'params' in (value as Record<string, unknown>)
+    ) {
+      const rawExpr = value as { sql: string; params: unknown[] };
+      const match = rawExpr.sql.match(/^(\w+)\s*\+\s*\?$/);
+      if (match) {
+        const field = match[1] as string;
+        const current = Number(row[field] ?? 0);
+        const increment = Number(rawExpr.params[0] ?? 0);
+        row[field] = current + increment;
+      }
+    } else {
+      row[key] = value;
+    }
+  }
 }
 
 describe('ActivityService', () => {
@@ -60,13 +77,6 @@ describe('ActivityService', () => {
             (row) => !where.user_id.$nin.includes(row.user_id),
           );
         }
-        if (where.lastActiveAt?.$lte) {
-          rows = rows.filter(
-            (row) =>
-              row.lastActiveAt != null &&
-              row.lastActiveAt <= where.lastActiveAt.$lte,
-          );
-        }
         for (const field of [
           'message_score',
           'voice_seconds',
@@ -105,9 +115,21 @@ describe('ActivityService', () => {
         if (where.user_id?.$in) {
           rows = rows.filter((row) => where.user_id.$in.includes(row.user_id));
         }
+        if (where.user_id?.$nin) {
+          rows = rows.filter(
+            (row) => !where.user_id.$nin.includes(row.user_id),
+          );
+        }
         if (where.activeStreak?.$gt != null) {
           rows = rows.filter(
             (row) => row.activeStreak > where.activeStreak.$gt,
+          );
+        }
+        if (where.lastActiveAt?.$lte) {
+          rows = rows.filter(
+            (row) =>
+              row.lastActiveAt != null &&
+              row.lastActiveAt <= where.lastActiveAt.$lte,
           );
         }
         rows = rows.toSorted((a, b) => b.activeStreak - a.activeStreak);
@@ -116,37 +138,90 @@ describe('ActivityService', () => {
     } as unknown as EntityRepository<MemberProfileEntity>;
 
     em = {
-      persist: mock((entity) => {
-        if (entity instanceof UserActivityDailyEntity) {
-          const key = activityKey(entity.user_id, entity.guild_id, entity.date);
-          if (
-            !dailyRows.some(
-              (row) => activityKey(row.user_id, row.guild_id, row.date) === key,
-            )
-          ) {
-            dailyRows.push(entity);
+      nativeUpdate: mock(
+        async (
+          entity: unknown,
+          where: Record<string, unknown>,
+          data: Record<string, unknown>,
+        ) => {
+          if (entity === UserActivityDailyEntity) {
+            const rows = dailyRows.filter(
+              (row) =>
+                row.user_id === (where.user_id as bigint) &&
+                row.guild_id === (where.guild_id as bigint | null) &&
+                row.date === (where.date as string),
+            );
+            for (const row of rows) {
+              applyMockRawUpdate(
+                row as unknown as Record<string, unknown>,
+                data,
+              );
+            }
+            return rows.length;
           }
-        }
-        if (entity instanceof UserActivityTotalEntity) {
-          const key = activityKey(entity.user_id, entity.guild_id);
-          if (
-            !totalRows.some(
-              (row) => activityKey(row.user_id, row.guild_id) === key,
-            )
-          ) {
-            totalRows.push(entity);
+          if (entity === UserActivityTotalEntity) {
+            const rows = totalRows.filter(
+              (row) =>
+                row.user_id === (where.user_id as bigint) &&
+                row.guild_id === (where.guild_id as bigint | null),
+            );
+            for (const row of rows) {
+              applyMockRawUpdate(
+                row as unknown as Record<string, unknown>,
+                data,
+              );
+            }
+            return rows.length;
           }
+          const rows =
+            entity === UserProfileEntity ? userProfiles : memberProfiles;
+          for (const row of rows) {
+            if (
+              'guild_id' in row &&
+              (where.guild_id as bigint) !== row.guild_id
+            )
+              continue;
+            const userIdWhere = where.user_id as
+              | { $nin?: bigint[] }
+              | undefined;
+            if (userIdWhere?.$nin?.includes(row.user_id)) continue;
+            Object.assign(row, data);
+          }
+          return rows.length;
+        },
+      ),
+      insert: mock(async (entity: unknown, data: Record<string, unknown>) => {
+        if (entity === UserActivityDailyEntity) {
+          const key = `${String(data.date)}:${String(data.user_id)}:${String(data.guild_id ?? 'global')}`;
+          const existingIndex = dailyRows.findIndex(
+            (row) =>
+              `${row.date}:${String(row.user_id)}:${String(row.guild_id ?? 'global')}` ===
+              key,
+          );
+          if (existingIndex >= 0) {
+            Object.assign(dailyRows[existingIndex], data);
+          } else {
+            const row = new UserActivityDailyEntity();
+            Object.assign(row, data);
+            dailyRows.push(row);
+          }
+          return;
         }
-        return em;
-      }),
-      flush: mock(async () => undefined),
-      nativeUpdate: mock(async (entity, where, data) => {
-        const rows =
-          entity === UserProfileEntity ? userProfiles : memberProfiles;
-        for (const row of rows) {
-          if ('guild_id' in row && where.guild_id !== row.guild_id) continue;
-          if (where.user_id?.$nin?.includes(row.user_id)) continue;
-          Object.assign(row, data);
+        if (entity === UserActivityTotalEntity) {
+          const key = `${String(data.user_id)}:${String(data.guild_id ?? 'global')}`;
+          const existingIndex = totalRows.findIndex(
+            (row) =>
+              `${String(row.user_id)}:${String(row.guild_id ?? 'global')}` ===
+              key,
+          );
+          if (existingIndex >= 0) {
+            Object.assign(totalRows[existingIndex], data);
+          } else {
+            const row = new UserActivityTotalEntity();
+            Object.assign(row, data);
+            totalRows.push(row);
+          }
+          return;
         }
       }),
     } as unknown as EntityManager;
@@ -209,6 +284,7 @@ describe('ActivityService', () => {
     ]);
     expect(totalRows.every((row) => row.message_score === 3)).toBe(true);
     expect(totalRows.every((row) => row.voice_seconds === 60)).toBe(true);
+    expect(memberProfiles[0]?.lastActiveAt).toBe(at);
     expect(userProfiles[0]?.lastActiveAt).toBe(at);
     expect(metrics.recordActivityIncrement).toHaveBeenCalledWith({
       guildId: '10',

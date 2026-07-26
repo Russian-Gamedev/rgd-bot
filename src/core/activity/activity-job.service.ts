@@ -252,14 +252,10 @@ export class ActivityJobService {
           guild.id,
           userId,
         );
-        const activityTotal = await this.activityService.getGuildActivityTotal(
-          guild.id,
-          userId,
-        );
         if (!checkAutoRole) continue;
         if (
-          activityTotal?.lastActiveAt == null ||
-          Date.now() - activityTotal.lastActiveAt.getTime() >
+          user.lastActiveAt == null ||
+          Date.now() - user.lastActiveAt.getTime() >
             activeRemoveThreshold! * 24 * 60 * 60 * 1000
         ) {
           this.logger.log(

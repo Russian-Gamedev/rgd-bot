@@ -1,3 +1,4 @@
+import { raw, UniqueConstraintViolationException } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 import { Injectable, Logger, Optional } from '@nestjs/common';
@@ -71,45 +72,38 @@ export class ActivityService {
       return;
     }
 
-    await this.userService.findOrCreateMember(
+    const member = await this.userService.findOrCreateMember(
       normalizedGuildId,
       normalizedUserId,
     );
 
     for (const scopeGuildId of [null, normalizedGuildId]) {
-      const daily = await this.getOrCreateDailyActivity(
-        normalizedUserId,
-        scopeGuildId,
-        activityDate,
-      );
-      const dailyBefore = toActivityLogSnapshot(daily);
-      applyActivityIncrement(daily, messageScore, voiceSeconds, reactionCount);
-      this.em.persist(daily);
+      const where = {
+        user_id: normalizedUserId,
+        guild_id: scopeGuildId,
+      };
+      const increment = {
+        message_score: messageScore,
+        voice_seconds: voiceSeconds,
+        reaction_count: reactionCount,
+      };
 
-      const total = await this.getOrCreateTotalActivity(
-        normalizedUserId,
-        scopeGuildId,
+      await this.upsertActivity(
+        UserActivityDailyEntity,
+        { ...where, date: activityDate },
+        increment,
       );
-      const totalBefore = toActivityLogSnapshot(total);
-      applyActivityIncrement(total, messageScore, voiceSeconds, reactionCount);
-      total.lastActiveAt = at;
-      this.em.persist(total);
-
-      this.logger.log(
-        `Applied activity for scope ${formatActivityScope(scopeGuildId)}, user ${normalizedUserId}, date ${activityDate}: daily ${formatActivityLogSnapshot(dailyBefore)} -> ${formatActivityLogSnapshot(daily)}, total ${formatActivityLogSnapshot(totalBefore)} -> ${formatActivityLogSnapshot(total)}, lastActiveAt=${at.toISOString()}`,
-      );
+      await this.upsertActivity(UserActivityTotalEntity, where, increment);
     }
+
+    member.lastActiveAt = at;
+    await this.userService.save(member);
 
     const profile =
       await this.userService.findOrCreateProfile(normalizedUserId);
     profile.lastActiveAt = at;
-    this.em.persist(profile);
-
-    await this.em.flush();
+    await this.userService.save(profile);
     this.recordMetrics(guildId, messageScore, voiceSeconds, reactionCount);
-    this.logger.log(
-      `Persisted activity for guild ${normalizedGuildId}, user ${normalizedUserId}, date ${activityDate}`,
-    );
   }
 
   async getTopActivityTotals(
@@ -222,40 +216,57 @@ export class ActivityService {
     since: Date,
     excludeUserIds: DiscordID[],
   ): Promise<MemberProfileEntity[]> {
-    const inactiveTotals = await this.totalActivityRepository.find({
-      guild_id: BigInt(guildId),
-      lastActiveAt: { $lte: since },
-      user_id: { $nin: excludeUserIds.map((id) => BigInt(id)) },
-    });
-    const inactiveUserIds = inactiveTotals.map((total) => total.user_id);
-    if (inactiveUserIds.length === 0) return [];
-
     return this.memberProfileRepository.find({
       guild_id: BigInt(guildId),
       isLeftGuild: false,
-      user_id: { $in: inactiveUserIds },
+      lastActiveAt: { $lte: since },
+      user_id: { $nin: excludeUserIds.map((id) => BigInt(id)) },
     });
   }
 
-  private async getOrCreateDailyActivity(
-    userId: bigint,
-    guildId: bigint | null,
-    date: string,
-  ) {
-    let activity = await this.dailyActivityRepository.findOne({
-      date,
-      user_id: userId,
-      guild_id: guildId,
-    });
-
-    if (!activity) {
-      activity = new UserActivityDailyEntity();
-      activity.date = date;
-      activity.user_id = userId;
-      activity.guild_id = guildId;
+  private async tryInsert(
+    entity: typeof UserActivityDailyEntity | typeof UserActivityTotalEntity,
+    where: Record<string, unknown>,
+    data: Record<string, unknown>,
+    increment: Record<string, unknown>,
+  ): Promise<void> {
+    try {
+      await this.em.insert(
+        entity as typeof UserActivityDailyEntity,
+        {
+          ...where,
+          ...data,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as UserActivityDailyEntity,
+      );
+    } catch (error) {
+      if (error instanceof UniqueConstraintViolationException) {
+        await this.em.nativeUpdate(
+          entity as typeof UserActivityDailyEntity,
+          where,
+          increment,
+        );
+      } else {
+        throw error;
+      }
     }
+  }
 
-    return activity;
+  private async upsertActivity(
+    entity: typeof UserActivityDailyEntity | typeof UserActivityTotalEntity,
+    where: Record<string, unknown>,
+    data: Record<string, unknown>,
+  ): Promise<void> {
+    const increment = buildIncrement(data, INCREMENT_FIELDS);
+    const affected = await this.em.nativeUpdate(
+      entity as typeof UserActivityDailyEntity,
+      where,
+      increment,
+    );
+    if (affected === 0) {
+      await this.tryInsert(entity, where, data, increment);
+    }
   }
 
   private recordMetrics(
@@ -283,44 +294,6 @@ export class ActivityService {
       amount: reactionCount,
     });
   }
-
-  private async getOrCreateTotalActivity(
-    userId: bigint,
-    guildId: bigint | null,
-  ) {
-    let activity = await this.totalActivityRepository.findOne({
-      user_id: userId,
-      guild_id: guildId,
-    });
-
-    if (!activity) {
-      activity = new UserActivityTotalEntity();
-      activity.user_id = userId;
-      activity.guild_id = guildId;
-    }
-
-    return activity;
-  }
-}
-
-function applyActivityIncrement(
-  target: UserActivityDailyEntity | UserActivityTotalEntity,
-  messageScore: number,
-  voiceSeconds: number,
-  reactionCount: number,
-) {
-  target.message_score = Math.max(
-    0,
-    toNumber(target.message_score) + messageScore,
-  );
-  target.voice_seconds = Math.max(
-    0,
-    toNumber(target.voice_seconds) + voiceSeconds,
-  );
-  target.reaction_count = Math.max(
-    0,
-    toNumber(target.reaction_count) + reactionCount,
-  );
 }
 
 function aggregateActivityRows(
@@ -353,25 +326,21 @@ function toNumber(value: number | bigint): number {
   return Number(value);
 }
 
-function toActivityLogSnapshot(
-  activity: UserActivityDailyEntity | UserActivityTotalEntity,
-) {
-  return {
-    message_score: toNumber(activity.message_score),
-    reaction_count: toNumber(activity.reaction_count),
-    voice_seconds: toNumber(activity.voice_seconds),
-  };
-}
+const INCREMENT_FIELDS = [
+  'message_score',
+  'voice_seconds',
+  'reaction_count',
+] as const;
 
-function formatActivityLogSnapshot(
-  activity:
-    | ReturnType<typeof toActivityLogSnapshot>
-    | UserActivityDailyEntity
-    | UserActivityTotalEntity,
-): string {
-  return `{messageScore=${toNumber(activity.message_score)}, voiceSeconds=${toNumber(activity.voice_seconds)}, reactionCount=${toNumber(activity.reaction_count)}}`;
-}
-
-function formatActivityScope(guildId: bigint | null): string {
-  return guildId == null ? 'global' : `guild ${guildId}`;
+function buildIncrement(
+  data: Record<string, unknown>,
+  incrementFields: readonly string[],
+): Record<string, unknown> {
+  const increment: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data)) {
+    increment[key] = incrementFields.includes(key)
+      ? raw(`${key} + ?`, [value])
+      : value;
+  }
+  return increment;
 }

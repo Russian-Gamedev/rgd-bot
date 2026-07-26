@@ -63,4 +63,11 @@ export class MemberProfileEntity extends BaseEntity {
     },
   })
   maxActiveStreak = 0;
+
+  @Property({
+    fieldName: 'last_active_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  lastActiveAt: Date | null = null;
 }
