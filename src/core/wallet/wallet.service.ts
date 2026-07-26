@@ -1,4 +1,3 @@
-import { EnsureRequestContext } from '@mikro-orm/decorators/legacy';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 import { Injectable, Optional } from '@nestjs/common';
@@ -33,7 +32,6 @@ export class WalletService {
     @Optional() private readonly metrics?: MetricsService,
   ) {}
 
-  @EnsureRequestContext()
   async getBalance(userId: DiscordID): Promise<bigint> {
     const wallet = await this.walletRepository.findOne({
       user_id: BigInt(userId),
@@ -41,7 +39,6 @@ export class WalletService {
     return wallet?.coins ?? 0n;
   }
 
-  @EnsureRequestContext()
   async getOrCreateWallet(userId: DiscordID): Promise<WalletEntity> {
     const normalizedUserId = BigInt(userId);
     const existing = await this.walletRepository.findOne({
@@ -56,7 +53,6 @@ export class WalletService {
     return wallet;
   }
 
-  @EnsureRequestContext()
   async getTopWallets(limit: number): Promise<WalletEntity[]> {
     return this.walletRepository.find(
       { coins: { $gt: 0n } },
@@ -67,7 +63,6 @@ export class WalletService {
     );
   }
 
-  @EnsureRequestContext()
   async credit(
     user: MemberProfileEntity,
     amount: bigint,
@@ -100,7 +95,6 @@ export class WalletService {
     });
   }
 
-  @EnsureRequestContext()
   async debit(
     user: MemberProfileEntity,
     amount: bigint,
@@ -137,7 +131,6 @@ export class WalletService {
     });
   }
 
-  @EnsureRequestContext()
   async transfer(
     from: MemberProfileEntity,
     to: MemberProfileEntity,
@@ -195,7 +188,6 @@ export class WalletService {
     });
   }
 
-  @EnsureRequestContext()
   async getHistory(
     userId: DiscordID,
     guildId?: DiscordID | null,
@@ -222,7 +214,6 @@ export class WalletService {
     });
   }
 
-  @EnsureRequestContext()
   async getCurrentUserBalance(userId: DiscordID): Promise<bigint> {
     return this.getBalance(userId);
   }
