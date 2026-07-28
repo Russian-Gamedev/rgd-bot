@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UseInterceptors } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MessageFlags } from 'discord.js';
 import { Context, Options, type SlashCommandContext, Subcommand } from 'necord';
 
 import { DeletePortalDto } from '../dto/delete-portal.dto';
 import { PortalsService } from '../portals.service';
+import { DeletePortalAutocompleteInterceptor } from './delete-portal.autocomplete';
 import { PortalCommandDecorator } from './group.decorator';
 
 @PortalCommandDecorator()
@@ -15,6 +16,7 @@ export class DeletePortalCommand {
     private readonly config: ConfigService,
   ) {}
 
+  @UseInterceptors(DeletePortalAutocompleteInterceptor)
   @Subcommand({
     name: 'delete',
     description: 'Удалить портал',
@@ -31,10 +33,11 @@ export class DeletePortalCommand {
       return;
     }
 
+    const portalId = Number(dto.id);
     try {
-      await this.portalsService.deletePortal(dto.id);
+      await this.portalsService.deletePortal(portalId);
       await interaction.reply({
-        content: `Портал #${dto.id} удалён.`,
+        content: `Портал #${portalId} удалён.`,
         flags: MessageFlags.Ephemeral,
       });
     } catch (error) {
