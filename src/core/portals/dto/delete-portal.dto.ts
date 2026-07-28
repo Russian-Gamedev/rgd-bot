@@ -1,10 +1,11 @@
-import { NumberOption } from 'necord';
+import { StringOption } from 'necord';
 
 export class DeletePortalDto {
-  @NumberOption({
+  @StringOption({
     name: 'id',
-    description: 'ID портала для удаления',
+    description: 'Портал для удаления',
     required: true,
+    autocomplete: true,
   })
-  id: number;
+  id: string;
 }
