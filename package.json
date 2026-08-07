@@ -63,7 +63,7 @@
     "discord.js": "^14.27.0",
     "ioredis": "^5.10.1",
     "necord": "npm:@damirlut/necord@latest",
-    "openai": "^6.49.0",
+    "openai": "^7.4.0",
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",
     "passport-jwt": "^4.0.1",
