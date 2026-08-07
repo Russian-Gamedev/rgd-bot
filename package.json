@@ -61,7 +61,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "discord.js": "^14.27.0",
-    "ioredis": "^5.10.1",
+    "ioredis": "^6.0.0",
     "necord": "npm:@damirlut/necord@latest",
     "openai": "^6.49.0",
     "passport": "^0.7.0",
