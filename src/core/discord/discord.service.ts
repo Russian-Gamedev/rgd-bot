@@ -22,6 +22,7 @@ export class DiscordService {
 
   @Once('clientReady')
   onReady() {
+    this.metrics?.registerGuilds(this.client.guilds.cache.values());
     this.metrics?.setDiscordReady(true);
     this.metrics?.setDiscordGuildCount(this.client.guilds.cache.size);
   }
@@ -40,6 +41,7 @@ export class DiscordService {
     }
 
     this.metrics?.setDiscordReady(true);
+    this.metrics?.registerGuilds(this.client.guilds.cache.values());
     this.metrics?.setDiscordGuildCount(this.client.guilds.cache.size);
 
     const key = 'discord:member_stats';

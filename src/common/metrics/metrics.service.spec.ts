@@ -11,6 +11,7 @@ import {
 describe('MetricsService', () => {
   it('records activity increments without identity labels', async () => {
     const metrics = new MetricsService();
+    metrics.registerGuild('222222222222222222', 'Test Guild');
 
     metrics.recordActivityIncrement({
       guildId: '222222222222222222',
@@ -22,6 +23,7 @@ describe('MetricsService', () => {
     const output = await metrics.getMetrics();
     expect(output).toContain('rgd_bot_activity_increment_total');
     expect(output).toContain('guild_id="222222222222222222"');
+    expect(output).toContain('guild_name="test_guild"');
     expect(output).toContain('role_segment="moderator"');
     expect(output).not.toContain('user_id=');
     expect(output).not.toContain('message_id=');

@@ -111,44 +111,52 @@ export class MetricsService {
   private readonly discordCommands = new Counter({
     name: 'rgd_bot_discord_command_total',
     help: 'Discord command executions.',
-    labelNames: ['command', 'guild_id', 'role_segment', 'status'] as const,
+    labelNames: [
+      'command',
+      'guild_id',
+      'guild_name',
+      'role_segment',
+      'status',
+    ] as const,
     registers: [this.registry],
   });
 
   private readonly activityIncrements = new Counter({
     name: 'rgd_bot_activity_increment_total',
     help: 'Activity increments recorded by kind.',
-    labelNames: ['guild_id', 'role_segment', 'kind'] as const,
+    labelNames: ['guild_id', 'guild_name', 'role_segment', 'kind'] as const,
     registers: [this.registry],
   });
 
   private readonly walletTransactions = new Counter({
     name: 'rgd_bot_wallet_transactions_total',
     help: 'Wallet transactions by type and reason.',
-    labelNames: ['guild_id', 'type', 'reason'] as const,
+    labelNames: ['guild_id', 'guild_name', 'type', 'reason'] as const,
     registers: [this.registry],
   });
 
   private readonly walletCoinVolume = new Counter({
     name: 'rgd_bot_wallet_coin_volume_total',
     help: 'Wallet coin volume by type and reason.',
-    labelNames: ['guild_id', 'type', 'reason'] as const,
+    labelNames: ['guild_id', 'guild_name', 'type', 'reason'] as const,
     registers: [this.registry],
   });
 
   private readonly mahoragaDetections = new Counter({
     name: 'rgd_bot_mahoraga_detections_total',
     help: 'Mahoraga detections and actions.',
-    labelNames: ['guild_id', 'reason', 'mode', 'status'] as const,
+    labelNames: ['guild_id', 'guild_name', 'reason', 'mode', 'status'] as const,
     registers: [this.registry],
   });
 
   private readonly guildEvents = new Counter({
     name: 'rgd_bot_guild_events_total',
     help: 'Guild member and invite events.',
-    labelNames: ['guild_id', 'event'] as const,
+    labelNames: ['guild_id', 'guild_name', 'event'] as const,
     registers: [this.registry],
   });
+
+  private readonly guildNames = new Map<string, string>();
 
   constructor() {
     this.registry.setDefaultLabels({ app: 'rgd_bot' });
@@ -218,6 +226,23 @@ export class MetricsService {
     this.discordGuilds.set(count);
   }
 
+  registerGuild(
+    guildId: string | bigint | null | undefined,
+    guildName: string,
+  ) {
+    const id = normalizeGuildId(guildId);
+    const name = normalizeMetricLabel(guildName);
+    if (id !== 'unknown' && name && name !== 'unknown') {
+      this.guildNames.set(id, name);
+    }
+  }
+
+  registerGuilds(guilds: Iterable<{ id: string; name: string }>) {
+    for (const guild of guilds) {
+      this.registerGuild(guild.id, guild.name);
+    }
+  }
+
   setWatchedGuildCount(feature: string, count: number) {
     this.watchedGuilds.set({ feature: normalizeMetricLabel(feature) }, count);
   }
@@ -254,7 +279,7 @@ export class MetricsService {
   }) {
     this.discordCommands.inc({
       command: normalizeMetricLabel(input.command),
-      guild_id: normalizeGuildId(input.guildId),
+      ...this.guildLabels(input.guildId),
       role_segment: normalizeRoleSegment(input.roleSegment),
       status: input.status,
     });
@@ -269,7 +294,7 @@ export class MetricsService {
     if (input.amount === 0) return;
     this.activityIncrements.inc(
       {
-        guild_id: normalizeGuildId(input.guildId),
+        ...this.guildLabels(input.guildId),
         role_segment: normalizeRoleSegment(input.roleSegment),
         kind: input.kind,
       },
@@ -284,7 +309,7 @@ export class MetricsService {
     amount: bigint;
   }) {
     const labels = {
-      guild_id: normalizeGuildId(input.guildId),
+      ...this.guildLabels(input.guildId),
       type: normalizeMetricLabel(input.type),
       reason: normalizeMetricLabel(input.reason),
     };
@@ -301,7 +326,7 @@ export class MetricsService {
     status: string;
   }) {
     this.mahoragaDetections.inc({
-      guild_id: normalizeGuildId(input.guildId),
+      ...this.guildLabels(input.guildId),
       reason: normalizeMetricLabel(input.reason),
       mode: normalizeMetricLabel(input.mode),
       status: normalizeMetricLabel(input.status),
@@ -310,9 +335,15 @@ export class MetricsService {
 
   recordGuildEvent(input: { guildId?: string | bigint | null; event: string }) {
     this.guildEvents.inc({
-      guild_id: normalizeGuildId(input.guildId),
+      ...this.guildLabels(input.guildId),
       event: normalizeMetricLabel(input.event),
     });
+  }
+
+  private guildLabels(value: string | bigint | null | undefined) {
+    const guild_id = normalizeGuildId(value);
+    const guild_name = this.guildNames.get(guild_id) ?? guild_id;
+    return { guild_id, guild_name };
   }
 }
 
