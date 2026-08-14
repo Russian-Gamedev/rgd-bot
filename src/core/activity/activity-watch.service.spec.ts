@@ -51,6 +51,8 @@ interface TestActivity {
   guild_id: bigint;
   user_id: bigint;
   voice: number;
+  message_score: number;
+  reaction_count: number;
 }
 
 interface SaveAllVoiceActivities {
@@ -105,6 +107,70 @@ function createRedisMock(
       const prefix = pattern.replace('*', '');
       return [...storage.keys()].filter((key) => key.startsWith(prefix));
     }),
+    eval: mock(async (script: string, _numKeys: number, ...args: string[]) => {
+      const key = args[0]!;
+      const hash = storage.get(key);
+
+      if (script.includes('HDEL')) {
+        const field = args[1]!;
+        const prev = hash?.get(field) ?? null;
+        if (hash) {
+          hash.delete(field);
+          if (hash.size === 0) storage.delete(key);
+        }
+        return prev;
+      }
+
+      if (script.includes('HSET')) {
+        const field = args[1]!;
+        const prev = hash?.get(field) ?? null;
+        const target = storage.get(key) ?? new Map<string, string>();
+        target.set(field, args[2]!);
+        storage.set(key, target);
+        return prev;
+      }
+
+      if (script.includes('SADD')) {
+        const emojiId = args[1]!;
+        const set = storage.get(key) ?? new Map<string, string>();
+        const had = set.size;
+        const added = set.has(emojiId) ? 0 : 1;
+        set.set(emojiId, '1');
+        storage.set(key, set);
+        if (added === 0) return -1;
+        return had > 0 ? 0 : 1;
+      }
+
+      if (script.includes('SREM')) {
+        const emojiId = args[1]!;
+        const set = storage.get(key);
+        if (!set) return -1;
+        const removed = set.delete(emojiId) ? 1 : 0;
+        if (removed === 0) return -1;
+        if (set.size === 0) storage.delete(key);
+        return set.size > 0 ? 0 : 1;
+      }
+
+      return null;
+    }),
+    sadd: mock(async (key: string, member: string) => {
+      const set = storage.get(key) ?? new Map<string, string>();
+      const added = set.has(member) ? 0 : 1;
+      set.set(member, '1');
+      storage.set(key, set);
+      return added;
+    }),
+    srem: mock(async (key: string, member: string) => {
+      const set = storage.get(key);
+      if (!set) return 0;
+      const removed = set.delete(member) ? 1 : 0;
+      if (set.size === 0) storage.delete(key);
+      return removed;
+    }),
+    scard: mock(async (key: string) => {
+      return storage.get(key)?.size ?? 0;
+    }),
+    expire: mock(async () => 1),
   };
 
   return redis as unknown as RedisMock;
@@ -224,7 +290,11 @@ function createService(redis = createRedisMock(), guildSetup = createGuild()) {
       async (
         guildId: bigint | string,
         userId: bigint | string,
-        increment: { voiceSeconds?: number },
+        increment: {
+          voiceSeconds?: number;
+          messageScore?: number;
+          reactionCount?: number;
+        },
       ) => {
         const normalizedGuildId = BigInt(guildId);
         const normalizedUserId = BigInt(userId);
@@ -235,8 +305,12 @@ function createService(redis = createRedisMock(), guildSetup = createGuild()) {
             guild_id: normalizedGuildId,
             user_id: normalizedUserId,
             voice: 0,
+            message_score: 0,
+            reaction_count: 0,
           } satisfies TestActivity);
         activity.voice += increment.voiceSeconds ?? 0;
+        activity.message_score += increment.messageScore ?? 0;
+        activity.reaction_count += increment.reactionCount ?? 0;
         activities.set(key, activity);
       },
     ),
@@ -670,5 +744,180 @@ describe('ActivityWatchService voice tracking', () => {
 
     expect(activities.size).toBe(0);
     expect(redis.storage.get(VOICE_KEY)).toBeUndefined();
+  });
+});
+
+describe('ActivityWatchService reaction tracking', () => {
+  const AUTHOR_ID = '300';
+  const NOW = new Date('2026-07-06T12:00:00.000Z').getTime();
+
+  beforeEach(() => {
+    setNow(NOW);
+  });
+
+  afterEach(() => {
+    Date.now = originalDateNow;
+    mock.restore();
+  });
+
+  function authorActivity(activities: Map<string, TestActivity>) {
+    return activities.get(activityKey(BigInt(GUILD_ID), BigInt(AUTHOR_ID)));
+  }
+
+  function freshMessage() {
+    return {
+      id: 'msg-1',
+      guild: { id: GUILD_ID },
+      author: { id: AUTHOR_ID },
+      createdTimestamp: NOW - 60_000,
+    };
+  }
+
+  function createReaction(
+    message: ReturnType<typeof freshMessage>,
+    emojiName = '👍',
+  ) {
+    const fetchedMessage = { ...message };
+    return {
+      message: {
+        id: message.id,
+        guild: message.guild,
+        author: message.author,
+        createdTimestamp: message.createdTimestamp,
+        fetch: mock(async () => fetchedMessage),
+      },
+      emoji: { id: null, name: emojiName },
+    };
+  }
+
+  function createUser(userId: string, bot = false) {
+    return { id: userId, bot };
+  }
+
+  it('counts a reaction for the message author', async () => {
+    const { activities, service } = createService();
+
+    await service.onReactionAdd([
+      createReaction(freshMessage()),
+      createUser('reactor-1'),
+    ] as unknown as ContextOf<'messageReactionAdd'>);
+
+    expect(authorActivity(activities)?.reaction_count).toBe(1);
+  });
+
+  it('counts reactions from different users separately', async () => {
+    const { activities, service } = createService();
+    const message = freshMessage();
+
+    await service.onReactionAdd([
+      createReaction(message),
+      createUser('reactor-1'),
+    ] as unknown as ContextOf<'messageReactionAdd'>);
+    await service.onReactionAdd([
+      createReaction(message, '🔥'),
+      createUser('reactor-2'),
+    ] as unknown as ContextOf<'messageReactionAdd'>);
+
+    expect(authorActivity(activities)?.reaction_count).toBe(2);
+  });
+
+  it('counts multiple different reactions from the same user as one', async () => {
+    const { activities, service } = createService();
+    const message = freshMessage();
+
+    await service.onReactionAdd([
+      createReaction(message),
+      createUser('reactor-1'),
+    ] as unknown as ContextOf<'messageReactionAdd'>);
+    await service.onReactionAdd([
+      createReaction(message, '🔥'),
+      createUser('reactor-1'),
+    ] as unknown as ContextOf<'messageReactionAdd'>);
+
+    expect(authorActivity(activities)?.reaction_count).toBe(1);
+  });
+
+  it('excludes reactions from bots', async () => {
+    const { activities, service } = createService();
+
+    await service.onReactionAdd([
+      createReaction(freshMessage()),
+      createUser('bot-1', true),
+    ] as unknown as ContextOf<'messageReactionAdd'>);
+
+    expect(authorActivity(activities)).toBeUndefined();
+  });
+
+  it('excludes self-reactions', async () => {
+    const { activities, service } = createService();
+
+    await service.onReactionAdd([
+      createReaction(freshMessage()),
+      createUser(AUTHOR_ID),
+    ] as unknown as ContextOf<'messageReactionAdd'>);
+
+    expect(authorActivity(activities)).toBeUndefined();
+  });
+
+  it('skips reactions on messages older than 24 hours', async () => {
+    const { activities, service } = createService();
+    const oldMessage = {
+      ...freshMessage(),
+      createdTimestamp: NOW - 25 * 60 * 60 * 1000,
+    };
+
+    await service.onReactionAdd([
+      createReaction(oldMessage),
+      createUser('reactor-1'),
+    ] as unknown as ContextOf<'messageReactionAdd'>);
+
+    expect(authorActivity(activities)).toBeUndefined();
+  });
+
+  it('decrements when the last reaction from a user is removed', async () => {
+    const { activities, service } = createService();
+    const message = freshMessage();
+
+    await service.onReactionAdd([
+      createReaction(message),
+      createUser('reactor-1'),
+    ] as unknown as ContextOf<'messageReactionAdd'>);
+    await service.onReactionRemove([
+      createReaction(message),
+      createUser('reactor-1'),
+    ] as unknown as ContextOf<'messageReactionRemove'>);
+
+    expect(authorActivity(activities)?.reaction_count).toBe(0);
+  });
+
+  it('keeps the count when one of several reactions from a user is removed', async () => {
+    const { activities, service } = createService();
+    const message = freshMessage();
+
+    await service.onReactionAdd([
+      createReaction(message),
+      createUser('reactor-1'),
+    ] as unknown as ContextOf<'messageReactionAdd'>);
+    await service.onReactionAdd([
+      createReaction(message, '🔥'),
+      createUser('reactor-1'),
+    ] as unknown as ContextOf<'messageReactionAdd'>);
+    await service.onReactionRemove([
+      createReaction(message),
+      createUser('reactor-1'),
+    ] as unknown as ContextOf<'messageReactionRemove'>);
+
+    expect(authorActivity(activities)?.reaction_count).toBe(1);
+  });
+
+  it('does not decrement for a reaction that was never counted', async () => {
+    const { activities, service } = createService();
+
+    await service.onReactionRemove([
+      createReaction(freshMessage()),
+      createUser('reactor-1'),
+    ] as unknown as ContextOf<'messageReactionRemove'>);
+
+    expect(authorActivity(activities)).toBeUndefined();
   });
 });

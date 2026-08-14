@@ -27,6 +27,51 @@ export const VOICE_ACTIVITY_STALE_MULTIPLIER = 5;
 export const VOICE_ACTIVITY_STALE_TIMEOUT_MS =
   VOICE_ACTIVITY_SAVE_INTERVAL_MS * VOICE_ACTIVITY_STALE_MULTIPLIER;
 const ACTIVITY_DIAGNOSTIC_LOG_INTERVAL_MS = 10 * 60 * 1000;
+const REACTION_WINDOW_MS = 1000 * 60 * 60 * 24;
+
+const VOICE_ROLL_FORWARD_SCRIPT = `
+  local prev = redis.call('HGET', KEYS[1], ARGV[1])
+  if prev then
+    redis.call('HSET', KEYS[1], ARGV[1], ARGV[2])
+    return prev
+  end
+  return false
+`;
+
+const VOICE_CLAIM_SCRIPT = `
+  local prev = redis.call('HGET', KEYS[1], ARGV[1])
+  if prev then
+    redis.call('HDEL', KEYS[1], ARGV[1])
+    return prev
+  end
+  return false
+`;
+
+const REACTION_ADD_SCRIPT = `
+  local had = redis.call('SCARD', KEYS[1])
+  local added = redis.call('SADD', KEYS[1], ARGV[1])
+  if added == 0 then return -1 end
+  redis.call('EXPIRE', KEYS[1], ARGV[2])
+  if had > 0 then return 0 end
+  return 1
+`;
+
+const REACTION_REMOVE_SCRIPT = `
+  local removed = redis.call('SREM', KEYS[1], ARGV[1])
+  if removed == 0 then return -1 end
+  local remaining = redis.call('SCARD', KEYS[1])
+  if remaining > 0 then return 0 end
+  return 1
+`;
+
+interface ReactionActivityInfo {
+  guildId: string;
+  messageId: string;
+  authorId: string;
+  userId: string;
+  emojiId: string;
+  ttlSeconds: number;
+}
 
 @Injectable()
 export class ActivityWatchService implements BeforeApplicationShutdown {
@@ -79,9 +124,13 @@ export class ActivityWatchService implements BeforeApplicationShutdown {
 
     this.logger.log(`Finished processing voice channels on startup`);
     const interval = setInterval(() => {
-      void this.saveAllVoiceActivities().catch((error) => {
-        this.logger.error(`Failed to save voice activities: ${String(error)}`);
-      });
+      void this.saveAllVoiceActivities({ persistOnlyTrackable: true }).catch(
+        (error) => {
+          this.logger.error(
+            `Failed to save voice activities: ${String(error)}`,
+          );
+        },
+      );
     }, VOICE_ACTIVITY_SAVE_INTERVAL_MS);
 
     interval.unref();
@@ -157,14 +206,21 @@ export class ActivityWatchService implements BeforeApplicationShutdown {
   public async onReactionAdd(
     @Context() [reaction, user]: ContextOf<'messageReactionAdd'>,
   ) {
-    const canProcess = await this.canProcessReaction(reaction, user);
-    if (!canProcess) return;
+    const info = await this.canProcessReaction(reaction, user);
+    if (!info) return;
 
-    await this.activityService.recordActivity(
-      reaction.message.guildId!,
-      reaction.message.author!.id,
-      { reactionCount: 1 },
+    const result = await this.redis.eval(
+      REACTION_ADD_SCRIPT,
+      1,
+      this.getReactionKey(info.guildId, info.messageId, info.userId),
+      info.emojiId,
+      String(info.ttlSeconds),
     );
+    if (result !== 1) return;
+
+    await this.activityService.recordActivity(info.guildId, info.authorId, {
+      reactionCount: 1,
+    });
   }
 
   @On('messageReactionRemove')
@@ -172,20 +228,28 @@ export class ActivityWatchService implements BeforeApplicationShutdown {
   public async onReactionRemove(
     @Context() [reaction, user]: ContextOf<'messageReactionRemove'>,
   ) {
-    const canProcess = await this.canProcessReaction(reaction, user);
-    if (!canProcess) return;
+    const info = await this.canProcessReaction(reaction, user);
+    if (!info) return;
 
-    await this.activityService.recordActivity(
-      reaction.message.guildId!,
-      reaction.message.author!.id,
-      { reactionCount: -1 },
+    const result = await this.redis.eval(
+      REACTION_REMOVE_SCRIPT,
+      1,
+      this.getReactionKey(info.guildId, info.messageId, info.userId),
+      info.emojiId,
     );
+    if (result !== 1) return;
+
+    await this.activityService.recordActivity(info.guildId, info.authorId, {
+      reactionCount: -1,
+    });
   }
 
   private async canProcessReaction(
     reaction: MessageReaction | PartialMessageReaction,
     user: User | PartialUser,
-  ) {
+  ): Promise<ReactionActivityInfo | null> {
+    if (await this.isBotReactor(user)) return null;
+
     const message = await reaction.message.fetch().catch((err) => {
       const messageId = reaction.message.id ?? 'unknown';
       const reason = err instanceof Error ? err.message : String(err);
@@ -195,22 +259,13 @@ export class ActivityWatchService implements BeforeApplicationShutdown {
       );
       return null;
     });
-    if (!message) return;
+    if (!message) return null;
     if (!message.guild) {
       this.warnRateLimited(
         `reaction-no-guild:${message.id}`,
         `Skipping reaction activity for message ${message.id}: message has no guild`,
       );
-      return;
-    }
-
-    const member = await message.guild.members.fetch(user.id).catch(() => null);
-    if (!member) {
-      this.warnRateLimited(
-        `reaction-no-member:${message.guild.id}:${user.id}`,
-        `Skipping reaction activity in guild ${message.guild.id}: reacting user ${user.id} was not found`,
-      );
-      return;
+      return null;
     }
 
     if (!message.author) {
@@ -218,7 +273,7 @@ export class ActivityWatchService implements BeforeApplicationShutdown {
         `reaction-no-author:${message.id}`,
         `Skipping reaction activity for message ${message.id}: message author is missing`,
       );
-      return;
+      return null;
     }
 
     if (message.author.id === user.id) {
@@ -226,19 +281,44 @@ export class ActivityWatchService implements BeforeApplicationShutdown {
         `reaction-self:${message.id}:${user.id}`,
         `Skipping reaction activity for message ${message.id}: user ${user.id} reacted to their own message`,
       );
-      return;
+      return null;
     }
 
+    if (message.createdTimestamp == null) return null;
     const diffTime = Date.now() - message.createdTimestamp;
-    if (diffTime > 1000 * 60 * 60 * 24) {
+    if (diffTime > REACTION_WINDOW_MS) {
       this.warnRateLimited(
         `reaction-old:${message.id}`,
         `Skipping reaction activity for message ${message.id}: message is older than 24 hours`,
       );
-      return;
+      return null;
     }
 
-    return true;
+    const emojiId = reaction.emoji.id ?? reaction.emoji.name;
+    if (!emojiId) return null;
+
+    return {
+      guildId: message.guild.id,
+      messageId: message.id,
+      authorId: message.author.id,
+      userId: user.id,
+      emojiId,
+      ttlSeconds: Math.max(
+        1,
+        Math.floor((REACTION_WINDOW_MS - diffTime) / 1000),
+      ),
+    };
+  }
+
+  private async isBotReactor(user: User | PartialUser): Promise<boolean> {
+    if (user.bot === true) return true;
+    if (user.bot === false) return false;
+    const fetched = await user.fetch().catch(() => null);
+    return fetched?.bot === true;
+  }
+
+  private getReactionKey(guildId: string, messageId: string, userId: string) {
+    return `activity:reaction:${guildId}:${messageId}:${userId}`;
   }
 
   private warnRateLimited(key: string, message: string) {
@@ -300,25 +380,47 @@ export class ActivityWatchService implements BeforeApplicationShutdown {
     member: GuildMember,
     options: { now?: number; persist?: boolean } = {},
   ) {
-    const key = this.getVoiceActivityKey(member.guild.id);
-    const rawEnteredAt = await this.redis.hget(key, member.id);
     const now = options.now ?? Date.now();
     const persist = options.persist ?? true;
-    if (!rawEnteredAt) return;
-
-    const enteredAt = Number(rawEnteredAt);
-    if (!Number.isFinite(enteredAt) || enteredAt <= 0) {
-      await this.redis.hdel(key, member.id);
-      return;
-    }
+    const enteredAt = await this.claimVoiceActivity(member.guild.id, member.id);
+    if (enteredAt === null) return;
 
     const elapsed = Math.floor((now - enteredAt) / 1_000);
 
     if (elapsed > 0 && persist) {
       await this.persistVoiceActivity(member.guild.id, member.id, elapsed);
     }
+  }
 
-    await this.redis.hdel(key, member.id);
+  private async rollForwardVoiceActivity(
+    guildId: string,
+    memberId: string,
+    now: number,
+  ): Promise<number | null> {
+    const key = this.getVoiceActivityKey(guildId);
+    const prev = await this.redis.eval(
+      VOICE_ROLL_FORWARD_SCRIPT,
+      1,
+      key,
+      memberId,
+      String(now),
+    );
+    if (prev == null) return null;
+    const enteredAt = Number(prev);
+    if (!Number.isFinite(enteredAt) || enteredAt <= 0) return null;
+    return enteredAt;
+  }
+
+  private async claimVoiceActivity(
+    guildId: string,
+    memberId: string,
+  ): Promise<number | null> {
+    const key = this.getVoiceActivityKey(guildId);
+    const prev = await this.redis.eval(VOICE_CLAIM_SCRIPT, 1, key, memberId);
+    if (prev == null) return null;
+    const enteredAt = Number(prev);
+    if (!Number.isFinite(enteredAt) || enteredAt <= 0) return null;
+    return enteredAt;
   }
 
   private async persistVoiceActivity(
@@ -364,18 +466,20 @@ export class ActivityWatchService implements BeforeApplicationShutdown {
           hasValidEnteredAt &&
           !isStale &&
           (!persistOnlyTrackable || isTrackable);
+        const shouldReopen = member && isTrackable && reopenActive;
 
         if (shouldPersist) {
-          const elapsed = Math.floor((now - enteredAt) / 1_000);
-          if (elapsed > 0) {
-            await this.persistVoiceActivity(guild.id, memberId, elapsed);
+          const claimed = shouldReopen
+            ? await this.rollForwardVoiceActivity(guild.id, memberId, now)
+            : await this.claimVoiceActivity(guild.id, memberId);
+          if (claimed !== null) {
+            const elapsed = Math.floor((now - claimed) / 1_000);
+            if (elapsed > 0) {
+              await this.persistVoiceActivity(guild.id, memberId, elapsed);
+            }
           }
-        }
-
-        await this.redis.hdel(key, memberId);
-
-        if (member && isTrackable && reopenActive) {
-          await this.startVoiceActivity(member, now);
+        } else {
+          await this.claimVoiceActivity(guild.id, memberId);
         }
       }
     }
