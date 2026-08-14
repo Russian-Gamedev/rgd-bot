@@ -1,10 +1,14 @@
 import * as path from 'node:path';
-import { INestApplication, Logger, ValidationPipe } from '@nestjs/common';
+import {
+  ConsoleLogger,
+  INestApplication,
+  Logger,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { WsAdapter } from '@nestjs/platform-ws';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-
 import { EnvironmentVariables } from '#config/env';
 import {
   BOT_BEARER_AUTH,
@@ -74,9 +78,10 @@ function registerProcessShutdownHandlers(
 }
 
 async function main() {
+  const app = await NestFactory.create(AppModule, {
+    logger: new ConsoleLogger({ json: true }),
+  });
   const logger = new Logger('Bootstrap');
-  logger.log('Starting application...');
-  const app = await NestFactory.create(AppModule);
 
   const config = app.get(ConfigService<EnvironmentVariables>);
 
@@ -156,6 +161,7 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error(err);
+  const logger = new Logger('Bootstrap');
+  logger.error('Application failed to bootstrap', err);
   process.exit(1);
 });
