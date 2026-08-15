@@ -6,6 +6,7 @@ import { GuildSettings } from '#config/guilds';
 import { GuildSettingsService } from '#core/guilds/settings/guild-settings.service';
 import {
   extractNormalizedUrls,
+  getErrorMessage,
   hashArrayBuffer,
   hashValue,
   hitFixedWindowThreshold,
@@ -410,9 +411,7 @@ export class MahoragaDetectionService {
       return hashArrayBuffer(buffer);
     } catch (error) {
       this.logger.warn(
-        `Could not hash image attachment ${attachment.url}: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
+        `Could not hash image attachment ${attachment.url}: ${getErrorMessage(error)}`,
       );
       return null;
     }

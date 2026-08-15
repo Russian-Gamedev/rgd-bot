@@ -18,7 +18,7 @@ import { NicknameService } from '#core/nickname/nickname.service';
 import { UserService } from '#core/users/users.service';
 import { InsufficientFundsException } from '#core/wallet/wallet.exception';
 import { WalletService } from '#core/wallet/wallet.service';
-import { formatCoins, hideEmbedLink } from '#lib/utils';
+import { formatCoins, getErrorMessage, hideEmbedLink } from '#lib/utils';
 
 import { RenameUserDto } from '../dto/rename.dto';
 
@@ -236,12 +236,12 @@ export class RenameCommands {
         RENAME_BOT_COST,
         'rename-bot-refund',
         {
-          error: error instanceof Error ? error.message : String(error),
+          error: getErrorMessage(error),
         },
       );
       return {
         error: true,
-        message: `Не удалось переименовать бота: ${error instanceof Error ? error.message : String(error)}`,
+        message: `Не удалось переименовать бота: ${getErrorMessage(error)}`,
       };
     }
 

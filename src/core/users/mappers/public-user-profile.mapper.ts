@@ -1,4 +1,7 @@
 import { plainToInstance } from 'class-transformer';
+
+import { isObject } from '#lib/utils';
+
 import { CurrentUserProfileDto } from '../dto/current-user-profile.dto';
 import {
   PublicUserProfileDto,
@@ -82,8 +85,4 @@ function toNullableDate(value: unknown): Date | null {
 
   const date = value instanceof Date ? value : new Date(String(value));
   return Number.isNaN(date.getTime()) ? null : date;
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
