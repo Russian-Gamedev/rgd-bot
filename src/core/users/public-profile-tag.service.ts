@@ -84,7 +84,7 @@ export class PublicProfileTagService {
       if (!guild) continue;
 
       const member = await guild.members
-        .fetch(userId.toString())
+        .fetch({ user: userId.toString(), force: true })
         .catch(() => null);
       if (!member) continue;
 
