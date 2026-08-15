@@ -57,6 +57,7 @@ export class DiscordProfileSyncService {
           'avatar_url',
           'banner',
           'banner_color',
+          'updatedAt',
         ],
       },
     );
@@ -92,6 +93,7 @@ export class DiscordProfileSyncService {
           'display_color',
           'isLeftGuild',
           'leftAt',
+          'updatedAt',
         ],
       },
     );
@@ -120,6 +122,13 @@ export class DiscordProfileSyncService {
     if (!member) return null;
 
     return this.syncMember(member);
+  }
+
+  async syncUserById(userId: DiscordID): Promise<UserProfileEntity> {
+    const user = await this.client.users.fetch(userId.toString(), {
+      force: true,
+    });
+    return this.syncUser(user);
   }
 
   async syncUsersById(

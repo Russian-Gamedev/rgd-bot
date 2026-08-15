@@ -7,6 +7,7 @@ import type { DiscordID } from '#root/lib/types';
 
 import { CurrentUserProfileDto } from './dto/current-user-profile.dto';
 import { PublicUserProfileDto } from './dto/public-user-profile.dto';
+import type { UserProfileEntity } from './entities/user-profile.entity';
 import {
   toCachedPublicUserProfileDto,
   toCurrentUserProfileDto,
@@ -18,6 +19,8 @@ import { UserService } from './users.service';
 const USER_RESPONSE_CACHE_TTL_SECONDS = 60;
 const USER_RESPONSE_CACHE_MISS = '-';
 const USER_RESPONSE_CACHE_VERSION = 'v6';
+const PROFILE_SYNC_THROTTLE_SECONDS = 60 * 60;
+const PROFILE_SYNC_THROTTLE_KEY_PREFIX = 'users:profile-sync-throttle';
 
 @Injectable()
 export class PublicProfileService {
@@ -52,7 +55,7 @@ export class PublicProfileService {
       }
     }
 
-    const profile = await this.userService.lookupProfile(lookup);
+    let profile = await this.userService.lookupProfile(lookup);
     if (!profile) {
       await this.redis.set(
         cacheKey,
@@ -61,6 +64,12 @@ export class PublicProfileService {
         USER_RESPONSE_CACHE_TTL_SECONDS,
       );
       throw new NotFoundException('User profile was not found.');
+    }
+
+    const syncedProfile = await this.syncProfileIfAllowed(profile.user_id);
+    if (syncedProfile) {
+      profile = syncedProfile;
+      await this.invalidateProfileCache(profile);
     }
 
     const tags = await this.publicProfileTagService.getPublicProfileTags(
@@ -75,6 +84,27 @@ export class PublicProfileService {
       USER_RESPONSE_CACHE_TTL_SECONDS,
     );
     return dto;
+  }
+
+  /**
+   * Force-refreshes a user profile from Discord at most once per
+   * PROFILE_SYNC_THROTTLE_SECONDS. Returns the freshly synced entity when a
+   * sync was performed, otherwise null (throttled or sync failed).
+   */
+  private async syncProfileIfAllowed(
+    userId: DiscordID,
+  ): Promise<UserProfileEntity | null> {
+    const throttleKey = `${PROFILE_SYNC_THROTTLE_KEY_PREFIX}:${BigInt(userId).toString()}`;
+    const acquired = await this.redis.set(
+      throttleKey,
+      '1',
+      'EX',
+      PROFILE_SYNC_THROTTLE_SECONDS,
+      'NX',
+    );
+    if (!acquired) return null;
+
+    return this.userService.syncUserProfileFromDiscord(userId);
   }
 
   async getCurrentUserProfile(

@@ -94,6 +94,7 @@ describe('DiscordProfileSyncService', () => {
           'avatar_url',
           'banner',
           'banner_color',
+          'updatedAt',
         ],
       }),
     );
@@ -135,6 +136,17 @@ describe('DiscordProfileSyncService', () => {
     expect(client.users.fetch).toHaveBeenCalledWith('111', { force: true });
     expect(client.users.fetch).toHaveBeenCalledWith('222', { force: true });
     expect(em.upsert).toHaveBeenCalledTimes(2);
+  });
+
+  it('force-fetches and syncs a single user by id', async () => {
+    await expect(service.syncUserById('123')).resolves.toMatchObject({
+      user_id: 123n,
+      username: 'user-123',
+      avatar_url: 'avatar-123',
+      banner: 'banner-123',
+    });
+
+    expect(client.users.fetch).toHaveBeenCalledWith('123', { force: true });
   });
 
   it('does not fetch users that were synced recently', async () => {
