@@ -9,6 +9,7 @@ import {
   WebSocketGateway,
 } from '@nestjs/websockets';
 import { MetricsService } from '#common/metrics/metrics.service';
+import { isObject } from '#lib/utils';
 import {
   ErrorPayload,
   JsonValue,
@@ -201,7 +202,7 @@ export class BarGateway
       return;
     }
 
-    if (!this.isRecord(message) || typeof message.type !== 'string') {
+    if (!isObject(message) || typeof message.type !== 'string') {
       this.sendError(socket, {
         code: 'invalid_message',
         message: 'Message must include a string type.',
@@ -342,9 +343,5 @@ export class BarGateway
 
   private getTextBytes(text: string) {
     return Buffer.byteLength(text, 'utf8');
-  }
-
-  private isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
   }
 }

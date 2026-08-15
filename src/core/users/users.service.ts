@@ -1,8 +1,15 @@
 import { raw } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
+import {
+  assertPositiveInteger,
+  formatError,
+  hasOwn,
+  isObject,
+  isUnsignedInteger,
+} from '#lib/utils';
 import type { DiscordID } from '#root/lib/types';
 
 import { DiscordProfileSyncService } from './discord-profile-sync.service';
@@ -233,16 +240,6 @@ function isDefaultAvatar(avatar: string): boolean {
   return avatar.includes('/embed/avatars/');
 }
 
-function isUnsignedInteger(value: string): boolean {
-  return /^\d+$/.test(value);
-}
-
-function assertPositiveInteger(amount: number, field: string): void {
-  if (!Number.isSafeInteger(amount) || amount <= 0) {
-    throw new BadRequestException(`Invalid ${field} amount.`);
-  }
-}
-
 function mergeProfileInfoPatch(
   current: UserProfileInfo,
   patch: PatchCurrentUserProfileDto['info'],
@@ -260,21 +257,4 @@ function mergeProfileInfoPatch(
   }
 
   return next;
-}
-
-function hasOwn<T extends object, K extends PropertyKey>(
-  value: T,
-  key: K,
-): value is T & Record<K, unknown> {
-  return Object.hasOwn(value, key);
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function formatError(error: unknown): string {
-  return error instanceof Error
-    ? (error.stack ?? error.message)
-    : String(error);
 }

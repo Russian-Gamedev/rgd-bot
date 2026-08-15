@@ -1,3 +1,5 @@
+import { isObject } from '#lib/utils';
+
 import { MAX_PUBLIC_PROFILE_ABOUT_LENGTH } from '../constants/public-profile.constants';
 import type { UserProfileInfo } from '../entities/user-profile.entity';
 import {
@@ -29,8 +31,4 @@ function normalizeAbout(value: unknown): string | null {
   if (trimmed.length === 0) return null;
 
   return trimmed.slice(0, MAX_PUBLIC_PROFILE_ABOUT_LENGTH);
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

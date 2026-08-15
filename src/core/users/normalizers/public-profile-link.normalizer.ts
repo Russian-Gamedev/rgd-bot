@@ -1,3 +1,5 @@
+import { isObject } from '#lib/utils';
+
 import {
   MAX_PUBLIC_PROFILE_LINK_ICON_LENGTH,
   MAX_PUBLIC_PROFILE_LINK_LABEL_LENGTH,
@@ -48,8 +50,4 @@ function normalizeString(value: unknown, maxLength: number): string {
   if (typeof value !== 'string') return '';
 
   return value.trim().slice(0, maxLength);
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

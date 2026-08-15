@@ -3,6 +3,7 @@ import { Client, EmbedBuilder, GuildMember } from 'discord.js';
 
 import { GuildSettings } from '#config/guilds';
 import { GuildSettingsService } from '#core/guilds/settings/guild-settings.service';
+import { getErrorMessage } from '#lib/utils';
 
 import {
   MahoragaMessageCleanupSummary,
@@ -48,7 +49,7 @@ export class MahoragaDiscordService {
           deleteMessageSeconds: DELETE_MESSAGE_SECONDS,
         });
       } catch (error) {
-        const detail = error instanceof Error ? error.message : String(error);
+        const detail = getErrorMessage(error);
         return { guildId, status: 'failed', detail: `ban failed: ${detail}` };
       }
 
@@ -57,7 +58,7 @@ export class MahoragaDiscordService {
       try {
         await guild.bans.remove(userId, `${reason}: temporary ban expired`);
       } catch (error) {
-        const detail = error instanceof Error ? error.message : String(error);
+        const detail = getErrorMessage(error);
         return {
           guildId,
           status: 'failed',
@@ -67,7 +68,7 @@ export class MahoragaDiscordService {
 
       return { guildId, status: 'applied' };
     } catch (error) {
-      const detail = error instanceof Error ? error.message : String(error);
+      const detail = getErrorMessage(error);
       this.logger.error(`Failed to apply softban in guild ${guildId}:`, error);
       return { guildId, status: 'failed', detail };
     }
@@ -94,9 +95,7 @@ export class MahoragaDiscordService {
       guild = await this.discord.guilds.fetch(guildId);
     } catch (error) {
       this.logger.warn(
-        `Could not fetch guild ${guildId} for Mahoraga cleanup: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
+        `Could not fetch guild ${guildId} for Mahoraga cleanup: ${getErrorMessage(error)}`,
       );
       summary.failed = entries.length;
       return { summary, resolvedEntries };
@@ -131,9 +130,7 @@ export class MahoragaDiscordService {
         resolvedEntries.push(entry);
       } catch (error) {
         this.logger.warn(
-          `Could not delete Mahoraga message ${entry.messageId} in guild ${guildId}: ${
-            error instanceof Error ? error.message : String(error)
-          }`,
+          `Could not delete Mahoraga message ${entry.messageId} in guild ${guildId}: ${getErrorMessage(error)}`,
         );
         summary.failed += 1;
       }
@@ -201,9 +198,7 @@ export class MahoragaDiscordService {
       await channel.send({ embeds: [embed] });
     } catch (error) {
       this.logger.warn(
-        `Could not send Mahoraga log to guild ${guildId}: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
+        `Could not send Mahoraga log to guild ${guildId}: ${getErrorMessage(error)}`,
       );
     }
   }
