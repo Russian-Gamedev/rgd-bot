@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'bun:test';
 import { GuildMember } from 'discord.js';
 import { DISCORD_CDN } from '#config/constants';
-import { getAvatarUrl, getDefaultAvatar, getDisplayAvatar } from './discord';
+import {
+  getAvatarUrl,
+  getDefaultAvatar,
+  getDisplayAvatar,
+  replaceImageExtension,
+} from './discord';
 
 describe('discord utilities', () => {
   it('uses guild member display avatar instead of falling back on missing guild avatar', () => {
@@ -45,5 +50,29 @@ describe('discord utilities', () => {
     const defaultUrl = getDefaultAvatar(userId);
 
     expect(getAvatarUrl(userId, undefined)).toBe(defaultUrl);
+  });
+
+  it('replaces webp extension with png preserving query string', () => {
+    const url = 'https://cdn.discordapp.com/avatars/123/hash.webp?size=1024';
+
+    expect(replaceImageExtension(url, 'png')).toBe(
+      'https://cdn.discordapp.com/avatars/123/hash.png?size=1024',
+    );
+  });
+
+  it('replaces webp extension with gif', () => {
+    const url = 'https://cdn.discordapp.com/avatars/123/hash.webp';
+
+    expect(replaceImageExtension(url, 'gif')).toBe(
+      'https://cdn.discordapp.com/avatars/123/hash.gif',
+    );
+  });
+
+  it('replaces png extension on default embed avatar', () => {
+    const url = 'https://cdn.discordapp.com/embed/avatars/0.png';
+
+    expect(replaceImageExtension(url, 'webp')).toBe(
+      'https://cdn.discordapp.com/embed/avatars/0.webp',
+    );
   });
 });

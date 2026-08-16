@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Patch,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -6,19 +15,24 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiPermanentRedirectResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { type Response } from 'express';
 import { getActorUserId } from '#core/permissions/actor-user-id';
 import { ApiActorAuth } from '#core/permissions/openapi-auth.decorator';
 import { Actor } from '#core/permissions/permissions.decorator';
 import { ActorAuthGuard } from '#core/permissions/permissions.guard';
 import { type AuthenticatedActor } from '#core/permissions/permissions.types';
+import { replaceImageExtension } from '#lib/utils/discord';
 
 import { CurrentUserProfileDto } from './dto/current-user-profile.dto';
 import { PatchCurrentUserProfileDto } from './dto/patch-current-user-profile.dto';
 import { PublicUserProfileDto } from './dto/public-user-profile.dto';
 import { PublicProfileService } from './public-profile.service';
 import { UserService } from './users.service';
+
+const AVATAR_EXTENSIONS = new Set(['png', 'webp', 'gif']);
 
 @ApiTags('Users')
 @Controller('users')
@@ -67,6 +81,33 @@ export class UsersController {
     const profile = await this.userService.updateProfileInfo(userId, dto);
     await this.publicProfileService.invalidateProfileCache(profile);
     return this.publicProfileService.getCurrentUserProfile(userId, actor);
+  }
+
+  @Get(':lookup.:ext')
+  @ApiOperation({ summary: 'Redirect to user avatar image' })
+  @ApiParam({
+    name: 'lookup',
+    description: 'Discord user ID or username.',
+    example: '123456789012345678',
+  })
+  @ApiParam({ name: 'ext', enum: ['png', 'webp', 'gif'] })
+  @ApiPermanentRedirectResponse({
+    description: 'Redirects to the user avatar URL.',
+  })
+  @ApiNotFoundResponse({ description: 'User profile was not found.' })
+  async getAvatar(
+    @Param('lookup') lookup: string,
+    @Param('ext') ext: string,
+    @Res() res: Response,
+  ) {
+    if (!AVATAR_EXTENSIONS.has(ext)) return res.sendStatus(404);
+    try {
+      const profile = await this.publicProfileService.getPublicProfile(lookup);
+      return res.redirect(308, replaceImageExtension(profile.avatarUrl, ext));
+    } catch (error) {
+      if (error instanceof NotFoundException) return res.sendStatus(404);
+      throw error;
+    }
   }
 
   @Get(':id')
