@@ -82,7 +82,7 @@ async function main() {
   const logger = new Logger('Bootstrap');
   logger.log('Starting application...');
   const app = await NestFactory.create(AppModule.register(postgresOrmConfig), {
-    logger: new ConsoleLogger({ json: true }),
+    logger: new ConsoleLogger({ json: process.env.NODE_ENV === 'production' }),
   });
 
   const config = app.get(ConfigService<EnvironmentVariables>);
