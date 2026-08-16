@@ -16,7 +16,7 @@
   "homepage": "https://github.com/Russian-Gamedev/rgd-bot#readme",
   "scripts": {
     "prepare": "bun ./.github/hooks/setup-git-hooks.sh",
-    "start:dev": "bunx --bun nest start --env-file .env.development --watch",
+    "start:dev": "bun --env-file .env.development --watch ./src/main.ts",
     "build": "bun run build.ts",
     "compose:dev": "docker compose -f ./docker/docker-compose.dev.yml up",
     "compose:prod": "docker compose -f ./docker/docker-compose.yml up",
