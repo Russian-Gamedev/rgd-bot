@@ -2,6 +2,7 @@ import { describe, expect, it, mock } from 'bun:test';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
+import { type Response } from 'express';
 
 import { BotEntity } from '#core/bots/entities/bot.entity';
 import { GameListQueryDto } from '#core/games/dto/games.dto';
@@ -120,6 +121,69 @@ describe('UsersController', () => {
     expect(publicProfileService.getPublicProfile).toHaveBeenCalledWith(
       'DamirLut',
     );
+  });
+
+  it('redirects to avatar URL with requested extension', async () => {
+    const publicProfileService = createPublicProfileService({
+      getPublicProfile: mock(async () =>
+        createProfileResponse({
+          avatarUrl:
+            'https://cdn.discordapp.com/avatars/123/hash.webp?size=1024',
+        }),
+      ),
+    });
+    const controller = new UsersController(
+      createUserService(),
+      publicProfileService,
+    );
+    const redirect = mock(() => undefined);
+    const sendStatus = mock(() => undefined);
+    const res = { redirect, sendStatus } as unknown as Response;
+
+    await controller.getAvatar('123', 'png', res);
+
+    expect(publicProfileService.getPublicProfile).toHaveBeenCalledWith('123');
+    expect(redirect).toHaveBeenCalledWith(
+      308,
+      'https://cdn.discordapp.com/avatars/123/hash.png?size=1024',
+    );
+  });
+
+  it('returns 404 for unsupported avatar extension', async () => {
+    const publicProfileService = createPublicProfileService();
+    const controller = new UsersController(
+      createUserService(),
+      publicProfileService,
+    );
+    const redirect = mock(() => undefined);
+    const sendStatus = mock(() => undefined);
+    const res = { redirect, sendStatus } as unknown as Response;
+
+    await controller.getAvatar('123', 'jpg', res);
+
+    expect(sendStatus).toHaveBeenCalledWith(404);
+    expect(redirect).not.toHaveBeenCalled();
+    expect(publicProfileService.getPublicProfile).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when avatar profile is not found', async () => {
+    const publicProfileService = createPublicProfileService({
+      getPublicProfile: mock(async () => {
+        throw new NotFoundException('User profile was not found.');
+      }),
+    });
+    const controller = new UsersController(
+      createUserService(),
+      publicProfileService,
+    );
+    const redirect = mock(() => undefined);
+    const sendStatus = mock(() => undefined);
+    const res = { redirect, sendStatus } as unknown as Response;
+
+    await controller.getAvatar('404', 'png', res);
+
+    expect(sendStatus).toHaveBeenCalledWith(404);
+    expect(redirect).not.toHaveBeenCalled();
   });
 
   it('throws NotFoundException when public profile is not found', async () => {

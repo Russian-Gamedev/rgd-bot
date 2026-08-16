@@ -24,6 +24,13 @@ export function getDefaultAvatar(userId: string) {
   return DISCORD_CDN + `/embed/avatars/${id}.png`;
 }
 
+const IMAGE_EXTENSION_RE = /\.(?:png|jpe?g|gif|webp)(?=$|[?#])/i;
+
+/** Replaces the image extension of a URL, preserving any query string. */
+export function replaceImageExtension(url: string, extension: string): string {
+  return url.replace(IMAGE_EXTENSION_RE, `.${extension}`);
+}
+
 /** Returns a user's custom avatar URL, falling back to the default avatar. */
 export function getDisplayAvatar(
   user: User | GuildMember,
