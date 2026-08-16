@@ -212,9 +212,15 @@ export class RenameCommands {
     );
 
     try {
-      await this.walletService.debit(user, RENAME_BOT_COST, 'rename-bot', {
-        new_nickname,
-      });
+      await this.walletService.debit(
+        user.user_id,
+        RENAME_BOT_COST,
+        'rename-bot',
+        {
+          guildId: user.guild_id,
+          metadata: { new_nickname },
+        },
+      );
     } catch (error) {
       if (error instanceof InsufficientFundsException) {
         return {
@@ -232,11 +238,14 @@ export class RenameCommands {
       );
     } catch (error) {
       await this.walletService.credit(
-        user,
+        user.user_id,
         RENAME_BOT_COST,
         'rename-bot-refund',
         {
-          error: getErrorMessage(error),
+          guildId: user.guild_id,
+          metadata: {
+            error: getErrorMessage(error),
+          },
         },
       );
       return {
@@ -275,9 +284,9 @@ export class RenameCommands {
     );
 
     try {
-      await this.walletService.debit(user, lockCost, 'lock-nickname', {
-        new_nickname,
-        lock_duration: lockDuration,
+      await this.walletService.debit(user.user_id, lockCost, 'lock-nickname', {
+        guildId: user.guild_id,
+        metadata: { new_nickname, lock_duration: lockDuration },
       });
     } catch (error) {
       if (error instanceof InsufficientFundsException) {

@@ -61,7 +61,13 @@ export class CoinsCommand {
     }
 
     try {
-      await this.walletService.transfer(fromUser, toUser, amount, 'transfer');
+      await this.walletService.transfer(
+        fromUser.user_id,
+        toUser.user_id,
+        amount,
+        'transfer',
+        { guildId: fromUser.guild_id },
+      );
     } catch (err) {
       if (err instanceof InsufficientFundsException) {
         return interaction.reply({

@@ -99,7 +99,9 @@ describe('WalletService', () => {
         wallet,
       );
 
-      const tx = await service.credit(user, 500n, 'test-credit');
+      const tx = await service.credit(user.user_id, 500n, 'test-credit', {
+        guildId: user.guild_id,
+      });
 
       expect(wallet.coins).toBe(1500n);
       expect(tx).toBeInstanceOf(WalletTransactionEntity);
@@ -120,7 +122,7 @@ describe('WalletService', () => {
     it('creates wallet on first credit', async () => {
       const user = createMockUser();
 
-      const tx = await service.credit(user, 500n, 'test-credit');
+      const tx = await service.credit(user.user_id, 500n, 'test-credit');
 
       expect(tx.balance_after).toBe(500n);
       const persisted = (innerEm.persist as ReturnType<typeof mock>).mock.calls;
@@ -130,10 +132,10 @@ describe('WalletService', () => {
     it('throws on non-positive amount', async () => {
       const user = createMockUser();
 
-      expect(service.credit(user, 0n, 'bad')).rejects.toBeInstanceOf(
+      expect(service.credit(user.user_id, 0n, 'bad')).rejects.toBeInstanceOf(
         InvalidAmountException,
       );
-      expect(service.credit(user, -5n, 'bad')).rejects.toBeInstanceOf(
+      expect(service.credit(user.user_id, -5n, 'bad')).rejects.toBeInstanceOf(
         InvalidAmountException,
       );
     });
@@ -146,7 +148,9 @@ describe('WalletService', () => {
         wallet,
       );
 
-      const tx = await service.credit(user, 50n, 'mini-game:flip', meta);
+      const tx = await service.credit(user.user_id, 50n, 'mini-game:flip', {
+        metadata: meta,
+      });
 
       expect(tx.metadata).toEqual(meta);
     });
@@ -154,7 +158,7 @@ describe('WalletService', () => {
     it('uses em.transactional for atomicity', async () => {
       const user = createMockUser();
 
-      await service.credit(user, 100n, 'test');
+      await service.credit(user.user_id, 100n, 'test');
 
       expect(mockEm.transactional).toHaveBeenCalledTimes(1);
     });
@@ -168,7 +172,9 @@ describe('WalletService', () => {
         wallet,
       );
 
-      const tx = await service.debit(user, 300n, 'test-debit');
+      const tx = await service.debit(user.user_id, 300n, 'test-debit', {
+        guildId: user.guild_id,
+      });
 
       expect(wallet.coins).toBe(700n);
       expect(tx).toBeInstanceOf(WalletTransactionEntity);
@@ -186,7 +192,7 @@ describe('WalletService', () => {
       );
 
       await expect(
-        service.debit(user, 500n, 'too-much'),
+        service.debit(user.user_id, 500n, 'too-much'),
       ).rejects.toBeInstanceOf(InsufficientFundsException);
       expect(wallet.coins).toBe(100n);
     });
@@ -194,9 +200,9 @@ describe('WalletService', () => {
     it('throws on non-positive amount', async () => {
       const user = createMockUser();
 
-      await expect(service.debit(user, 0n, 'bad')).rejects.toBeInstanceOf(
-        InvalidAmountException,
-      );
+      await expect(
+        service.debit(user.user_id, 0n, 'bad'),
+      ).rejects.toBeInstanceOf(InvalidAmountException);
     });
 
     it('allows debit of exact balance', async () => {
@@ -206,7 +212,7 @@ describe('WalletService', () => {
         wallet,
       );
 
-      const tx = await service.debit(user, 500n, 'exact');
+      const tx = await service.debit(user.user_id, 500n, 'exact');
 
       expect(wallet.coins).toBe(0n);
       expect(tx.balance_after).toBe(0n);
@@ -223,7 +229,11 @@ describe('WalletService', () => {
         .mockResolvedValueOnce(fromWallet)
         .mockResolvedValueOnce(toWallet);
 
-      const [debitTx, creditTx] = await service.transfer(from, to, 500n);
+      const [debitTx, creditTx] = await service.transfer(
+        from.user_id,
+        to.user_id,
+        500n,
+      );
 
       expect(fromWallet.coins).toBe(500n);
       expect(toWallet.coins).toBe(700n);
@@ -247,9 +257,9 @@ describe('WalletService', () => {
         fromWallet,
       );
 
-      await expect(service.transfer(from, to, 500n)).rejects.toBeInstanceOf(
-        InsufficientFundsException,
-      );
+      await expect(
+        service.transfer(from.user_id, to.user_id, 500n),
+      ).rejects.toBeInstanceOf(InsufficientFundsException);
       expect(fromWallet.coins).toBe(100n);
     });
 
@@ -257,9 +267,9 @@ describe('WalletService', () => {
       const from = createMockUser();
       const to = createMockUser();
 
-      await expect(service.transfer(from, to, 0n)).rejects.toBeInstanceOf(
-        InvalidAmountException,
-      );
+      await expect(
+        service.transfer(from.user_id, to.user_id, 0n),
+      ).rejects.toBeInstanceOf(InvalidAmountException);
     });
 
     it('uses default reason "transfer"', async () => {
@@ -271,7 +281,11 @@ describe('WalletService', () => {
         )
         .mockResolvedValueOnce(createMockWallet({ user_id: 222n, coins: 0n }));
 
-      const [debitTx, creditTx] = await service.transfer(from, to, 100n);
+      const [debitTx, creditTx] = await service.transfer(
+        from.user_id,
+        to.user_id,
+        100n,
+      );
 
       expect(debitTx.reason).toBe('transfer');
       expect(creditTx.reason).toBe('transfer');
@@ -287,8 +301,8 @@ describe('WalletService', () => {
         .mockResolvedValueOnce(createMockWallet({ user_id: 222n, coins: 0n }));
 
       const [debitTx, creditTx] = await service.transfer(
-        from,
-        to,
+        from.user_id,
+        to.user_id,
         100n,
         'gift',
       );
@@ -306,7 +320,7 @@ describe('WalletService', () => {
         )
         .mockResolvedValueOnce(createMockWallet({ user_id: 222n, coins: 0n }));
 
-      await service.transfer(from, to, 100n);
+      await service.transfer(from.user_id, to.user_id, 100n);
 
       expect(mockEm.transactional).toHaveBeenCalledTimes(1);
     });

@@ -107,7 +107,9 @@ export class ItemsCommands {
       rare: dto.rare ?? ItemRarity.COMMON,
       transferable: dto.transferable ?? true,
     });
-    await this.walletService.debit(user, cost, 'item:create');
+    await this.walletService.debit(user.user_id, cost, 'item:create', {
+      guildId: user.guild_id,
+    });
 
     return interaction.reply({
       content: `Предмет **${newItem.name}** успешно создан и выдан <@${target_user}>!`,

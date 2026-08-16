@@ -169,14 +169,24 @@ export class SlotGame {
       isWin = true;
       const winnings = coins * BigInt(PAYOUTS[resultKey]);
       const tx = await this.walletService.credit(
-        user,
+        user.user_id,
         winnings,
         'mini-game:slot',
+        {
+          guildId: user.guild_id,
+        },
       );
       balanceAfter = tx.balance_after;
       outputMessage += `🎉 Вы выиграли ${formatCoins(winnings)} монет! 🎉`;
     } else {
-      const tx = await this.walletService.debit(user, coins, 'mini-game:slot');
+      const tx = await this.walletService.debit(
+        user.user_id,
+        coins,
+        'mini-game:slot',
+        {
+          guildId: user.guild_id,
+        },
+      );
       balanceAfter = tx.balance_after;
       outputMessage += `К сожалению, вы проиграли.`;
     }

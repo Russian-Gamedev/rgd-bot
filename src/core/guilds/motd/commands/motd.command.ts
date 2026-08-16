@@ -57,7 +57,9 @@ export class MotdCommands {
       });
     }
 
-    await this.walletService.debit(user, MOTD_COST, 'motd:add');
+    await this.walletService.debit(user.user_id, MOTD_COST, 'motd:add', {
+      guildId: user.guild_id,
+    });
     await this.motdService.addMotd(dto.content, BigInt(interaction.user.id));
 
     return interaction.reply({

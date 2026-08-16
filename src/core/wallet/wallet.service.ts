@@ -3,7 +3,6 @@ import { EntityManager, EntityRepository } from '@mikro-orm/postgresql';
 import { Injectable, Optional } from '@nestjs/common';
 
 import { MetricsService } from '#common/metrics/metrics.service';
-import { MemberProfileEntity } from '#core/users/entities/member-profile.entity';
 import type { DiscordID } from '#root/lib/types';
 import { WalletEntity } from './entities/wallet.entity';
 import {
@@ -19,6 +18,11 @@ export interface WalletHistoryOptions {
   limit?: number;
   offset?: number;
   type?: WalletTransactionType;
+}
+
+export interface WalletOperationOptions {
+  guildId?: DiscordID | null;
+  metadata?: Record<string, unknown>;
 }
 
 @Injectable()
@@ -64,27 +68,27 @@ export class WalletService {
   }
 
   async credit(
-    user: MemberProfileEntity,
+    userId: DiscordID,
     amount: bigint,
     reason: string,
-    metadata?: Record<string, unknown>,
+    options: WalletOperationOptions = {},
   ): Promise<WalletTransactionEntity> {
     if (amount <= 0n) {
       throw new InvalidAmountException('credit');
     }
 
     return this.em.transactional(async (em) => {
-      const wallet = await this.getOrCreateWalletForUpdate(user.user_id, em);
+      const wallet = await this.getOrCreateWalletForUpdate(userId, em);
       wallet.coins += amount;
 
       const tx = new WalletTransactionEntity();
-      tx.user_id = user.user_id;
-      tx.guild_id = user.guild_id;
+      tx.user_id = wallet.user_id;
+      tx.guild_id = toBigIntOrNull(options.guildId);
       tx.amount = amount;
       tx.balance_after = wallet.coins;
       tx.type = WalletTransactionType.CREDIT;
       tx.reason = reason;
-      tx.metadata = metadata ?? null;
+      tx.metadata = options.metadata ?? null;
 
       em.persist(wallet);
       em.persist(tx);
@@ -96,17 +100,17 @@ export class WalletService {
   }
 
   async debit(
-    user: MemberProfileEntity,
+    userId: DiscordID,
     amount: bigint,
     reason: string,
-    metadata?: Record<string, unknown>,
+    options: WalletOperationOptions = {},
   ): Promise<WalletTransactionEntity> {
     if (amount <= 0n) {
       throw new InvalidAmountException('debit');
     }
 
     return this.em.transactional(async (em) => {
-      const wallet = await this.getOrCreateWalletForUpdate(user.user_id, em);
+      const wallet = await this.getOrCreateWalletForUpdate(userId, em);
       if (wallet.coins < amount) {
         throw new InsufficientFundsException(wallet.coins, amount);
       }
@@ -114,13 +118,13 @@ export class WalletService {
       wallet.coins -= amount;
 
       const tx = new WalletTransactionEntity();
-      tx.user_id = user.user_id;
-      tx.guild_id = user.guild_id;
+      tx.user_id = wallet.user_id;
+      tx.guild_id = toBigIntOrNull(options.guildId);
       tx.amount = amount;
       tx.balance_after = wallet.coins;
       tx.type = WalletTransactionType.DEBIT;
       tx.reason = reason;
-      tx.metadata = metadata ?? null;
+      tx.metadata = options.metadata ?? null;
 
       em.persist(wallet);
       em.persist(tx);
@@ -132,49 +136,49 @@ export class WalletService {
   }
 
   async transfer(
-    from: MemberProfileEntity,
-    to: MemberProfileEntity,
+    fromUserId: DiscordID,
+    toUserId: DiscordID,
     amount: bigint,
     reason = 'transfer',
+    options: WalletOperationOptions = {},
   ): Promise<[WalletTransactionEntity, WalletTransactionEntity]> {
     if (amount <= 0n) {
       throw new InvalidAmountException('transfer');
     }
 
     return this.em.transactional(async (em) => {
-      const fromWallet = await this.getOrCreateWalletForUpdate(
-        from.user_id,
-        em,
-      );
+      const fromWallet = await this.getOrCreateWalletForUpdate(fromUserId, em);
       if (fromWallet.coins < amount) {
         throw new InsufficientFundsException(fromWallet.coins, amount);
       }
 
       const toWallet =
-        from.user_id === to.user_id
+        fromUserId === toUserId
           ? fromWallet
-          : await this.getOrCreateWalletForUpdate(to.user_id, em);
+          : await this.getOrCreateWalletForUpdate(toUserId, em);
 
       fromWallet.coins -= amount;
       toWallet.coins += amount;
 
+      const guildId = toBigIntOrNull(options.guildId);
+
       const debitTx = new WalletTransactionEntity();
-      debitTx.user_id = from.user_id;
-      debitTx.guild_id = from.guild_id;
+      debitTx.user_id = fromWallet.user_id;
+      debitTx.guild_id = guildId;
       debitTx.amount = amount;
       debitTx.balance_after = fromWallet.coins;
       debitTx.type = WalletTransactionType.TRANSFER_OUT;
       debitTx.reason = reason;
-      debitTx.related_user_id = to.user_id;
+      debitTx.related_user_id = toWallet.user_id;
 
       const creditTx = new WalletTransactionEntity();
-      creditTx.user_id = to.user_id;
-      creditTx.guild_id = to.guild_id;
+      creditTx.user_id = toWallet.user_id;
+      creditTx.guild_id = guildId;
       creditTx.amount = amount;
       creditTx.balance_after = toWallet.coins;
       creditTx.type = WalletTransactionType.TRANSFER_IN;
       creditTx.reason = reason;
-      creditTx.related_user_id = from.user_id;
+      creditTx.related_user_id = fromWallet.user_id;
 
       em.persist(fromWallet);
       em.persist(toWallet);
@@ -243,4 +247,9 @@ export class WalletService {
       amount: tx.amount,
     });
   }
+}
+
+function toBigIntOrNull(value?: DiscordID | null): bigint | null {
+  if (value === null || value === undefined) return null;
+  return BigInt(value);
 }
