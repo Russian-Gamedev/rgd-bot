@@ -119,37 +119,11 @@ export class UsersController {
     return this.gamesService.listByUser(profile.user_id.toString(), query);
   }
 
-  @Get(':lookup.:ext')
-  @ApiOperation({ summary: 'Redirect to user avatar image' })
-  @ApiParam({
-    name: 'lookup',
-    description: 'Discord user ID or username.',
-    example: '123456789012345678',
-  })
-  @ApiParam({ name: 'ext', enum: ['png', 'webp', 'gif'] })
-  @ApiPermanentRedirectResponse({
-    description: 'Redirects to the user avatar URL.',
-  })
-  @ApiNotFoundResponse({ description: 'User profile was not found.' })
-  async getAvatar(
-    @Param('lookup') lookup: string,
-    @Param('ext') ext: string,
-    @Res() res: Response,
-  ) {
-    if (!AVATAR_EXTENSIONS.has(ext)) return res.sendStatus(404);
-    try {
-      const profile = await this.publicProfileService.getPublicProfile(lookup);
-      return res.redirect(308, replaceImageExtension(profile.avatarUrl, ext));
-    } catch (error) {
-      if (error instanceof NotFoundException) return res.sendStatus(404);
-      throw error;
-    }
-  }
-
   @Get(':id')
   @ApiOperation({
-    summary: 'Get public user profile',
-    description: 'Looks up a user profile by Discord ID or username.',
+    summary: 'Get public user profile or redirect to avatar',
+    description:
+      'Looks up a user profile by Discord ID or username. When the lookup ends with .png, .webp or .gif, redirects to the user avatar image instead.',
   })
   @ApiParam({
     name: 'id',
@@ -157,8 +131,20 @@ export class UsersController {
     example: '123456789012345678',
   })
   @ApiOkResponse({ type: PublicUserProfileDto })
+  @ApiPermanentRedirectResponse({
+    description:
+      'Redirects to the user avatar URL when the lookup ends with an image extension.',
+  })
   @ApiNotFoundResponse({ description: 'User profile was not found.' })
-  async getById(@Param('id') id: string): Promise<PublicUserProfileDto> {
-    return this.publicProfileService.getPublicProfile(id);
+  async getById(@Param('id') id: string, @Res() res: Response) {
+    const ext = id.split('.').at(-1);
+    if (ext && AVATAR_EXTENSIONS.has(ext)) {
+      const lookup = id.slice(0, id.length - ext.length - 1);
+      const profile = await this.publicProfileService.getPublicProfile(lookup);
+      return res.redirect(308, replaceImageExtension(profile.avatarUrl, ext));
+    }
+
+    const profile = await this.publicProfileService.getPublicProfile(id);
+    return res.json(profile);
   }
 }

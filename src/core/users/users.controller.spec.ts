@@ -97,10 +97,12 @@ describe('UsersController', () => {
       publicProfileService,
       createGamesService(),
     );
+    const json = mock(() => undefined);
+    const res = { json } as unknown as Response;
 
-    const result = await controller.getById('123');
+    await controller.getById('123', res);
 
-    expect(result).toEqual(expected);
+    expect(json).toHaveBeenCalledWith(expected);
     expect(publicProfileService.getPublicProfile).toHaveBeenCalledWith('123');
   });
 
@@ -114,13 +116,33 @@ describe('UsersController', () => {
       publicProfileService,
       createGamesService(),
     );
+    const json = mock(() => undefined);
+    const res = { json } as unknown as Response;
 
-    const result = await controller.getById('DamirLut');
+    await controller.getById('DamirLut', res);
 
-    expect(result.username).toBe('damirlut');
+    expect(json).toHaveBeenCalledWith(expected);
     expect(publicProfileService.getPublicProfile).toHaveBeenCalledWith(
       'DamirLut',
     );
+  });
+
+  it('treats a non-image extension as a username lookup', async () => {
+    const expected = createProfileResponse({ username: '1.5k' });
+    const publicProfileService = createPublicProfileService({
+      getPublicProfile: mock(async () => expected),
+    });
+    const controller = new UsersController(
+      createUserService(),
+      publicProfileService,
+    );
+    const json = mock(() => undefined);
+    const res = { json } as unknown as Response;
+
+    await controller.getById('1.5k', res);
+
+    expect(json).toHaveBeenCalledWith(expected);
+    expect(publicProfileService.getPublicProfile).toHaveBeenCalledWith('1.5k');
   });
 
   it('redirects to avatar URL with requested extension', async () => {
@@ -137,10 +159,9 @@ describe('UsersController', () => {
       publicProfileService,
     );
     const redirect = mock(() => undefined);
-    const sendStatus = mock(() => undefined);
-    const res = { redirect, sendStatus } as unknown as Response;
+    const res = { redirect } as unknown as Response;
 
-    await controller.getAvatar('123', 'png', res);
+    await controller.getById('123.png', res);
 
     expect(publicProfileService.getPublicProfile).toHaveBeenCalledWith('123');
     expect(redirect).toHaveBeenCalledWith(
@@ -149,24 +170,34 @@ describe('UsersController', () => {
     );
   });
 
-  it('returns 404 for unsupported avatar extension', async () => {
-    const publicProfileService = createPublicProfileService();
+  it('redirects to avatar URL for dotted username with image extension', async () => {
+    const publicProfileService = createPublicProfileService({
+      getPublicProfile: mock(async () =>
+        createProfileResponse({
+          avatarUrl:
+            'https://cdn.discordapp.com/avatars/123/hash.webp?size=1024',
+        }),
+      ),
+    });
     const controller = new UsersController(
       createUserService(),
       publicProfileService,
     );
     const redirect = mock(() => undefined);
-    const sendStatus = mock(() => undefined);
-    const res = { redirect, sendStatus } as unknown as Response;
+    const res = { redirect } as unknown as Response;
 
-    await controller.getAvatar('123', 'jpg', res);
+    await controller.getById('damirlut.dev.png', res);
 
-    expect(sendStatus).toHaveBeenCalledWith(404);
-    expect(redirect).not.toHaveBeenCalled();
-    expect(publicProfileService.getPublicProfile).not.toHaveBeenCalled();
+    expect(publicProfileService.getPublicProfile).toHaveBeenCalledWith(
+      'damirlut.dev',
+    );
+    expect(redirect).toHaveBeenCalledWith(
+      308,
+      'https://cdn.discordapp.com/avatars/123/hash.png?size=1024',
+    );
   });
 
-  it('returns 404 when avatar profile is not found', async () => {
+  it('throws NotFoundException when avatar profile is not found', async () => {
     const publicProfileService = createPublicProfileService({
       getPublicProfile: mock(async () => {
         throw new NotFoundException('User profile was not found.');
@@ -176,14 +207,10 @@ describe('UsersController', () => {
       createUserService(),
       publicProfileService,
     );
-    const redirect = mock(() => undefined);
-    const sendStatus = mock(() => undefined);
-    const res = { redirect, sendStatus } as unknown as Response;
 
-    await controller.getAvatar('404', 'png', res);
-
-    expect(sendStatus).toHaveBeenCalledWith(404);
-    expect(redirect).not.toHaveBeenCalled();
+    await expect(controller.getById('404.png', {} as Response)).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('throws NotFoundException when public profile is not found', async () => {
@@ -198,7 +225,9 @@ describe('UsersController', () => {
       createGamesService(),
     );
 
-    await expect(controller.getById('404')).rejects.toThrow(NotFoundException);
+    await expect(controller.getById('404', {} as Response)).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('returns published games using the resolved profile id', async () => {
