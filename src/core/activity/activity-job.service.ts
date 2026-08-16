@@ -149,7 +149,14 @@ export class ActivityJobService {
           BigInt(guild.id),
           activity.user_id,
         );
-        await this.walletService.credit(user, BigInt(coins), 'daily-reward');
+        await this.walletService.credit(
+          user.user_id,
+          BigInt(coins),
+          'daily-reward',
+          {
+            guildId: user.guild_id,
+          },
+        );
       } catch (err) {
         if (err instanceof Error) {
           this.logger.warn(

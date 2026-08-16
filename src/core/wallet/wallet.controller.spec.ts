@@ -2,7 +2,6 @@ import { describe, expect, it, mock } from 'bun:test';
 
 import { BotEntity } from '#core/bots/entities/bot.entity';
 import { ActorType } from '#core/permissions/permissions.types';
-import { UserService } from '#core/users/users.service';
 import { WalletTransactionType } from './entities/wallet-transaction.entity';
 import { WalletController } from './wallet.controller';
 import { WalletService } from './wallet.service';
@@ -12,7 +11,7 @@ describe('WalletController', () => {
     const walletService = {
       getHistory: mock(() => Promise.resolve([])),
     } as unknown as WalletService;
-    const controller = new WalletController(walletService, {} as UserService);
+    const controller = new WalletController(walletService);
 
     await controller.getOwnHistory(
       { type: ActorType.User, id: '123', username: 'alice' },
@@ -30,7 +29,7 @@ describe('WalletController', () => {
     const walletService = {
       getBalance: mock(() => Promise.resolve(42n)),
     } as unknown as WalletService;
-    const controller = new WalletController(walletService, {} as UserService);
+    const controller = new WalletController(walletService);
     const bot = new BotEntity();
     bot.id = 7;
     bot.botUserId = 999n;
@@ -50,7 +49,7 @@ describe('WalletController', () => {
     const walletService = {
       getHistory: mock(() => Promise.resolve([])),
     } as unknown as WalletService;
-    const controller = new WalletController(walletService, {} as UserService);
+    const controller = new WalletController(walletService);
     const bot = new BotEntity();
     bot.id = 7;
     bot.botUserId = 999n;
@@ -75,7 +74,7 @@ describe('WalletController', () => {
     const walletService = {
       getBalance: mock(() => Promise.resolve(42n)),
     } as unknown as WalletService;
-    const controller = new WalletController(walletService, {} as UserService);
+    const controller = new WalletController(walletService);
     const bot = new BotEntity();
     bot.id = 7;
     bot.botUserId = null;

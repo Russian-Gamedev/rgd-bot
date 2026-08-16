@@ -91,8 +91,10 @@ export class WalletTransactionDto {
   @ApiProperty()
   id: number;
 
-  @ApiProperty({ description: 'Discord Guild ID.' })
-  guild_id: string;
+  @ApiProperty({
+    description: 'Discord Guild ID, if the transaction was guild-bound.',
+  })
+  guild_id: string | null;
 
   @ApiProperty({ description: 'Transaction amount as string.' })
   amount: string;

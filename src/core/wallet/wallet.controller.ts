@@ -26,7 +26,6 @@ import {
   type AuthenticatedActor,
   Permission,
 } from '#core/permissions/permissions.types';
-import { UserService } from '#core/users/users.service';
 
 import {
   CreditDebitDto,
@@ -44,10 +43,7 @@ import { WalletService } from './wallet.service';
 @ApiTags('Wallet')
 @Controller('wallet')
 export class WalletController {
-  constructor(
-    private readonly walletService: WalletService,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly walletService: WalletService) {}
 
   @Get('balance')
   @UseGuards(PermissionGuard)
@@ -83,7 +79,7 @@ export class WalletController {
     const history = await this.walletService.getHistory(userId, null, query);
     return history.map((tx) => ({
       id: tx.id,
-      guild_id: tx.guild_id.toString(),
+      guild_id: tx.guild_id?.toString() ?? null,
       amount: tx.amount.toString(),
       balance_after: tx.balance_after.toString(),
       type: tx.type,
@@ -136,7 +132,7 @@ export class WalletController {
     );
     return history.map((tx) => ({
       id: tx.id,
-      guild_id: tx.guild_id.toString(),
+      guild_id: tx.guild_id?.toString() ?? null,
       amount: tx.amount.toString(),
       balance_after: tx.balance_after.toString(),
       type: tx.type,
@@ -158,14 +154,11 @@ export class WalletController {
   @ApiBody({ type: CreditDebitDto })
   @ApiOkResponse({ type: WalletOperationResponseDto })
   async creditUser(@Body() dto: CreditDebitDto) {
-    const user = await this.userService.findOrCreateMember(
-      dto.guild_id ?? '0',
-      dto.user_id,
-    );
     const tx = await this.walletService.credit(
-      user,
+      dto.user_id,
       BigInt(dto.amount),
       dto.reason,
+      { guildId: dto.guild_id ?? null },
     );
     return {
       transaction_id: tx.id,
@@ -184,14 +177,11 @@ export class WalletController {
   @ApiBody({ type: CreditDebitDto })
   @ApiOkResponse({ type: WalletOperationResponseDto })
   async debitUser(@Body() dto: CreditDebitDto) {
-    const user = await this.userService.findOrCreateMember(
-      dto.guild_id ?? '0',
-      dto.user_id,
-    );
     const tx = await this.walletService.debit(
-      user,
+      dto.user_id,
       BigInt(dto.amount),
       dto.reason,
+      { guildId: dto.guild_id ?? null },
     );
     return {
       transaction_id: tx.id,
@@ -210,19 +200,12 @@ export class WalletController {
   @ApiBody({ type: TransferDto })
   @ApiOkResponse({ type: WalletTransferResponseDto })
   async transferBetweenUsers(@Body() dto: TransferDto) {
-    const fromUser = await this.userService.findOrCreate(
-      dto.guild_id,
-      dto.from_user_id,
-    );
-    const toUser = await this.userService.findOrCreate(
-      dto.guild_id,
-      dto.to_user_id,
-    );
     const [debitTx, creditTx] = await this.walletService.transfer(
-      fromUser,
-      toUser,
+      dto.from_user_id,
+      dto.to_user_id,
       BigInt(dto.amount),
       dto.reason,
+      { guildId: dto.guild_id ?? null },
     );
     return {
       debit_transaction_id: debitTx.id,

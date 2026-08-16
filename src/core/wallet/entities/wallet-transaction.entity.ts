@@ -25,8 +25,8 @@ export class WalletTransactionEntity extends BaseEntity {
   @Property({ type: 'bigint' })
   user_id: bigint;
 
-  @Property({ type: 'bigint' })
-  guild_id: bigint;
+  @Property({ type: 'bigint', nullable: true })
+  guild_id: bigint | null = null;
 
   @Property({ type: 'bigint' })
   amount: bigint;

@@ -97,10 +97,24 @@ export class FlipGame {
     let balanceAfter = oldBalance;
     const isWin = Math.floor(Math.random() * 100) % 2;
     if (isWin) {
-      const tx = await this.walletService.credit(user, coins, 'mini-game:flip');
+      const tx = await this.walletService.credit(
+        user.user_id,
+        coins,
+        'mini-game:flip',
+        {
+          guildId: user.guild_id,
+        },
+      );
       balanceAfter = tx.balance_after;
     } else {
-      const tx = await this.walletService.debit(user, coins, 'mini-game:flip');
+      const tx = await this.walletService.debit(
+        user.user_id,
+        coins,
+        'mini-game:flip',
+        {
+          guildId: user.guild_id,
+        },
+      );
       balanceAfter = tx.balance_after;
     }
 
