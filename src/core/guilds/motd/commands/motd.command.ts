@@ -11,12 +11,10 @@ import {
 import { UserService } from '#core/users/users.service';
 import { WalletService } from '#core/wallet/wallet.service';
 import { formatCoins } from '#lib/utils';
-
+import { MOTD_COST } from '../motd.constants';
 import { MotdService } from '../motd.service';
 
 import { AddMotdDto } from './motd.dto';
-
-const MOTD_COST = 1000n;
 
 const MotdGroupDecorator = createCommandGroupDecorator({
   name: 'motd',

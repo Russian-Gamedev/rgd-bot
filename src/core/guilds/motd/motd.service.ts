@@ -111,13 +111,14 @@ export class MotdService {
     return entry;
   }
 
-  async addMotd(content: string, authorId?: bigint) {
+  async addMotd(content: string, authorId?: bigint): Promise<MotdEntity> {
     const motd = new MotdEntity();
     motd.author_id = authorId;
     motd.content = content;
     await this.em.persist(motd).flush();
     await this.loadMotd();
     await this.redis.del(this.LIST_CACHE_KEY);
+    return motd;
   }
 
   async removeMotd(id: number) {

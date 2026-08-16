@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString, MaxLength } from 'class-validator';
 
 export class CurrentMotdResponseDto {
   @ApiProperty({ example: 'Добро пожаловать в RGD!', nullable: true })
@@ -25,4 +26,28 @@ export class MotdDto {
 
   @ApiProperty({ type: MotdAuthorDto })
   user: MotdAuthorDto;
+}
+
+export class CreateMotdDto {
+  @ApiProperty({
+    example: 'Добро пожаловать в RGD!',
+    description: 'Текст MOTD',
+    maxLength: 255,
+  })
+  @IsString()
+  @MaxLength(255)
+  content: string;
+}
+
+export class AddMotdResponseDto {
+  @ApiProperty({ example: 1 })
+  id: number;
+
+  @ApiProperty({ example: 'Добро пожаловать в RGD!' })
+  content: string;
+
+  @ApiProperty({
+    description: 'Баланс кошелька после списания стоимости MOTD.',
+  })
+  balance_after: string;
 }
