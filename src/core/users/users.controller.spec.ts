@@ -135,6 +135,7 @@ describe('UsersController', () => {
     const controller = new UsersController(
       createUserService(),
       publicProfileService,
+      createGamesService(),
     );
     const json = mock(() => undefined);
     const res = { json } as unknown as Response;
@@ -157,6 +158,7 @@ describe('UsersController', () => {
     const controller = new UsersController(
       createUserService(),
       publicProfileService,
+      createGamesService(),
     );
     const redirect = mock(() => undefined);
     const res = { redirect } as unknown as Response;
@@ -182,6 +184,7 @@ describe('UsersController', () => {
     const controller = new UsersController(
       createUserService(),
       publicProfileService,
+      createGamesService(),
     );
     const redirect = mock(() => undefined);
     const res = { redirect } as unknown as Response;
@@ -206,6 +209,7 @@ describe('UsersController', () => {
     const controller = new UsersController(
       createUserService(),
       publicProfileService,
+      createGamesService(),
     );
 
     await expect(controller.getById('404.png', {} as Response)).rejects.toThrow(

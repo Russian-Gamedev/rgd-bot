@@ -20,12 +20,12 @@ import {
   ApiTags,
   OmitType,
 } from '@nestjs/swagger';
+import { type Response } from 'express';
 import {
   GameListQueryDto,
   GameListResponseDto,
 } from '#core/games/dto/games.dto';
 import { GamesService } from '#core/games/games.service';
-import { type Response } from 'express';
 import { getActorUserId } from '#core/permissions/actor-user-id';
 import { ApiActorAuth } from '#core/permissions/openapi-auth.decorator';
 import { Actor } from '#core/permissions/permissions.decorator';

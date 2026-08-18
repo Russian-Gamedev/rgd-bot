@@ -33,7 +33,6 @@
     ]
   },
   "devDependencies": {
-
     "@biomejs/biome": "^2.5.9",
     "@mikro-orm/cli": "^7.1.12",
 
