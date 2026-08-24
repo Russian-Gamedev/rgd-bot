@@ -20,7 +20,7 @@ import { InsufficientFundsException } from '#core/wallet/wallet.exception';
 import { WalletService } from '#core/wallet/wallet.service';
 import { formatCoins, getErrorMessage, hideEmbedLink } from '#lib/utils';
 
-import { RenameUserDto } from '../dto/rename.dto';
+import { RenameUserDto } from './rename.dto';
 
 const RENAME_BOT_COST = 10_000n;
 
@@ -171,7 +171,6 @@ export class RenameCommands {
       target_member.nickname ?? target_member.user.username;
 
     let message = await this.guildEventService.getRandom(
-      BigInt(guild.id),
       GuildEvents.MEMBER_SET_NAME,
       {
         user: `**${previous_nickname}**`,
