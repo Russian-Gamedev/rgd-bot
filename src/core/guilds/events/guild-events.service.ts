@@ -7,6 +7,10 @@ import { UserProfileEntity } from '#core/users/entities/user-profile.entity';
 import { pickRandom } from '#lib/utils';
 
 import { GuildEventEntity } from './entities/events.entity';
+import {
+  GUILD_EVENT_DEFAULT_POOL_SIZE,
+  GUILD_EVENT_POOL_SIZE,
+} from './guild-events.constants';
 
 export interface EventAuthorView {
   id: string;
@@ -31,12 +35,13 @@ export class GuildEventService {
   ) {}
 
   async getRandom(event: GuildEvents, params: Record<string, string> = {}) {
+    const limit = GUILD_EVENT_POOL_SIZE[event] ?? GUILD_EVENT_DEFAULT_POOL_SIZE;
     const events = await this.guildEventRepository
       .createQueryBuilder('events')
       .select('*')
       .where({ event })
       .orderBy({ updatedAt: 'ASC' })
-      .limit(10)
+      .limit(limit)
       .execute();
 
     if (!events.length) return null;
